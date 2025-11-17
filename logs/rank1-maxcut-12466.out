@@ -1,0 +1,50 @@
+Job started on bg3u24g1
+SLURM_CPUS_PER_TASK: 
+GPUs allocated: 0,1
+2025-11-17 16:06:32,239	INFO scripts.py:1163 -- Did not find any active Ray processes.
+2025-11-17 16:06:32,774	INFO usage_lib.py:421 -- Usage stats collection is enabled. To disable this, add `--disable-usage-stats` to the command that starts the cluster, or run the following command: `ray disable-usage-stats` before starting the cluster. See https://docs.ray.io/en/master/cluster/usage-stats.html for more details.
+2025-11-17 16:06:32,774	INFO scripts.py:744 -- Local node IP: 192.168.154.4
+2025-11-17 16:06:36,146	SUCC scripts.py:781 -- --------------------
+2025-11-17 16:06:36,146	SUCC scripts.py:782 -- Ray runtime started.
+2025-11-17 16:06:36,146	SUCC scripts.py:783 -- --------------------
+2025-11-17 16:06:36,146	INFO scripts.py:785 -- Next steps
+2025-11-17 16:06:36,146	INFO scripts.py:788 -- To add another node to this Ray cluster, run
+2025-11-17 16:06:36,146	INFO scripts.py:791 --   ray start --address='192.168.154.4:6565'
+2025-11-17 16:06:36,146	INFO scripts.py:800 -- To connect to this Ray cluster:
+2025-11-17 16:06:36,147	INFO scripts.py:802 -- import ray
+2025-11-17 16:06:36,147	INFO scripts.py:803 -- ray.init()
+2025-11-17 16:06:36,147	INFO scripts.py:834 -- To terminate the Ray runtime, run
+2025-11-17 16:06:36,147	INFO scripts.py:835 --   ray stop
+2025-11-17 16:06:36,147	INFO scripts.py:838 -- To view the status of the cluster, use
+2025-11-17 16:06:36,147	INFO scripts.py:839 --   ray status
+
+Final partition assignment k:
+[0 0 0 1 2 1 1 1 2 1 1 1 1 1 1 1 1 2 2 1 1 2 1 1 2 1 1 1 2 2 1 2 1 1 2 0 0
+ 2 2 2 2 2 2 0 0 2 0 2 0 0 0 2 0 0 0 0 2 0 2 0 0 2 2 0 2 2 2 0 2 0 0 2 2 0
+ 2 0 2 0 2 0 2 0 0 0 0 2 0 0 0 2 0 0 0 2 2 0 2 2 0 0 2 2 2 0 2 2 0 0 0 2 2
+ 0 0 2 2 0 2 0 2 2 0 2 2 0 2 0 2 0 0 0 2 2 0 0 0 2 0 2 2 0 0 2 0 0 2 0 0 0
+ 0 0 2 0 2 0 0 0 2 0 0 0 2 0 2 0 0 0 0 0 0 2 2 0 0 0 2 0 2 2 2 0 2 0 0 2 0
+ 0 2 0 0 0 0 0 2 0 2 2 0 2 0 0 2 0 0 2 0 0 2 2 2 0 0 2 2 2 0 0 0 0 0 2 2 2
+ 2 0 0 0 2 0 2 0 0 0 0 0 2 2 0 2 2 2 0 0 0 2 0 0 0 0 2 0 1 1 1 1 2 0 2 2 2
+ 2 2 2 1 2 1 1 1 2 1 1 2 2 1 2 1 1 2 2 2 2 2 2 1 2 2 1 2 2 1 1 1 2 1 2 1 2
+ 2 2 1 2 2 2 2 1 1 2 2 2 2 2 1 2 1 1 1 2 2 2 2 1 1 2 1 1 1 2 2 1 1 2 2 1 2
+ 2 1 1 2 2 2 2 1 1 1 1 1 1 2 2 1 2 1 2 2 2 1 1 1 1 2 1 1 2 1 2 2 1 1 1 2 1
+ 1 1 1 2 1 1 2 2 1 2 1 1 1 1 1 1 2 2 2 1 1 1 1 1 1 1 2 1 1 2 2 2 2 1 1 2 2
+ 2 1 1 2 2 2 1 2 1 2 2 1 1 2 1 2 1 1 1 2 1 2 1 1 1 2 2 1 2 1 2 2 1 2 1 1 1
+ 2 1 1 1 1 1 1 2 1 2 1 2 2 2 1 1 2 2 1 1 1 1 1 2 1 2 2 1 1 2 2 1 1 2 1 1 2
+ 2 1 1 2 2 2 2 1 1 2 2 2 2 2 1 1 1 1 1 1 2 1 1 2 2 1 1 1 1 1 2 2 2 2 1 2 2
+ 1 2 1 2 1 2 2 1 1 2 2 1 1 2 1 2 2 2 1 2 2 2 1 2 1 1 1 1 1 2 2 2 1 1 1 1 1
+ 2 1 1 1 1 2 2 1 2 1 1 1 2 1 1 2 1 2 1 1 1 1 2 2 2 1 1 1 1 2 1 2 1 1 2 2 2
+ 2 1 1 1 2 1 2 1 1 1 1 1 2 1 2 2 1 1 1 1 1 1 2 2 2 1 1 2 1 2 2 2 1 2 2 1 2
+ 2 1 1 1 1 2 1 1 2 1 1 1 2 2 1 1 1 1 1 2 2 1 1 2 1 2 2 1 2 2 1 1 2 2 1 2 2
+ 1 1 2 2 1 2 2 2 2 1 2 1 2 1 2 1 1 1 1 2 2 1 2 2 2 1 2 2 1 1 1 2 1 1 2 1 2
+ 2 2 2 0 0 2 0 2 0 0 0 0 0 0 2 2 0 2 0 0 0 0 2 2 2 0 2 0 0 2 0 2 0 0 2 2 2
+ 0 0 2 0 2 2 0 0 0 2 2 0 2 2 0 0 2 0 2 2 2 2 2 2 0 0 2 0 2 0 2 2 0 0 2 2 0
+ 0 0 2 2 2 0 0 0 0 2 2 2 2 0 0 0 0 0 0 2 2 0 2 0 0 2 0 0 2 2 2 2 2 0 0 0 2
+ 0 0 2 0 0 0 0 2 2 2 0 2 0 0 0 2 2 0 0 0 0 0 0 0 0 2 2 2 2 2 2 2 2 2 0 0 2
+ 2 0 0 2 0 2 2 2 2 2 0 0 2 0 0 0 2 0 0 0 2 0 0 0 2 0 2 0 0 2 2 0 2 2 0 2 2
+ 0 2 0 2 2 2 2 2 0 0 0 2 2 0 0 0 2 0 2 0 0 2 2 0 0 0 0 0 2 2 0 0 0 2 0 2 0
+ 0 0 2 0 0 2 0 2 0 0 0 0 2 0 0 2 0 2 0 0 0 2 0 2 0 2 0 2 0 2 2 0 2 2 0 2 2
+ 1 1 2 1 1 2 2 2 2 1 1 1 1 2 2 2 2 2 1 2 2 1 1 2 1 2 1 2 1 2 2 1 2 2 0 0 0
+ 2]
+Job complete.

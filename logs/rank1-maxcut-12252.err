@@ -1,0 +1,47 @@
+2025-11-17 07:22:11,599	INFO worker.py:1489 -- Connecting to existing Ray cluster at address: 192.168.154.2:6379...
+2025-11-17 07:22:11,612	INFO worker.py:1673 -- Connected to Ray cluster.
+2025-11-17 07:23:18,599	WARNING worker.py:2074 -- Raylet is terminated. Termination is unexpected. Possible reasons include: (1) SIGKILL by the user or system OOM killer, (2) Invalid memory access from Raylet causing SIGSEGV or SIGBUS, (3) Other termination signals. Last 20 lines of the Raylet logs:
+    [state-dump] 	InternalPubSubGcsService.grpc_client.GcsSubscriberCommandBatch - 2 total (0 active), CPU time: mean = 79.841 us, total = 159.683 us
+    [state-dump] 	NodeInfoGcsService.grpc_client.RegisterNode - 1 total (0 active), CPU time: mean = 204.578 us, total = 204.578 us
+    [state-dump] 	JobInfoGcsService.grpc_client.GetAllJobInfo - 1 total (0 active), CPU time: mean = 9.240 us, total = 9.240 us
+    [state-dump] 	NodeInfoGcsService.grpc_client.GetInternalConfig - 1 total (0 active), CPU time: mean = 21.151 ms, total = 21.151 ms
+    [state-dump] 	NodeInfoGcsService.grpc_client.GetAllNodeInfo - 1 total (0 active), CPU time: mean = 120.619 us, total = 120.619 us
+    [state-dump] 	NodeManager.deadline_timer.print_event_loop_stats - 1 total (1 active, 1 running), CPU time: mean = 0.000 s, total = 0.000 s
+    [state-dump] 	InternalPubSubGcsService.grpc_client.GcsSubscriberPoll - 1 total (1 active), CPU time: mean = 0.000 s, total = 0.000 s
+    [state-dump] 	 - 1 total (0 active), CPU time: mean = 200.000 ns, total = 200.000 ns
+    [state-dump] 	RaySyncer.BroadcastMessage - 1 total (0 active), CPU time: mean = 46.247 us, total = 46.247 us
+    [state-dump] 	NodeManager.GCTaskFailureReason - 1 total (1 active), CPU time: mean = 0.000 s, total = 0.000 s
+    [state-dump] DebugString() time ms: 0
+    [state-dump] 
+    [state-dump] 
+    [2025-11-17 07:22:53,882 W 1185617 1185617] (raylet) memory_monitor.cc:220: Got negative used memory for cgroup -1, setting it to zero
+    [2025-11-17 07:22:58,885 W 1185617 1185617] (raylet) memory_monitor.cc:220: Got negative used memory for cgroup -1, setting it to zero
+    [2025-11-17 07:23:03,888 W 1185617 1185617] (raylet) memory_monitor.cc:220: Got negative used memory for cgroup -1, setting it to zero
+    [2025-11-17 07:23:08,893 W 1185617 1185617] (raylet) memory_monitor.cc:220: Got negative used memory for cgroup -1, setting it to zero
+    [2025-11-17 07:23:13,896 W 1185617 1185617] (raylet) memory_monitor.cc:220: Got negative used memory for cgroup -1, setting it to zero
+    [2025-11-17 07:23:15,633 I 1185617 1185617] (raylet) node_manager.cc:622: New job has started. Job id 01000000 Driver pid 1185683 is dead: 0 driver address: 192.168.154.2
+    [2025-11-17 07:23:15,633 I 1185617 1185617] (raylet) worker_pool.cc:681: Job 01000000 already started in worker pool.
+
+2025-11-17 07:23:18,651	WARNING worker.py:2074 -- Raylet is terminated. Termination is unexpected. Possible reasons include: (1) SIGKILL by the user or system OOM killer, (2) Invalid memory access from Raylet causing SIGSEGV or SIGBUS, (3) Other termination signals. Last 20 lines of the Raylet logs:
+    [state-dump] 	InternalPubSubGcsService.grpc_client.GcsSubscriberCommandBatch - 2 total (0 active), CPU time: mean = 79.841 us, total = 159.683 us
+    [state-dump] 	NodeInfoGcsService.grpc_client.RegisterNode - 1 total (0 active), CPU time: mean = 204.578 us, total = 204.578 us
+    [state-dump] 	JobInfoGcsService.grpc_client.GetAllJobInfo - 1 total (0 active), CPU time: mean = 9.240 us, total = 9.240 us
+    [state-dump] 	NodeInfoGcsService.grpc_client.GetInternalConfig - 1 total (0 active), CPU time: mean = 21.151 ms, total = 21.151 ms
+    [state-dump] 	NodeInfoGcsService.grpc_client.GetAllNodeInfo - 1 total (0 active), CPU time: mean = 120.619 us, total = 120.619 us
+    [state-dump] 	NodeManager.deadline_timer.print_event_loop_stats - 1 total (1 active, 1 running), CPU time: mean = 0.000 s, total = 0.000 s
+    [state-dump] 	InternalPubSubGcsService.grpc_client.GcsSubscriberPoll - 1 total (1 active), CPU time: mean = 0.000 s, total = 0.000 s
+    [state-dump] 	 - 1 total (0 active), CPU time: mean = 200.000 ns, total = 200.000 ns
+    [state-dump] 	RaySyncer.BroadcastMessage - 1 total (0 active), CPU time: mean = 46.247 us, total = 46.247 us
+    [state-dump] 	NodeManager.GCTaskFailureReason - 1 total (1 active), CPU time: mean = 0.000 s, total = 0.000 s
+    [state-dump] DebugString() time ms: 0
+    [state-dump] 
+    [state-dump] 
+    [2025-11-17 07:22:53,882 W 1185617 1185617] (raylet) memory_monitor.cc:220: Got negative used memory for cgroup -1, setting it to zero
+    [2025-11-17 07:22:58,885 W 1185617 1185617] (raylet) memory_monitor.cc:220: Got negative used memory for cgroup -1, setting it to zero
+    [2025-11-17 07:23:03,888 W 1185617 1185617] (raylet) memory_monitor.cc:220: Got negative used memory for cgroup -1, setting it to zero
+    [2025-11-17 07:23:08,893 W 1185617 1185617] (raylet) memory_monitor.cc:220: Got negative used memory for cgroup -1, setting it to zero
+    [2025-11-17 07:23:13,896 W 1185617 1185617] (raylet) memory_monitor.cc:220: Got negative used memory for cgroup -1, setting it to zero
+    [2025-11-17 07:23:15,633 I 1185617 1185617] (raylet) node_manager.cc:622: New job has started. Job id 01000000 Driver pid 1185683 is dead: 0 driver address: 192.168.154.2
+    [2025-11-17 07:23:15,633 I 1185617 1185617] (raylet) worker_pool.cc:681: Job 01000000 already started in worker pool.
+
+[2025-11-17 07:24:22,642 E 1185683 1185891] gcs_rpc_client.h:552: Failed to connect to GCS within 60 seconds. GCS may have been killed. It's either GCS is terminated by `ray stop` or is killed unexpectedly. If it is killed unexpectedly, see the log file gcs_server.out. https://docs.ray.io/en/master/ray-observability/ray-logging.html#logging-directory-structure. The program will terminate.

@@ -1,0 +1,41 @@
+2025-11-17 10:23:37,327	INFO worker.py:1489 -- Connecting to existing Ray cluster at address: 192.168.154.4:6379...
+2025-11-17 10:23:37,342	INFO worker.py:1673 -- Connected to Ray cluster.
+2025-11-17 10:27:02,429	WARNING worker.py:2074 -- The autoscaler failed with the following error:
+Terminated with signal 15
+  File "/home/bs82/max-k-cut-parallel/ray311/lib/python3.11/site-packages/ray/autoscaler/_private/monitor.py", line 711, in <module>
+    monitor.run()
+  File "/home/bs82/max-k-cut-parallel/ray311/lib/python3.11/site-packages/ray/autoscaler/_private/monitor.py", line 586, in run
+    self._run()
+  File "/home/bs82/max-k-cut-parallel/ray311/lib/python3.11/site-packages/ray/autoscaler/_private/monitor.py", line 440, in _run
+    time.sleep(AUTOSCALER_UPDATE_INTERVAL_S)
+
+Traceback (most recent call last):
+  File "/home/bs82/max-k-cut-parallel/parallel_rank_1.py", line 139, in <module>
+    main()
+  File "/home/bs82/max-k-cut-parallel/parallel_rank_1.py", line 120, in main
+    best_score, best_k = process_rank1_parallel(V[:, 0], Q, K=3)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bs82/max-k-cut-parallel/parallel_rank_1.py", line 63, in process_rank1_parallel
+    futures = [
+              ^
+  File "/home/bs82/max-k-cut-parallel/parallel_rank_1.py", line 64, in <listcomp>
+    process_rank1_candidate.remote(l, k0, sorted_idx, Q, K)
+  File "/home/bs82/max-k-cut-parallel/ray311/lib/python3.11/site-packages/ray/remote_function.py", line 138, in _remote_proxy
+    return self._remote(args=args, kwargs=kwargs, **self._default_options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bs82/max-k-cut-parallel/ray311/lib/python3.11/site-packages/ray/_private/auto_init_hook.py", line 24, in auto_init_wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/bs82/max-k-cut-parallel/ray311/lib/python3.11/site-packages/ray/util/tracing/tracing_helper.py", line 310, in _invocation_remote_span
+    return method(self, args, kwargs, *_args, **_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bs82/max-k-cut-parallel/ray311/lib/python3.11/site-packages/ray/remote_function.py", line 305, in _remote
+    worker.function_actor_manager.export(self)
+  File "/home/bs82/max-k-cut-parallel/ray311/lib/python3.11/site-packages/ray/_private/function_manager.py", line 260, in export
+    if self._worker.gcs_client.internal_kv_exists(key, KV_NAMESPACE_FUNCTION_TABLE):
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "python/ray/_raylet.pyx", line 2465, in ray._raylet._auto_reconnect.wrapper
+  File "python/ray/_raylet.pyx", line 2442, in ray._raylet._auto_reconnect.wrapper
+  File "python/ray/_raylet.pyx", line 2623, in ray._raylet.GcsClient.internal_kv_exists
+  File "python/ray/_raylet.pyx", line 459, in ray._raylet.check_status
+ray.exceptions.RpcError: AuthError

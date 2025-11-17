@@ -1,0 +1,3 @@
+2025-11-17 10:27:37,376	INFO worker.py:1489 -- Connecting to existing Ray cluster at address: 192.168.154.4:6379...
+2025-11-17 10:27:37,396	INFO worker.py:1673 -- Connected to Ray cluster.
+[2025-11-17T16:02:07.800] error: *** JOB 12266 ON bg3u24g1 CANCELLED AT 2025-11-17T16:02:07 DUE to SIGNAL Terminated ***

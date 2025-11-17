@@ -1,0 +1,138 @@
+import numpy as np
+import ray
+from utils import *
+import cvxpy as cvx
+import time
+
+import warnings
+warnings.filterwarnings(
+    "ignore",
+    message="pkg_resources is deprecated as an API"
+)
+
+
+@ray.remote
+def process_rank1_candidate(l, k0, sorted_idx, Q, K):
+    """
+    rank 1 subroutine
+    
+    :param l: Description
+    :param k0: Description
+    :param sorted_idx: Description
+    :param Q: Description
+    :param K: Description
+    """
+    k = k0.copy()
+    
+    # Apply l prefix increments: ks[j] = ks[j] + 1 mod K
+    k[sorted_idx[:l]] = (k[sorted_idx[:l]] + 1) % K
+
+    # Convert to complex spins
+    z = np.exp(2 * np.pi * 1j * k / K)
+    score = np.real(z.conj() @ Q @ z)
+
+    return score, z, k
+
+def process_rank1_parallel(V, Q, K):
+    """
+    Main alg for ray cluster processing rank 1
+    
+    :param V: The single eigenvector of Q
+    :param Q: The Laplacian matrix
+    :param K: number of cuts to produce
+    """
+    n = V.shape[0] # number of nodes
+
+    # extract real and imaginary parts of the eigenvector
+    real_q1 = np.real(V).flatten()
+    im_q1 = np.imag(V).flatten()
+
+    # compute initial assignment k0
+    thetas = np.arctan2(im_q1, real_q1)
+    thetas = np.where(thetas < 0, thetas + 2*np.pi, thetas)
+    b = K * thetas / (2 * np.pi)
+    b_floor = np.floor(b).astype(int)
+    k0 = b_floor % K 
+    
+    # compute boundary points, and argsort
+    phi_hat = 0.5 - b + b_floor
+    phis = 2 * np.pi * phi_hat / K
+    sorted_idx = np.argsort(phis)
+
+    futures = [
+        process_rank1_candidate.remote(l, k0, sorted_idx, Q, K)
+        for l in range(n + 1)
+    ]
+    
+    results = ray.get(futures)
+    best_score, best_z, best_k = max(results, key=lambda x: x[0])
+    
+    return best_score, best_z, best_k
+
+
+def compute_recovery(z_alg, Q, opt_value):
+    """
+    algorithm value / optimal value
+    """
+    alg_value = np.real(z_alg.conj() @ Q @ z_alg)
+    return alg_value / opt_value
+
+
+def solve_sdp_optimal(Q):
+    """
+    Solve the SDP relaxation for MAX-K-CUT (rank-1 case uses MAX-3-CUT).
+    Returns the SDP optimal objective value.
+
+    For small sizes (n <= 12), CVXPY is fine.
+    """
+    n = Q.shape[0]
+
+    # SDP variable
+    X = cvx.Variable((n, n), PSD=True)
+
+    # MAX-K-CUT SDP relaxation objective
+    obj = cvx.Maximize(cvx.sum(cvx.multiply(Q, X)))
+
+    # Constraints
+    constraints = [
+        cvx.diag(X) == 1      # unit diagonal
+    ]
+    prob = cvx.Problem(obj, constraints)
+    prob.solve(solver=cvx.SCS, verbose=False)
+
+    return prob.value
+
+
+# example unit test
+def main():
+    print("\nInitializing Ray...")
+    np.random.seed(42)
+    ray.init(ignore_reinit_error=True)
+    
+    Q = generate_Q(0.5, 1000, 'erdos_renyi')
+    
+    eigvals, eigvecs = np.linalg.eigh(Q)
+    _, V = low_rank_matrix(Q, eigvals, eigvecs, r=1)
+
+    print("\nRunning parallel Rank-1 MAX-3-CUT")
+    start = time.time()
+    best_score, _, best_k = process_rank1_parallel(V[:, 0], Q, K=3)
+    
+    end = time.time()
+    elapsed = end - start
+    
+    print(f"\nRank-1 algorithm result: Score={best_score}")
+    print(f"Execution time: {elapsed:.4f} seconds")
+    
+    print("\nFinal partition assignment k:")
+    print(best_k)
+    
+    # opt_value = solve_sdp_optimal(Q)
+    # recovery = compute_recovery(best_z, Q, opt_value)
+    # print("\nRecovery percentage:", recovery * 100, "%")
+    # print("\np = 50 test completed.\n")
+
+
+# Run if executed directly
+if __name__ == "__main__":
+    main()

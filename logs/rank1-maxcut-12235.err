@@ -1,0 +1,25 @@
+2025-11-16 22:15:30,060	INFO worker.py:1489 -- Connecting to existing Ray cluster at address: 192.168.154.2:6379...
+2025-11-16 22:17:50,136	INFO worker.py:1638 -- Failed to connect to the default Ray cluster address at 192.168.154.2:6379. This is most likely due to a previous Ray instance that has since crashed. To reset the default address to connect to, run `ray stop` or restart Ray with `ray start`.
+Traceback (most recent call last):
+  File "/home/bs82/max-k-cut-parallel/ray311/lib/python3.11/site-packages/ray/_private/worker.py", line 1629, in init
+    _global_node = ray._private.node.Node(
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bs82/max-k-cut-parallel/ray311/lib/python3.11/site-packages/ray/_private/node.py", line 154, in __init__
+    self._init_gcs_client()
+  File "/home/bs82/max-k-cut-parallel/ray311/lib/python3.11/site-packages/ray/_private/node.py", line 729, in _init_gcs_client
+    raise RuntimeError(
+RuntimeError: Failed to connect to GCS.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/bs82/max-k-cut-parallel/parallel_rank_1.py", line 138, in <module>
+    main()
+  File "/home/bs82/max-k-cut-parallel/parallel_rank_1.py", line 110, in main
+    ray.init(ignore_reinit_error=True)
+  File "/home/bs82/max-k-cut-parallel/ray311/lib/python3.11/site-packages/ray/_private/client_mode_hook.py", line 103, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bs82/max-k-cut-parallel/ray311/lib/python3.11/site-packages/ray/_private/worker.py", line 1645, in init
+    raise ConnectionError
+ConnectionError

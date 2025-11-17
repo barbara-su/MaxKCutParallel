@@ -1,0 +1,13 @@
+2025-11-17 16:06:54 [INFO] Starting MAX 3 CUT experiment
+2025-11-17 16:06:55,044	INFO worker.py:1489 -- Connecting to existing Ray cluster at address: 192.168.154.4:6565...
+2025-11-17 16:06:55,056	INFO worker.py:1673 -- Connected to Ray cluster.
+2025-11-17 16:07:59 [INFO] Ray initialized
+2025-11-17 16:08:01 [INFO] Random graph Laplacian generated
+2025-11-17 16:08:02 [INFO] Eigen decomposition complete; extracted top eigenvector
+2025-11-17 16:08:02 [INFO] Executing parallel rank 1 algorithm
+2025-11-17 16:08:02 [INFO] Rank 1 subroutine: received eigenvector of length 1000
+2025-11-17 16:08:02 [INFO] Initial assignment k0 computed
+2025-11-17 16:08:02 [INFO] Dispatching Ray tasks for all prefix increments
+2025-11-17 16:08:20 [INFO] Ray tasks completed and best score recovered
+2025-11-17 16:08:20 [INFO] Rank 1 result: score=484818.0
+2025-11-17 16:08:20 [INFO] Execution time: 18.1500 seconds
