@@ -25,17 +25,14 @@ log = logging.getLogger(__name__)
 
 
 @ray.remote
-def process_rank1_candidate(l, k0, sorted_idx, Q_ref, K, phase_table_ref):
-    Q = ray.get(Q_ref)
-    phase_table = ray.get(phase_table_ref)
-    
+def process_rank1_candidate(l, k0, sorted_idx, Q, K, phase_table):
     k = k0.copy()
     k[sorted_idx[:l]] = (k[sorted_idx[:l]] + 1) % K
     z = phase_table[k]
     score = np.real(z.conj() @ Q @ z)
     return score
 
-def process_rank1_parallel(V, Q_ref, K, phase_table_ref):
+def process_rank1_parallel(V, Q, K, phase_table):
     n = V.shape[0]
     log.info(f"Rank 1 subroutine: received eigenvector of length {n}")
     real_q1 = np.real(V).flatten()
@@ -70,7 +67,7 @@ def process_rank1_parallel(V, Q_ref, K, phase_table_ref):
         batch_end = min(batch_start + batch_size, n + 1)
         futures = [
             process_rank1_candidate.remote(
-                l, k0, sorted_idx, Q_ref, K, phase_table_ref
+                l, k0, sorted_idx, Q, K, phase_table
             )
             for l in range(batch_start, batch_end)
         ]
@@ -137,13 +134,15 @@ def main():
     _, V = low_rank_matrix(Q, eigvals, eigvecs, r=1)
     log.info("Eigen decomposition complete and top eigenvector extracted")
 
+    log.info("Executing parallel rank 1 algorithm")
+    start = time.time()
+    
     # precompute K exponential values
     K = 3
     phase_table = np.exp(2 * np.pi * 1j * np.arange(K) / K)
     phase_table_ref = ray.put(phase_table)
+    log.info("Computed phase table")
     
-    log.info("Executing parallel rank 1 algorithm")
-    start = time.time()
     best_score, best_k, best_z = process_rank1_parallel(
         V[:, 0], Q_ref, K, phase_table_ref
     )
