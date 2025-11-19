@@ -5,7 +5,7 @@
 
 #SBATCH --partition=commons
 #SBATCH --cpus-per-task=208
-#SBATCH --mem=128GB             
+#SBATCH --mem=1024GB             
 #SBATCH --time=10:00:00
 
 echo "Job started on $(hostname)"
@@ -29,7 +29,7 @@ conda activate /home/bs82/max-k-cut-parallel/ray311
 ray stop
 ray start --head --port=5050
 
-# Run your Python code
-python parallel_rank_1_batched_single_node.py
+# Run python code
+python src/parallel_rank1.py --n 10000
 
 echo "Job complete."

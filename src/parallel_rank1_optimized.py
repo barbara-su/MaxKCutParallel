@@ -7,6 +7,7 @@ import logging
 import warnings
 import argparse
 import json
+import os
 from datetime import datetime
 
 # ignore the ray warning
@@ -25,21 +26,34 @@ log = logging.getLogger(__name__)
 
 
 @ray.remote
-def process_rank1_candidate(l, k0, sorted_idx, Q, K, phase_table):
+def process_rank1_candidate(l, k0, sorted_idx, Q, roots, K):
+    """
+    Worker that evaluates the rank-1 rounding objective for a given prefix length l.
+
+    Note: k0, sorted_idx, Q, roots are already materialized arrays here.
+    Ray automatically dereferences ObjectRefs passed from the driver.
+    """
+    # Local copy of k
     k = k0.copy()
     k[sorted_idx[:l]] = (k[sorted_idx[:l]] + 1) % K
-    z = phase_table[k]
+
+    # Use precomputed K-th roots of unity
+    z = roots[k]
+
+    # Compute score = Re(z*^T Q z)
     score = np.real(z.conj() @ Q @ z)
     return score
 
-def process_rank1_parallel(V, Q, K, phase_table):
+
+def process_rank1_parallel(V, Q, K):
     n = V.shape[0]
     log.info(f"Rank 1 subroutine: received eigenvector of length {n}")
+
     real_q1 = np.real(V).flatten()
     im_q1 = np.imag(V).flatten()
     
     thetas = np.arctan2(im_q1, real_q1)
-    thetas = np.where(thetas < 0, thetas + 2*np.pi, thetas)
+    thetas = np.where(thetas < 0, thetas + 2 * np.pi, thetas)
     b = K * thetas / (2 * np.pi)
     b_floor = np.floor(b).astype(int)
     k0 = b_floor % K
@@ -50,51 +64,68 @@ def process_rank1_parallel(V, Q, K, phase_table):
     phis = 2 * np.pi * phi_hat / K
     sorted_idx = np.argsort(phis)
 
-    # Use available CPU to determine batch size.
+    # Put large arrays into Ray object store once
+    Q_ref = ray.put(Q)
+    k0_ref = ray.put(k0)
+    sorted_idx_ref = ray.put(sorted_idx)
+
+    # Precompute phase table (K-th roots of unity) and store in object store
+    roots = np.exp(2 * np.pi * 1j * np.arange(K) / K)
+    roots_ref = ray.put(roots)
+
+    # Use available CPU to determine batch size, but cap to avoid too many heavy tasks
     resources = ray.available_resources()
     if "CPU" in resources:
-        batch_size = int(resources["CPU"])
+        cpus = int(resources["CPU"])
     else:
-        batch_size = 1
+        cpus = 1
 
-    batch_size = max(1, batch_size)
-    log.info(f"Batch size set to number of available workers: {batch_size}")
+    # Reasonable cap: do not spawn more than 8 heavy matvecs in parallel
+    batch_size = max(1, min(cpus, 48))
+    log.info(f"Batch size set to number of parallel workers: {batch_size}")
 
     best_score = -np.inf
     best_l = 0
 
+    # Evaluate all l in [0, n] in batches
     for batch_start in range(0, n + 1, batch_size):
         batch_end = min(batch_start + batch_size, n + 1)
+
         futures = [
             process_rank1_candidate.remote(
-                l, k0, sorted_idx, Q, K, phase_table
+                l, k0_ref, sorted_idx_ref, Q_ref, roots_ref, K
             )
             for l in range(batch_start, batch_end)
         ]
+
         batch_scores = ray.get(futures)
-        
-        # update max
+
+        # Find the best within this batch
         local_max_idx = int(np.argmax(batch_scores))
         local_max = batch_scores[local_max_idx]
+
         if local_max > best_score:
             best_score = local_max
             best_l = batch_start + local_max_idx
-            
+
         log.info(f"Completed batch {batch_start} to {batch_end - 1}")
+
     log.info(f"Best prefix l = {best_l}")
 
-    # reconstruct the assignment
+    # Reconstruct the assignment for best_l
     best_k = k0.copy()
     best_k[sorted_idx[:best_l]] = (best_k[sorted_idx[:best_l]] + 1) % K
 
-    # compute final z vector
-    best_z = np.exp(2 * np.pi * 1j * best_k / K)
+    # Compute final z vector using the same phase table (in driver memory)
+    best_z = roots[best_k]
 
     return best_score, best_k, best_z
+
 
 def compute_recovery(z_alg, Q, opt_value):
     alg_value = np.real(z_alg.conj() @ Q @ z_alg)
     return alg_value / opt_value
+
 
 def solve_sdp_optimal(Q):
     n = Q.shape[0]
@@ -104,7 +135,6 @@ def solve_sdp_optimal(Q):
     constraints = [cvx.diag(X) == 1]
     prob = cvx.Problem(obj, constraints)
     prob.solve(solver=cvx.SCS, verbose=False)
-
     log.info("SDP optimal value computed")
     return prob.value
 
@@ -123,11 +153,11 @@ def main():
 
     np.random.seed(args.seed)
     log.info("Starting MAX 3 CUT experiment")
+
     ray.init(ignore_reinit_error=True)
     log.info("Ray initialized")
 
     Q = generate_Q(0.5, args.n, 'erdos_renyi', seed=args.seed)
-    Q_ref = ray.put(Q) # put Q into ray object store to speed up
     log.info("Random graph Laplacian generated")
 
     eigvals, eigvecs = np.linalg.eigh(Q)
@@ -136,16 +166,7 @@ def main():
 
     log.info("Executing parallel rank 1 algorithm")
     start = time.time()
-    
-    # precompute K exponential values
-    K = 3
-    phase_table = np.exp(2 * np.pi * 1j * np.arange(K) / K)
-    phase_table_ref = ray.put(phase_table)
-    log.info("Computed phase table")
-    
-    best_score, best_k, best_z = process_rank1_parallel(
-        V[:, 0], Q_ref, K, phase_table_ref
-    )
+    best_score, best_k, best_z = process_rank1_parallel(V[:, 0], Q, K=3)
     elapsed = time.time() - start
 
     log.info(f"Rank 1 result: score = {best_score}")
@@ -172,6 +193,8 @@ def main():
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = f"{timestamp}_result_n{args.n}.json"
+
+    os.makedirs(args.results_dir, exist_ok=True)
     path = os.path.join(args.results_dir, filename)
     with open(path, "w") as f:
         json.dump(output, f, indent=2)

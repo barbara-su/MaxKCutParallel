@@ -7,6 +7,7 @@ import logging
 import warnings
 import argparse
 import json
+import os
 from datetime import datetime
 
 # ignore the ray warning
@@ -25,21 +26,56 @@ log = logging.getLogger(__name__)
 
 
 @ray.remote
-def process_rank1_candidate(l, k0, sorted_idx, Q, roots, K):
-    k = k0.copy()
-    k[sorted_idx[:l]] = (k[sorted_idx[:l]] + 1) % K
-    z = roots[k]
-    score = np.real(z.conj() @ Q @ z)
-    return score
+def process_rank1_chunk(l_start, l_end, k0, sorted_idx, Q, roots, K):
+    """
+    Ray worker that searches over l in [l_start, l_end)
+    and returns the best score and best l in that interval.
+    k0, sorted_idx, Q, roots are already concrete arrays here.
+    """
+    worker_log = logging.getLogger(__name__)
+    num_candidates = l_end - l_start
+    worker_log.info(
+        f"[Worker] Starting chunk [{l_start}, {l_end}) with {num_candidates} candidates"
+    )
+
+    best_score = -np.inf
+    best_l = l_start
+
+    sorted_idx_local = sorted_idx
+    k0_local = k0
+
+    for idx, l in enumerate(range(l_start, l_end)):
+        k = k0_local.copy()
+        k[sorted_idx_local[:l]] = (k[sorted_idx_local[:l]] + 1) % K
+
+        z = roots[k]
+        score = np.real(z.conj() @ Q @ z)
+
+        if score > best_score:
+            best_score = score
+            best_l = l
+
+        # progress log every 1000 candidates within this chunk
+        if idx > 0 and idx % 1000 == 0:
+            worker_log.info(
+                f"[Worker] Chunk [{l_start}, {l_end}) processed {idx} / {num_candidates}"
+            )
+
+    worker_log.info(
+        f"[Worker] Finished chunk [{l_start}, {l_end}); best_l = {best_l}, best_score = {best_score}"
+    )
+    return float(best_score), int(best_l)
+
 
 def process_rank1_parallel(V, Q, K):
     n = V.shape[0]
     log.info(f"Rank 1 subroutine: received eigenvector of length {n}")
+
     real_q1 = np.real(V).flatten()
     im_q1 = np.imag(V).flatten()
     
     thetas = np.arctan2(im_q1, real_q1)
-    thetas = np.where(thetas < 0, thetas + 2*np.pi, thetas)
+    thetas = np.where(thetas < 0, thetas + 2 * np.pi, thetas)
     b = K * thetas / (2 * np.pi)
     b_floor = np.floor(b).astype(int)
     k0 = b_floor % K
@@ -50,64 +86,66 @@ def process_rank1_parallel(V, Q, K):
     phis = 2 * np.pi * phi_hat / K
     sorted_idx = np.argsort(phis)
 
-    # Use available CPU to determine batch size.
-    resources = ray.available_resources()
-    if "CPU" in resources:
-        batch_size = int(resources["CPU"]) - 20
-    else:
-        batch_size = 1
-
-    batch_size = max(1, batch_size)
-    log.info(f"Batch size set to number of available workers: {batch_size}")
-    
-    # publish the objects through ray's object store
-    k0_ref = ray.put(k0)
-    Q_ref = ray.put(Q)
-    sorted_idx_ref = ray.put(sorted_idx)
-
-    # precompute phase table and publish
+    # precompute K-th roots of unity
     roots = np.exp(2 * np.pi * 1j * np.arange(K) / K)
-    roots_ref = ray.put(roots)
-    
-    best_score = -np.inf
+
+    # evaluate the starting configuration at l = 0
+    z0 = roots[k0]
+    best_score = np.real(z0.conj() @ Q @ z0)
     best_l = 0
 
-    for batch_start in range(0, n + 1, batch_size):
-        batch_end = min(batch_start + batch_size, n + 1)
-        futures = [
-            process_rank1_candidate.remote(
-                l, 
-                k0_ref, 
-                sorted_idx_ref, 
-                Q_ref, 
-                roots_ref, 
-                K
+    # put large arrays into Ray object store once
+    Q_ref = ray.put(Q)
+    k0_ref = ray.put(k0)
+    sorted_idx_ref = ray.put(sorted_idx)
+    roots_ref = ray.put(roots)
+
+    # decide how many chunks we want
+    resources = ray.available_resources()
+    if "CPU" in resources:
+        cpus = int(resources["CPU"])
+    else:
+        cpus = 1
+
+    total_l = n + 1
+
+    num_chunks = max(1, cpus)
+    chunk_size = max(1, (total_l + num_chunks - 1) // num_chunks)
+
+    log.info(f"Using {num_chunks} chunks with chunk_size {chunk_size}")
+
+    futures = []
+    for l_start in range(0, total_l, chunk_size):
+        l_end = min(l_start + chunk_size, total_l)
+        futures.append(
+            process_rank1_chunk.remote(
+                l_start, l_end,
+                k0_ref, sorted_idx_ref, Q_ref, roots_ref, K
             )
-            for l in range(batch_start, batch_end)
-        ]
-        batch_scores = ray.get(futures)
-        
-        # update max
-        local_max_idx = int(np.argmax(batch_scores))
-        local_max = batch_scores[local_max_idx]
-        if local_max > best_score:
-            best_score = local_max
-            best_l = batch_start + local_max_idx
-        log.info(f"Completed batch {batch_start} to {batch_end - 1}")
+        )
+
+    results = ray.get(futures)
+
+    for chunk_score, chunk_l in results:
+        if chunk_score > best_score:
+            best_score = chunk_score
+            best_l = chunk_l
+
     log.info(f"Best prefix l = {best_l}")
 
-    # reconstruct the assignment
+    # reconstruct the assignment for best_l
     best_k = k0.copy()
     best_k[sorted_idx[:best_l]] = (best_k[sorted_idx[:best_l]] + 1) % K
 
-    # compute final z vector
     best_z = roots[best_k]
 
     return best_score, best_k, best_z
 
+
 def compute_recovery(z_alg, Q, opt_value):
     alg_value = np.real(z_alg.conj() @ Q @ z_alg)
     return alg_value / opt_value
+
 
 def solve_sdp_optimal(Q):
     n = Q.shape[0]
@@ -119,6 +157,7 @@ def solve_sdp_optimal(Q):
     prob.solve(solver=cvx.SCS, verbose=False)
     log.info("SDP optimal value computed")
     return prob.value
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Parallel MAX k CUT experiment")
@@ -144,7 +183,7 @@ def main():
     _, V = low_rank_matrix(Q, eigvals, eigvecs, r=1)
     log.info("Eigen decomposition complete and top eigenvector extracted")
 
-    log.info("Executing parallel rank 1 algorithm")
+    log.info("Executing chunked parallel rank 1 algorithm")
     start = time.time()
     best_score, best_k, best_z = process_rank1_parallel(V[:, 0], Q, K=3)
     elapsed = time.time() - start
@@ -164,7 +203,6 @@ def main():
         "best_z_imag": np.imag(best_z).tolist()
     }
 
-    # this only works for n <= 10
     if args.compute_recovery:
         opt_value = solve_sdp_optimal(Q)
         recovery = compute_recovery(best_z, Q, opt_value)
@@ -173,6 +211,7 @@ def main():
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = f"{timestamp}_result_n{args.n}.json"
+    os.makedirs(args.results_dir, exist_ok=True)
     path = os.path.join(args.results_dir, filename)
     with open(path, "w") as f:
         json.dump(output, f, indent=2)
