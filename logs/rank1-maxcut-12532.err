@@ -1,0 +1,62 @@
+2025-11-18 08:59:20 [INFO] Starting MAX 3 CUT experiment
+2025-11-18 08:59:20,761	INFO worker.py:1489 -- Connecting to existing Ray cluster at address: 192.168.154.1:5050...
+2025-11-18 08:59:20,774	INFO worker.py:1673 -- Connected to Ray cluster.
+2025-11-18 08:59:22 [INFO] Ray initialized
+2025-11-18 09:00:46 [INFO] Random graph Laplacian generated
+2025-11-18 09:01:18 [INFO] Eigen decomposition complete and top eigenvector extracted
+2025-11-18 09:01:18 [INFO] Executing parallel rank 1 algorithm
+2025-11-18 09:01:18 [INFO] Rank 1 subroutine: received eigenvector of length 10000
+2025-11-18 09:01:18 [INFO] Initial assignment k0 computed
+2025-11-18 09:01:18 [INFO] Batch size set to number of available workers: 208
+2025-11-18 09:01:33 [INFO] Completed batch 0 to 207
+2025-11-18 09:01:43 [INFO] Completed batch 208 to 415
+2025-11-18 09:01:52 [INFO] Completed batch 416 to 623
+2025-11-18 09:02:00 [INFO] Completed batch 624 to 831
+2025-11-18 09:02:09 [INFO] Completed batch 832 to 1039
+2025-11-18 09:02:18 [INFO] Completed batch 1040 to 1247
+2025-11-18 09:02:26 [INFO] Completed batch 1248 to 1455
+2025-11-18 09:02:34 [INFO] Completed batch 1456 to 1663
+2025-11-18 09:02:42 [INFO] Completed batch 1664 to 1871
+2025-11-18 09:02:49 [INFO] Completed batch 1872 to 2079
+2025-11-18 09:02:57 [INFO] Completed batch 2080 to 2287
+2025-11-18 09:03:04 [INFO] Completed batch 2288 to 2495
+2025-11-18 09:03:13 [INFO] Completed batch 2496 to 2703
+2025-11-18 09:03:21 [INFO] Completed batch 2704 to 2911
+2025-11-18 09:03:29 [INFO] Completed batch 2912 to 3119
+2025-11-18 09:03:36 [INFO] Completed batch 3120 to 3327
+2025-11-18 09:03:47 [INFO] Completed batch 3328 to 3535
+2025-11-18 09:03:56 [INFO] Completed batch 3536 to 3743
+2025-11-18 09:04:04 [INFO] Completed batch 3744 to 3951
+2025-11-18 09:04:12 [INFO] Completed batch 3952 to 4159
+2025-11-18 09:04:21 [INFO] Completed batch 4160 to 4367
+2025-11-18 09:04:29 [INFO] Completed batch 4368 to 4575
+2025-11-18 09:04:38 [INFO] Completed batch 4576 to 4783
+2025-11-18 09:04:45 [INFO] Completed batch 4784 to 4991
+2025-11-18 09:04:54 [INFO] Completed batch 4992 to 5199
+2025-11-18 09:05:03 [INFO] Completed batch 5200 to 5407
+2025-11-18 09:05:11 [INFO] Completed batch 5408 to 5615
+2025-11-18 09:05:18 [INFO] Completed batch 5616 to 5823
+2025-11-18 09:05:28 [INFO] Completed batch 5824 to 6031
+2025-11-18 09:05:37 [INFO] Completed batch 6032 to 6239
+2025-11-18 09:05:44 [INFO] Completed batch 6240 to 6447
+2025-11-18 09:05:52 [INFO] Completed batch 6448 to 6655
+2025-11-18 09:06:00 [INFO] Completed batch 6656 to 6863
+2025-11-18 09:06:07 [INFO] Completed batch 6864 to 7071
+2025-11-18 09:06:15 [INFO] Completed batch 7072 to 7279
+2025-11-18 09:06:23 [INFO] Completed batch 7280 to 7487
+2025-11-18 09:06:31 [INFO] Completed batch 7488 to 7695
+2025-11-18 09:06:38 [INFO] Completed batch 7696 to 7903
+2025-11-18 09:06:46 [INFO] Completed batch 7904 to 8111
+2025-11-18 09:06:54 [INFO] Completed batch 8112 to 8319
+2025-11-18 09:07:01 [INFO] Completed batch 8320 to 8527
+2025-11-18 09:07:09 [INFO] Completed batch 8528 to 8735
+2025-11-18 09:07:17 [INFO] Completed batch 8736 to 8943
+2025-11-18 09:07:24 [INFO] Completed batch 8944 to 9151
+2025-11-18 09:07:32 [INFO] Completed batch 9152 to 9359
+2025-11-18 09:07:40 [INFO] Completed batch 9360 to 9567
+2025-11-18 09:07:48 [INFO] Completed batch 9568 to 9775
+2025-11-18 09:07:55 [INFO] Completed batch 9776 to 9983
+2025-11-18 09:07:56 [INFO] Completed batch 9984 to 10000
+2025-11-18 09:07:56 [INFO] Best prefix l = 7407
+2025-11-18 09:07:56 [INFO] Rank 1 result: score = 47574086.99999987
+2025-11-18 09:07:56 [INFO] Execution time: 398.2273 seconds

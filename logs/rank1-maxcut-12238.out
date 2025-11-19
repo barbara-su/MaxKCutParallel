@@ -1,4 +1,0 @@
-Job started on bg2u24g1
-SLURM_CPUS_PER_TASK: 
-GPUs allocated: 0,1
-2025-11-16 22:22:45,610	INFO scripts.py:1163 -- Did not find any active Ray processes.

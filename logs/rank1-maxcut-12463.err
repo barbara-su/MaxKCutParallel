@@ -1,6 +1,0 @@
-2025-11-17 15:52:22,903	INFO worker.py:1489 -- Connecting to existing Ray cluster at address: 192.168.154.11:6565...
-2025-11-17 15:52:22,916	INFO worker.py:1673 -- Connected to Ray cluster.
-[2025-11-17T16:02:04.734] error: *** JOB 12463 ON bg6u16g1 CANCELLED AT 2025-11-17T16:02:04 DUE to SIGNAL Terminated ***
-[2025-11-17T16:02:06.342] error: Detected 9 oom_kill events in StepId=12463.batch. Some of the step tasks have been OOM Killed.
-[2025-11-17T16:03:08.000] error: *** JOB 12463 STEPD TERMINATED ON bg6u16g1 AT 2025-11-17T16:03:07 DUE TO JOB NOT ENDING WITH SIGNALS ***
-[2025-11-17T16:03:10.739] error: Container 1330702 in cgroup plugin has 190 processes, giving up after 63 sec

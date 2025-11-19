@@ -1,0 +1,60 @@
+2025-11-17 18:10:03 [INFO] Starting MAX 3 CUT experiment
+2025-11-17 18:10:03,928	INFO worker.py:1489 -- Connecting to existing Ray cluster at address: 192.168.154.12:5050...
+2025-11-17 18:10:03,940	INFO worker.py:1673 -- Connected to Ray cluster.
+2025-11-17 18:11:08 [INFO] Ray initialized
+2025-11-17 18:13:11 [INFO] Random graph Laplacian generated
+2025-11-17 18:16:31 [INFO] Eigen decomposition complete and top eigenvector extracted
+2025-11-17 18:16:31 [INFO] Executing parallel rank 1 algorithm
+2025-11-17 18:16:31 [INFO] Rank 1 subroutine: received eigenvector of length 10000
+2025-11-17 18:16:31 [INFO] Initial assignment k0 computed
+2025-11-17 18:16:31 [INFO] Indices sorted by phase shift
+2025-11-17 18:16:31 [INFO] Dispatching Ray batch tasks for prefix increments
+2025-11-17 18:26:06,063	WARNING worker.py:2074 -- Raylet is terminated. Termination is unexpected. Possible reasons include: (1) SIGKILL by the user or system OOM killer, (2) Invalid memory access from Raylet causing SIGSEGV or SIGBUS, (3) Other termination signals. Last 20 lines of the Raylet logs:
+    [state-dump] 	NodeManagerService.grpc_server.GetTaskFailureCause - 8 total (0 active), CPU time: mean = 8.719 ms, total = 69.748 ms
+    [state-dump] 	WorkerInfoGcsService.grpc_client.ReportWorkerFailure - 8 total (0 active), CPU time: mean = 14.413 us, total = 115.304 us
+    [state-dump] 	RaySyncer.BroadcastMessage - 8 total (0 active), CPU time: mean = 229.422 us, total = 1.835 ms
+    [state-dump] 	CoreWorkerService.grpc_client.PubsubLongPolling - 6 total (1 active), CPU time: mean = 189.129 us, total = 1.135 ms
+    [state-dump] 	NodeManagerService.grpc_server.PinObjectIDs - 4 total (0 active), CPU time: mean = 390.679 us, total = 1.563 ms
+    [state-dump] 	InternalPubSubGcsService.grpc_client.GcsSubscriberPoll - 3 total (0 active), CPU time: mean = 1.824 ms, total = 5.471 ms
+    [state-dump] 	CoreWorkerService.grpc_client.UpdateObjectLocationBatch - 3 total (0 active), CPU time: mean = 23.144 us, total = 69.431 us
+    [state-dump] 	InternalPubSubGcsService.grpc_client.GcsSubscriberCommandBatch - 2 total (0 active), CPU time: mean = 87.306 us, total = 174.613 us
+    [state-dump] 	RaySyncerRegister - 2 total (0 active), CPU time: mean = 1.667 us, total = 3.335 us
+    [state-dump] 	NodeInfoGcsService.grpc_client.GetInternalConfig - 1 total (0 active), CPU time: mean = 1.017 s, total = 1.017 s
+    [state-dump] 	NodeManager.GCTaskFailureReason - 1 total (1 active), CPU time: mean = 0.000 s, total = 0.000 s
+    [state-dump] 	Subscriber.HandlePublishedMessage_GCS_JOB_CHANNEL - 1 total (0 active), CPU time: mean = 40.724 us, total = 40.724 us
+    [state-dump] 	NodeInfoGcsService.grpc_client.RegisterNode - 1 total (0 active), CPU time: mean = 187.766 us, total = 187.766 us
+    [state-dump] 	JobInfoGcsService.grpc_client.GetAllJobInfo - 1 total (0 active), CPU time: mean = 9.832 us, total = 9.832 us
+    [state-dump] 	JobInfoGcsService.grpc_client.AddJob - 1 total (0 active), CPU time: mean = 33.920 us, total = 33.920 us
+    [state-dump] 	NodeInfoGcsService.grpc_client.GetAllNodeInfo - 1 total (0 active), CPU time: mean = 115.435 us, total = 115.435 us
+    [state-dump] DebugString() time ms: 1
+    [state-dump] 
+    [state-dump] 
+    [2025-11-17 18:24:38,856 E 1104240 1104240] (raylet) gcs_rpc_client.h:552: Failed to connect to GCS within 60 seconds. GCS may have been killed. It's either GCS is terminated by `ray stop` or is killed unexpectedly. If it is killed unexpectedly, see the log file gcs_server.out. https://docs.ray.io/en/master/ray-observability/ray-logging.html#logging-directory-structure. The program will terminate.
+
+[36m(pid=gcs_server)[0m E1117 18:22:06.681959485 1113258 chttp2_transport.cc:2761]   keepalive_ping_end state error: 0 (expect: 1)
+2025-11-17 18:26:06,066	WARNING worker.py:2074 -- The node with node id: 3333062bd32c25f17ea057e60202285c2b6fc31e1eb19f2d108b7346 and address: 192.168.154.12 and node name: 192.168.154.12 has been marked dead because the detector has missed too many heartbeats from it. This can happen when a 	(1) raylet crashes unexpectedly (OOM, preempted node, etc.) 
+	(2) raylet has lagging heartbeats due to slow network or busy workload.
+[33m(raylet)[0m [2025-11-17 18:24:38,856 E 1104240 1104240] (raylet) gcs_rpc_client.h:552: Failed to connect to GCS within 60 seconds. GCS may have been killed. It's either GCS is terminated by `ray stop` or is killed unexpectedly. If it is killed unexpectedly, see the log file gcs_server.out. https://docs.ray.io/en/master/ray-observability/ray-logging.html#logging-directory-structure. The program will terminate.
+Traceback (most recent call last):
+  File "/home/bs82/max-k-cut-parallel/optimized_parallel.py", line 212, in <module>
+    main()
+  File "/home/bs82/max-k-cut-parallel/optimized_parallel.py", line 201, in main
+    best_score, best_k = process_rank1_parallel(V[:, 0], Q, K=K, chunk_size=64)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bs82/max-k-cut-parallel/optimized_parallel.py", line 141, in process_rank1_parallel
+    results = ray.get(futures)
+              ^^^^^^^^^^^^^^^^
+  File "/home/bs82/max-k-cut-parallel/ray311/lib/python3.11/site-packages/ray/_private/auto_init_hook.py", line 24, in auto_init_wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/bs82/max-k-cut-parallel/ray311/lib/python3.11/site-packages/ray/_private/client_mode_hook.py", line 103, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bs82/max-k-cut-parallel/ray311/lib/python3.11/site-packages/ray/_private/worker.py", line 2565, in get
+    raise value
+ray.exceptions.LocalRayletDiedError: The task's local raylet died. Check raylet.out for more information.
+[2025-11-17 18:26:06,185 E 1104387 1104538] core_worker.cc:592: :info_message: Attempting to recover 4 lost objects by resubmitting their tasks. To disable object reconstruction, set @ray.remote(max_retries=0).
+[36m(process_rank1_batch pid=1104802)[0m E1117 18:25:35.086453038 1111726 chttp2_transport.cc:2761]   keepalive_ping_end state error: 0 (expect: 1)[32m [repeated 3x across cluster] (Ray deduplicates logs by default. Set RAY_DEDUP_LOGS=0 to disable log deduplication, or see https://docs.ray.io/en/master/ray-observability/ray-logging.html#log-deduplication for more options.)[0m
+[2025-11-17T18:26:26.701] error: Detected 11 oom_kill events in StepId=12523.batch. Some of the step tasks have been OOM Killed.
+[2025-11-17T18:27:28.000] error: *** JOB 12523 STEPD TERMINATED ON bg6u24g1 AT 2025-11-17T18:27:27 DUE TO JOB NOT ENDING WITH SIGNALS ***
+[2025-11-17T18:27:30.616] error: Container 1103573 in cgroup plugin has 106 processes, giving up after 63 sec

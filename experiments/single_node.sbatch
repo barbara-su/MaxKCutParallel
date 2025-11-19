@@ -4,9 +4,9 @@
 #SBATCH --error=logs/rank1-maxcut-%j.err
 
 #SBATCH --partition=commons
-#SBATCH --gres=gpu:h200:2 
+#SBATCH --cpus-per-task=208
 #SBATCH --mem=128GB             
-#SBATCH --time=08:00:00
+#SBATCH --time=10:00:00
 
 echo "Job started on $(hostname)"
 echo "SLURM_CPUS_PER_TASK: $SLURM_CPUS_PER_TASK"
@@ -27,9 +27,9 @@ conda activate /home/bs82/max-k-cut-parallel/ray311
 
 # start ray
 ray stop
-ray start --head --port=6565
+ray start --head --port=5050
 
 # Run your Python code
-python parallel_rank_1.py
+python parallel_rank_1_batched_single_node.py
 
 echo "Job complete."

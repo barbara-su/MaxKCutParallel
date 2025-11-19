@@ -1,2 +1,0 @@
-2025-11-17 09:01:58,261	INFO worker.py:1673 -- Started a local Ray instance.
-[2025-11-17 09:33:07,997 E 3889056 3889056] core_worker.cc:205: Failed to register worker 01000000ffffffffffffffffffffffffffffffffffffffffffffffff to Raylet. IOError: [RayletClient] Unable to register worker with raylet. No such file or directory

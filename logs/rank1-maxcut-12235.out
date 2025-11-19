@@ -1,6 +1,0 @@
-Job started on bg2u24g1
-SLURM_CPUS_PER_TASK: 
-GPUs allocated: 0,1
-
-Initializing Ray...
-Job complete.
