@@ -1,0 +1,82 @@
+[2025-11-20 03:04:02,508 W 264150 264150] rpc_client.h:153: Failed to connect to GCS at address 192.168.154.11:5050 within 5 seconds.
+[2025-11-20 03:04:32,508 W 264150 264150] gcs_client.cc:180: Failed to get cluster ID from GCS server: TimedOut: Timed out while waiting for GCS to become available.
+[2025-11-20 03:04:38,514 W 264150 264150] rpc_client.h:153: Failed to connect to GCS at address 192.168.154.11:5050 within 5 seconds.
+[2025-11-20 03:05:08,515 W 264150 264150] gcs_client.cc:180: Failed to get cluster ID from GCS server: TimedOut: Timed out while waiting for GCS to become available.
+[2025-11-20 03:05:14,521 W 264150 264150] rpc_client.h:153: Failed to connect to GCS at address 192.168.154.11:5050 within 5 seconds.
+[2025-11-20 03:05:44,521 W 264150 264150] gcs_client.cc:180: Failed to get cluster ID from GCS server: TimedOut: Timed out while waiting for GCS to become available.
+[2025-11-20 03:05:50,524 W 264150 264150] rpc_client.h:153: Failed to connect to GCS at address 192.168.154.11:5050 within 5 seconds.
+[2025-11-20 03:06:20,524 W 264150 264150] gcs_client.cc:180: Failed to get cluster ID from GCS server: TimedOut: Timed out while waiting for GCS to become available.
+[2025-11-20 03:06:26,531 W 264150 264150] rpc_client.h:153: Failed to connect to GCS at address 192.168.154.11:5050 within 5 seconds.
+[2025-11-20 03:06:56,531 W 264150 264150] gcs_client.cc:180: Failed to get cluster ID from GCS server: TimedOut: Timed out while waiting for GCS to become available.
+[2025-11-20 03:07:02,534 W 264150 264150] rpc_client.h:153: Failed to connect to GCS at address 192.168.154.11:5050 within 5 seconds.
+[2025-11-20 03:07:32,535 W 264150 264150] gcs_client.cc:180: Failed to get cluster ID from GCS server: TimedOut: Timed out while waiting for GCS to become available.
+[2025-11-20 03:07:38,542 W 264150 264150] rpc_client.h:153: Failed to connect to GCS at address 192.168.154.11:5050 within 5 seconds.
+[2025-11-20 03:08:08,543 W 264150 264150] gcs_client.cc:180: Failed to get cluster ID from GCS server: TimedOut: Timed out while waiting for GCS to become available.
+[2025-11-20 03:08:14,545 W 264150 264150] rpc_client.h:153: Failed to connect to GCS at address 192.168.154.11:5050 within 5 seconds.
+[2025-11-20 03:08:44,546 W 264150 264150] gcs_client.cc:180: Failed to get cluster ID from GCS server: TimedOut: Timed out while waiting for GCS to become available.
+[2025-11-20 03:08:50,550 W 264150 264150] rpc_client.h:153: Failed to connect to GCS at address 192.168.154.11:5050 within 5 seconds.
+[2025-11-20 03:09:20,550 W 264150 264150] gcs_client.cc:180: Failed to get cluster ID from GCS server: TimedOut: Timed out while waiting for GCS to become available.
+[2025-11-20 03:09:26,553 W 264150 264150] rpc_client.h:153: Failed to connect to GCS at address 192.168.154.11:5050 within 5 seconds.
+[2025-11-20 03:09:56,554 W 264150 264150] gcs_client.cc:180: Failed to get cluster ID from GCS server: TimedOut: Timed out while waiting for GCS to become available.
+[2025-11-20 03:10:02,559 W 264150 264150] rpc_client.h:153: Failed to connect to GCS at address 192.168.154.11:5050 within 5 seconds.
+[2025-11-20 03:10:32,559 W 264150 264150] gcs_client.cc:180: Failed to get cluster ID from GCS server: TimedOut: Timed out while waiting for GCS to become available.
+[2025-11-20 03:10:38,562 W 264150 264150] rpc_client.h:153: Failed to connect to GCS at address 192.168.154.11:5050 within 5 seconds.
+[2025-11-20 03:11:08,562 W 264150 264150] gcs_client.cc:180: Failed to get cluster ID from GCS server: TimedOut: Timed out while waiting for GCS to become available.
+[2025-11-20 03:11:14,569 W 264150 264150] rpc_client.h:153: Failed to connect to GCS at address 192.168.154.11:5050 within 5 seconds.
+[2025-11-20 03:11:44,569 W 264150 264150] gcs_client.cc:180: Failed to get cluster ID from GCS server: TimedOut: Timed out while waiting for GCS to become available.
+[2025-11-20 03:11:50,572 W 264150 264150] rpc_client.h:153: Failed to connect to GCS at address 192.168.154.11:5050 within 5 seconds.
+[2025-11-20 03:12:20,573 W 264150 264150] gcs_client.cc:180: Failed to get cluster ID from GCS server: TimedOut: Timed out while waiting for GCS to become available.
+[2025-11-20 03:12:26,580 W 264150 264150] rpc_client.h:153: Failed to connect to GCS at address 192.168.154.11:5050 within 5 seconds.
+[2025-11-20 03:12:56,581 W 264150 264150] gcs_client.cc:180: Failed to get cluster ID from GCS server: TimedOut: Timed out while waiting for GCS to become available.
+[2025-11-20 03:13:02,583 W 264150 264150] rpc_client.h:153: Failed to connect to GCS at address 192.168.154.11:5050 within 5 seconds.
+[2025-11-20 03:13:32,584 W 264150 264150] gcs_client.cc:180: Failed to get cluster ID from GCS server: TimedOut: Timed out while waiting for GCS to become available.
+[2025-11-20 03:13:38,590 W 264150 264150] rpc_client.h:153: Failed to connect to GCS at address 192.168.154.11:5050 within 5 seconds.
+[2025-11-20 03:14:08,590 W 264150 264150] gcs_client.cc:180: Failed to get cluster ID from GCS server: TimedOut: Timed out while waiting for GCS to become available.
+[2025-11-20 03:14:14,593 W 264150 264150] rpc_client.h:153: Failed to connect to GCS at address 192.168.154.11:5050 within 5 seconds.
+[2025-11-20 03:14:44,593 W 264150 264150] gcs_client.cc:180: Failed to get cluster ID from GCS server: TimedOut: Timed out while waiting for GCS to become available.
+[2025-11-20 03:14:50,599 W 264150 264150] rpc_client.h:153: Failed to connect to GCS at address 192.168.154.11:5050 within 5 seconds.
+[2025-11-20 03:15:20,599 W 264150 264150] gcs_client.cc:180: Failed to get cluster ID from GCS server: TimedOut: Timed out while waiting for GCS to become available.
+[2025-11-20 03:15:26,602 W 264150 264150] rpc_client.h:153: Failed to connect to GCS at address 192.168.154.11:5050 within 5 seconds.
+[2025-11-20 03:15:56,603 W 264150 264150] gcs_client.cc:180: Failed to get cluster ID from GCS server: TimedOut: Timed out while waiting for GCS to become available.
+Traceback (most recent call last):
+  File "/home/bs82/max-k-cut-parallel/ray311/bin/ray", line 7, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/bs82/max-k-cut-parallel/ray311/lib/python3.11/site-packages/ray/scripts/scripts.py", line 2754, in main
+    return cli()
+           ^^^^^
+  File "/home/bs82/max-k-cut-parallel/ray311/lib/python3.11/site-packages/click/core.py", line 1485, in __call__
+    return self.main(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bs82/max-k-cut-parallel/ray311/lib/python3.11/site-packages/click/core.py", line 1406, in main
+    rv = self.invoke(ctx)
+         ^^^^^^^^^^^^^^^^
+  File "/home/bs82/max-k-cut-parallel/ray311/lib/python3.11/site-packages/click/core.py", line 1873, in invoke
+    return _process_result(sub_ctx.command.invoke(sub_ctx))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bs82/max-k-cut-parallel/ray311/lib/python3.11/site-packages/click/core.py", line 1269, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bs82/max-k-cut-parallel/ray311/lib/python3.11/site-packages/click/core.py", line 824, in invoke
+    return callback(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bs82/max-k-cut-parallel/ray311/lib/python3.11/site-packages/ray/autoscaler/_private/cli_logger.py", line 823, in wrapper
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/bs82/max-k-cut-parallel/ray311/lib/python3.11/site-packages/ray/scripts/scripts.py", line 1097, in start
+    node = ray._private.node.Node(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bs82/max-k-cut-parallel/ray311/lib/python3.11/site-packages/ray/_private/node.py", line 164, in __init__
+    self._init_gcs_client()
+  File "/home/bs82/max-k-cut-parallel/ray311/lib/python3.11/site-packages/ray/_private/node.py", line 712, in _init_gcs_client
+    raise RuntimeError(
+RuntimeError: Failed to connect to GCS. Last connection error: Traceback (most recent call last):
+  File "/home/bs82/max-k-cut-parallel/ray311/lib/python3.11/site-packages/ray/_private/node.py", line 675, in _init_gcs_client
+    client = GcsClient(
+             ^^^^^^^^^^
+  File "python/ray/_raylet.pyx", line 2892, in ray._raylet.GcsClient.__cinit__
+  File "python/ray/includes/gcs_client.pxi", line 67, in ray._raylet.InnerGcsClient.standalone
+  File "python/ray/includes/common.pxi", line 131, in ray._raylet.check_status_timeout_as_rpc_error
+ray.exceptions.RpcError: Timed out while waiting for GCS to become available.
+
+srun: error: bg6u24g1: task 0: Exited with exit code 1

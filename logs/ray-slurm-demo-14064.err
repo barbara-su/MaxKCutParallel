@@ -1,0 +1,42 @@
+Failed to start Ray: Command '['ray', 'start', '--head', '--node-ip-address=192.168.154.11', '--port=6379', 'symmetric-run', '--num-cpus', '300', '--num-gpus', '0']' returned non-zero exit status 2.
+stderr:
+Usage: ray start [OPTIONS]
+Try 'ray start --help' for help.
+
+Error: Got unexpected extra argument (symmetric-run)
+
+[2025-11-20 02:46:59,562 W 255753 255753] rpc_client.h:153: Failed to connect to GCS at address 192.168.154.11:6379 within 5 seconds.
+[2025-11-20 02:47:29,563 W 255753 255753] gcs_client.cc:182: Failed to get cluster ID from GCS server: TimedOut: Timed out while waiting for GCS to become available.
+Traceback (most recent call last):
+  File "/home/bs82/max-k-cut-parallel/ray311/bin/ray", line 7, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/bs82/max-k-cut-parallel/ray311/lib/python3.11/site-packages/ray/scripts/scripts.py", line 2754, in main
+    return cli()
+           ^^^^^
+  File "/home/bs82/max-k-cut-parallel/ray311/lib/python3.11/site-packages/click/core.py", line 1485, in __call__
+    return self.main(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bs82/max-k-cut-parallel/ray311/lib/python3.11/site-packages/click/core.py", line 1406, in main
+    rv = self.invoke(ctx)
+         ^^^^^^^^^^^^^^^^
+  File "/home/bs82/max-k-cut-parallel/ray311/lib/python3.11/site-packages/click/core.py", line 1873, in invoke
+    return _process_result(sub_ctx.command.invoke(sub_ctx))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bs82/max-k-cut-parallel/ray311/lib/python3.11/site-packages/click/core.py", line 1269, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bs82/max-k-cut-parallel/ray311/lib/python3.11/site-packages/click/core.py", line 824, in invoke
+    return callback(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bs82/max-k-cut-parallel/ray311/lib/python3.11/site-packages/ray/scripts/symmetric_run.py", line 229, in symmetric_run
+    if not check_head_node_ready(address):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/bs82/max-k-cut-parallel/ray311/lib/python3.11/site-packages/ray/scripts/symmetric_run.py", line 51, in check_head_node_ready
+    gcs_client = GcsClient(address=address)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "python/ray/_raylet.pyx", line 2893, in ray._raylet.GcsClient.__cinit__
+  File "python/ray/includes/gcs_client.pxi", line 67, in ray._raylet.InnerGcsClient.standalone
+  File "python/ray/includes/common.pxi", line 132, in ray._raylet.check_status_timeout_as_rpc_error
+ray.exceptions.RpcError: Timed out while waiting for GCS to become available.
+srun: error: bg6u24g1: task 1: Exited with exit code 1

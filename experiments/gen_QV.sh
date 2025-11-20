@@ -1,0 +1,11 @@
+#!/bin/bash
+python src/gen_QV.py --n 10000 --seed 42 --outdir "graphs"
+python src/gen_QV.py --n 20000 --seed 42 --outdir "graphs"
+python src/gen_QV.py --n 30000 --seed 42 --outdir "graphs"
+python src/gen_QV.py --n 40000 --seed 42 --outdir "graphs"
+python src/gen_QV.py --n 50000 --seed 42 --outdir "graphs"
+python src/gen_QV.py --n 60000 --seed 42 --outdir "graphs"
+python src/gen_QV.py --n 70000 --seed 42 --outdir "graphs"
+python src/gen_QV.py --n 80000 --seed 42 --outdir "graphs"
+python src/gen_QV.py --n 90000 --seed 42 --outdir "graphs"
+python src/gen_QV.py --n 100000 --seed 42 --outdir "graphs"
