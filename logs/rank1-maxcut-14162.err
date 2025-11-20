@@ -1,0 +1,4 @@
+2025-11-20 17:13:18 [INFO] Starting MAX 3 CUT experiment
+2025-11-20 17:13:18,611	INFO worker.py:1489 -- Connecting to existing Ray cluster at address: 192.168.154.11:5050...
+2025-11-20 17:13:18,620	INFO worker.py:1664 -- Connected to Ray cluster. View the dashboard at [1m[32mhttp://127.0.0.1:8265 [39m[22m
+2025-11-20 17:13:20 [INFO] Ray initialized

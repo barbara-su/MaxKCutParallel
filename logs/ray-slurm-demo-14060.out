@@ -1,6 +1,0 @@
-2025-11-20 02:30:06,621	INFO scripts.py:1332 -- Did not find any active Ray processes.
-2025-11-20 02:30:09,364	INFO scripts.py:1332 -- Did not find any active Ray processes.
-On worker node. Connecting to Ray cluster at 192.168.154.11:6379...
-On head node. Starting Ray cluster head...
-2025-11-20 02:30:13,503	INFO scripts.py:1332 -- Did not find any active Ray processes.
-2025-11-20 02:30:47,818	INFO scripts.py:1332 -- Did not find any active Ray processes.

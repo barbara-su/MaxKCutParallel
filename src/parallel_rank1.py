@@ -53,7 +53,7 @@ def process_rank1_parallel(V, Q, K):
     # Use available CPU to determine batch size.
     resources = ray.available_resources()
     if "CPU" in resources:
-        batch_size = int(resources["CPU"]) - 20
+        batch_size = int(resources["CPU"])
     else:
         batch_size = 1
 
@@ -134,7 +134,7 @@ def main():
 
     np.random.seed(args.seed)
     log.info("Starting MAX 3 CUT experiment")
-    ray.init(ignore_reinit_error=True)
+    ray.init(address="auto", ignore_reinit_error=True)
     log.info("Ray initialized")
 
     Q = generate_Q(0.5, args.n, 'erdos_renyi', seed=args.seed)

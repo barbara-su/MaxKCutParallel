@@ -1,0 +1,27 @@
+Job started on bg6u16g1
+SLURM_CPUS_PER_TASK: 208
+GPUs allocated: 
+2025-11-20 17:05:55,551	INFO scripts.py:1163 -- Did not find any active Ray processes.
+2025-11-20 17:05:56,251	INFO usage_lib.py:421 -- Usage stats collection is enabled. To disable this, add `--disable-usage-stats` to the command that starts the cluster, or run the following command: `ray disable-usage-stats` before starting the cluster. See https://docs.ray.io/en/master/cluster/usage-stats.html for more details.
+2025-11-20 17:05:56,252	INFO scripts.py:744 -- [37mLocal node IP[39m: [1m192.168.154.11[22m
+2025-11-20 17:05:58,723	SUCC scripts.py:781 -- [32m--------------------[39m
+2025-11-20 17:05:58,723	SUCC scripts.py:782 -- [32mRay runtime started.[39m
+2025-11-20 17:05:58,723	SUCC scripts.py:783 -- [32m--------------------[39m
+2025-11-20 17:05:58,723	INFO scripts.py:785 -- [36mNext steps[39m
+2025-11-20 17:05:58,723	INFO scripts.py:788 -- To add another node to this Ray cluster, run
+2025-11-20 17:05:58,723	INFO scripts.py:791 -- [1m  ray start --address='192.168.154.11:5050'[22m
+2025-11-20 17:05:58,723	INFO scripts.py:800 -- To connect to this Ray cluster:
+2025-11-20 17:05:58,724	INFO scripts.py:802 -- [35mimport[39m[26m ray
+2025-11-20 17:05:58,724	INFO scripts.py:803 -- ray[35m.[39m[26minit()
+2025-11-20 17:05:58,724	INFO scripts.py:815 -- To submit a Ray job using the Ray Jobs CLI:
+2025-11-20 17:05:58,724	INFO scripts.py:816 -- [1m  RAY_ADDRESS='http://127.0.0.1:8265' ray job submit --working-dir . -- python my_script.py[22m
+2025-11-20 17:05:58,724	INFO scripts.py:825 -- See https://docs.ray.io/en/latest/cluster/running-applications/job-submission/index.html 
+2025-11-20 17:05:58,724	INFO scripts.py:829 -- for more information on submitting Ray jobs to the Ray cluster.
+2025-11-20 17:05:58,724	INFO scripts.py:834 -- To terminate the Ray runtime, run
+2025-11-20 17:05:58,724	INFO scripts.py:835 -- [1m  ray stop[22m
+2025-11-20 17:05:58,724	INFO scripts.py:838 -- To view the status of the cluster, use
+2025-11-20 17:05:58,724	INFO scripts.py:839 --   [1mray status[22m[26m
+2025-11-20 17:05:58,724	INFO scripts.py:843 -- To monitor and debug Ray, view the dashboard at 
+2025-11-20 17:05:58,724	INFO scripts.py:844 --   [1m127.0.0.1:8265[22m[26m
+2025-11-20 17:05:58,724	INFO scripts.py:851 -- [4mIf connection to the dashboard fails, check your firewall settings and network configuration.[24m
+Job complete.

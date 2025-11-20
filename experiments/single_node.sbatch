@@ -5,8 +5,8 @@
 
 #SBATCH --partition=commons
 #SBATCH --cpus-per-task=208
-#SBATCH --mem=1024GB             
-#SBATCH --time=10:00:00
+#SBATCH --mem=0          
+#SBATCH --time=23:00:00
 
 echo "Job started on $(hostname)"
 echo "SLURM_CPUS_PER_TASK: $SLURM_CPUS_PER_TASK"
@@ -22,14 +22,14 @@ export XALT_RUNNABLE=0
 # Conda
 cd /home/bs82/max-k-cut-parallel/
 mkdir -p logs
-source ./local_miniforge/etc/profile.d/conda.sh
-conda activate /home/bs82/max-k-cut-parallel/ray311
+source ~/miniforge3/etc/profile.d/conda.sh
+conda activate ./rayenv
 
 # start ray
 ray stop
 ray start --head --port=5050
 
 # Run python code
-python src/parallel_rank1.py --n 10000
+python src/parallel_rank1.py --n 100000
 
 echo "Job complete."
