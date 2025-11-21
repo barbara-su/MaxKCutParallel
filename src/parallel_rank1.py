@@ -126,6 +126,8 @@ def parse_args():
     parser.add_argument("--seed", type=int, default=42, help="Random seed")
     parser.add_argument("--compute_recovery", action="store_true", help="Compute recovery ratio")
     parser.add_argument("--results_dir", type=str, default="results", help="Directory to store outputs")
+    parser.add_argument("--graph_dir", type=str, default=None,
+                        help="Directory containing Q_{n}.npy and V_{n}.npy")
     return parser.parse_args()
 
 
@@ -137,11 +139,23 @@ def main():
     ray.init(address="auto", ignore_reinit_error=True)
     log.info("Ray initialized")
 
-    Q = generate_Q(0.5, args.n, 'erdos_renyi', seed=args.seed)
-    log.info("Random graph Laplacian generated")
+    log.info("Loading Q and V...")
+    
+    if args.graph_dir is not None:
+        q_path = os.path.join(args.graph_dir, f"Q_{args.n}.npy")
+        v_path = os.path.join(args.graph_dir, f"V_{args.n}.npy")
 
-    eigvals, eigvecs = np.linalg.eigh(Q)
-    _, V = low_rank_matrix(Q, eigvals, eigvecs, r=1)
+        log.info(f"Loading Q from {q_path}")
+        log.info(f"Loading V from {v_path}")
+
+        Q = np.load(q_path)
+        V = np.load(v_path)
+    else:
+        Q = generate_Q(0.5, args.n, 'erdos_renyi', seed=args.seed)
+        log.info("Random graph Laplacian generated")
+        eigvals, eigvecs = np.linalg.eigh(Q)
+        _, V = low_rank_matrix(Q, eigvals, eigvecs, r=1)
+    
     log.info("Eigen decomposition complete and top eigenvector extracted")
 
     log.info("Executing parallel rank 1 algorithm")

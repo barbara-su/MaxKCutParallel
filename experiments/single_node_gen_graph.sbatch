@@ -4,7 +4,7 @@
 #SBATCH --error=logs/rank1-maxcut-%j.err
 
 #SBATCH --partition=commons
-#SBATCH --cpus-per-task=208
+#SBATCH --cpus-per-task=8
 #SBATCH --mem=0
 #SBATCH --time=23:00:00
 
@@ -28,11 +28,7 @@ mkdir -p logs
 source ~/miniforge3/etc/profile.d/conda.sh
 conda activate ./rayenv
 
-# start ray
-ray stop
-ray start --head --port=5050
-
 # Run python code
-python src/parallel_rank1.py --n "$N"
+python src/gen_qv.py --n="$N"
 
 echo "Job complete."
