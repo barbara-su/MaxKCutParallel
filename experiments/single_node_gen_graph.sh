@@ -1,10 +1,10 @@
 #!/bin/bash
-#SBATCH --job-name=rank1-maxcut
-#SBATCH --output=logs/rank1-maxcut-%j.out
-#SBATCH --error=logs/rank1-maxcut-%j.err
+#SBATCH --job-name=gen_graph
+#SBATCH --output=logs/gen-graph-%j.out
+#SBATCH --error=logs/gen-graph-%j.err
 
 #SBATCH --partition=commons
-#SBATCH --cpus-per-task=8
+#SBATCH --cpus-per-task=4
 #SBATCH --mem=0
 #SBATCH --time=23:00:00
 

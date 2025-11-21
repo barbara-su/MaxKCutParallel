@@ -4,7 +4,7 @@
 #SBATCH --error=logs/rank1-maxcut-%j.err
 
 #SBATCH --partition=commons
-#SBATCH --cpus-per-task=208
+#SBATCH --cpus-per-task=50
 #SBATCH --mem=0
 #SBATCH --time=23:00:00
 
@@ -33,6 +33,6 @@ ray stop
 ray start --head --port=5050
 
 # Run python code
-python src/parallel_rank1.py --n "$N"
+python src/parallel_rank1.py --n "$N" --graph_dir "graphs"
 
 echo "Job complete."
