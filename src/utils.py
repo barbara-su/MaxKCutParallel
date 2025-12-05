@@ -459,3 +459,215 @@ def find_intersection(VI):
 
     return c_tilde
 
+def convert_ctilde_to_complex(c_tilde, r):
+    """
+    Convert c_tilde from real representation to complex form.
+
+    Parameters
+    ----------
+    c_tilde : ndarray
+        Real vector representing the intersection point.
+    r : int
+        Rank of the approximation.
+
+    Returns
+    -------
+    c : ndarray
+        Complex vector representation.
+    """
+    c = np.zeros(r, dtype=complex)
+    for j in range(r):
+        if 2*j+1 < len(c_tilde):
+            c[j] = c_tilde[2*j] + 1j * c_tilde[2*j+1]
+    return c
+
+def determine_phi_sign_c(c_tilde):
+    """
+    Given the real hyperspherical coordinates c_tilde, compute the angles phi and
+    determine the sign correction factor.
+
+    Handles numerical precision issues gracefully.
+    """
+    D = len(c_tilde)  # Should be 2*r
+    phi = np.zeros(D-1)
+
+    # For each angle in the hyperspherical parameterization
+    for phi_ind in range(D-1):
+        # prod_cos is the product of cosines of all previous angles
+        if phi_ind > 0:
+            cos_values = np.cos(phi[:phi_ind])
+            # Check for very small cosine values that could cause issues
+            if np.any(np.abs(cos_values) < 1e-10):
+                # Handle degenerate case
+                phi[phi_ind] = 0.0
+                continue
+            prod_cos = np.prod(cos_values)
+        else:
+            prod_cos = 1.0
+
+        # Compute the argument for arcsin with bounds checking
+        arg = c_tilde[phi_ind] / prod_cos if abs(prod_cos) > 1e-10 else 0.0
+
+        # Clip to valid arcsin range to handle numerical errors
+        arg = np.clip(arg, -1.0, 1.0)
+
+        # Now safely compute arcsin
+        phi[phi_ind] = np.arcsin(arg)
+
+    # Determine the sign correction
+    if phi[D-2] == 0 or c_tilde[D-2] == 0:
+        sign_c = 1
+    else:
+        # Check for potential division by zero or invalid tan
+        if abs(np.cos(phi[D-2])) < 1e-10:
+            sign_c = 1
+        else:
+            sign_c = np.sign(np.tan(phi[D-2]) * c_tilde[D-2] * c_tilde[D-1])
+
+    return phi, sign_c
+
+def get_row_mapping(n, K):
+    """
+    Create mapping from V_tilde indices to original V indices.
+
+    Parameters
+    ----------
+    n : int
+        Number of rows in V
+    K : int
+        Number of partitions
+
+    Returns
+    -------
+    mapping : dict
+        Dictionary mapping V_tilde indices to (V_row, rotation) pairs
+    inverse_mapping : dict
+        Dictionary mapping V_row to list of V_tilde indices
+    """
+    mapping = {}
+    inverse_mapping = {}
+
+    for i in range(n):
+        inverse_mapping[i] = []
+        for j in range(K):
+            v_tilde_idx = i*K + j
+            mapping[v_tilde_idx] = (i, j)
+            inverse_mapping[i].append(v_tilde_idx)
+
+    return mapping, inverse_mapping
+
+def construct_ctilde_from_phi(phi_reduced, r, K):
+    """
+    Construct the c_tilde vector with specific phi angles and the last angle fixed at pi/K.
+
+    Parameters
+    ----------
+    phi_reduced : ndarray
+        The first 2*r-2 phi angles
+    r : int
+        Rank of the approximation
+    K : int
+        Number of partitions
+
+    Returns
+    -------
+    c_tilde : ndarray
+        The constructed c_tilde vector with last angle fixed at pi/K
+    """
+    # Initialize the full c_tilde vector
+    c_tilde = np.zeros(2*r)
+
+    # First element is just sin(phi_1)
+    c_tilde[0] = np.sin(phi_reduced[0])
+
+    # Fill in the middle elements
+    prod_cos = np.cos(phi_reduced[0])
+    for i in range(1, len(phi_reduced)):
+        c_tilde[i] = prod_cos * np.sin(phi_reduced[i])
+        prod_cos *= np.cos(phi_reduced[i])
+
+    # Last two elements use phi_{2r-1} = pi/K
+    c_tilde[2*r-2] = prod_cos * np.sin(np.pi/K)
+    c_tilde[2*r-1] = prod_cos * np.cos(np.pi/K)
+
+    return c_tilde
+
+def find_intersection_fixed_angle(VI_minus, r, K):
+    """
+    Find the intersection point with the last angle fixed at pi/K.
+
+    Parameters
+    ----------
+    VI_minus : ndarray
+        Matrix with one row removed from VI
+    r : int
+        Rank of the approximation
+    K : int
+        Number of partitions
+
+    Returns
+    -------
+    c_tilde : ndarray
+        The constructed c_tilde vector with fixed last angle
+    """
+    # We need to augment VI_minus to include the constraint that the last angle is pi/K
+    # This effectively means we need to solve for 2r-2 angles instead of 2r-1
+
+    # We can approach this by:
+    # 1. Using the fact that for spherical coordinates, the last coordinate is:
+    #    c_tilde[2r-2] = cos(phi_1)...cos(phi_{2r-3})sin(phi_{2r-2})
+    #    c_tilde[2r-1] = cos(phi_1)...cos(phi_{2r-3})cos(phi_{2r-2})
+    # 2. For phi_{2r-2} = pi/K, we have sin(phi_{2r-2}) = sin(pi/K) and cos(phi_{2r-2}) = cos(pi/K)
+
+    # Extract the constraints for the first 2r-2 variables
+    A = VI_minus[:, :2*r-2]
+
+    # Extract the constraints for the last two variables
+    b = -VI_minus[:, 2*r-2:] @ np.array([np.sin(np.pi/K), np.cos(np.pi/K)])
+
+    # Solve the system A * phi = b
+    try:
+        # If A is square and invertible, use direct solve
+        if A.shape[0] == A.shape[1] and np.linalg.matrix_rank(A) == A.shape[0]:
+            phi_reduced = np.linalg.solve(A, b)
+        else:
+            # Otherwise use least squares
+            phi_reduced, residuals, rank, s = np.linalg.lstsq(A, b, rcond=None)
+    except np.linalg.LinAlgError:
+        # If system can't be solved, raise an error
+        raise ValueError("Could not find intersection with fixed angle")
+
+    # Construct c_tilde from the reduced phi
+    c_tilde = construct_ctilde_from_phi(phi_reduced, r, K)
+
+    return c_tilde
+
+
+def complex_to_partition(z, K=3):
+    """
+    Convert a complex vector of K-th roots of unity to a partition vector (0,1,...,K-1).
+
+    Parameters
+    ----------
+    z : ndarray
+        Complex vector where each element is approximately a K-th root of unity.
+    K : int, default=3
+        Number of partitions.
+
+    Returns
+    -------
+    partition : ndarray
+        Integer vector where each element is in {0,1,...,K-1}.
+    """
+    n = len(z)
+    partition = np.zeros(n, dtype=int)
+
+    # K-th roots of unity
+    roots = np.exp(1j * 2 * np.pi * np.arange(K) / K)
+
+    # For each vertex, find the closest root of unity
+    for i in range(n):
+        distances = np.abs(z[i] - roots)
+        partition[i] = np.argmin(distances)
+
+    return partition
