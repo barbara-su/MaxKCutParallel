@@ -10,6 +10,7 @@ from datetime import datetime
 import itertools
 import os
 from parallel_rank_1 import process_rank_1_parallel
+import cvxpy as cvx
 
 # ignore the ray warning
 warnings.filterwarnings(
@@ -265,6 +266,20 @@ def process_rankr_recursive(V, Q, K=3):
 
     return best_score, best_k, best_z
 
+def compute_recovery(z_alg, Q, opt_value):
+    alg_value = np.real(z_alg.conj() @ Q @ z_alg)
+    return alg_value / opt_value
+
+def solve_sdp_optimal(Q):
+    n = Q.shape[0]
+    log.info(f"Solving SDP relaxation for n={n}")
+    X = cvx.Variable((n, n), PSD=True)
+    obj = cvx.Maximize(cvx.sum(cvx.multiply(Q, X)))
+    constraints = [cvx.diag(X) == 1]
+    prob = cvx.Problem(obj, constraints)
+    prob.solve(solver=cvx.SCS, verbose=False)
+    log.info("SDP optimal value computed")
+    return prob.value
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Parallel MAX k CUT experiment")
@@ -275,6 +290,12 @@ def parse_args():
     parser.add_argument("--results_dir", type=str, default="results", help="Directory to store outputs")
     parser.add_argument("--graph_dir", type=str, default=None,
                         help="Directory containing Q_{n}.npy and V_{n}.npy")
+    # correctness check
+    parser.add_argument(
+        "--compute_recovery",
+        action="store_true",
+        help="If set, compute SDP optimal value and recovery ratio."
+    )
     return parser.parse_args()
 
 def main():
@@ -344,6 +365,12 @@ def main():
         "best_z_imag": np.imag(best_z).tolist(),
         "num_workers": num_workers,
     }
+    
+    if args.compute_recovery:
+        opt_value = solve_sdp_optimal(Q)
+        recovery = compute_recovery(best_z, Q, opt_value)
+        log.info(f"Recovery ratio: {recovery}")
+        output["recovery_ratio"] = float(recovery)
 
     os.makedirs(args.results_dir, exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
