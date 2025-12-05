@@ -1,16 +1,8 @@
-
-
-import os
-                   # another optimisation library
-import networkx as nx                    # graph generation / algorithms
+import networkx as nx
 import numpy as np
-
-import matplotlib.pyplot as plt
-
 import math
-
-import pandas as pd
 from scipy import sparse
+from scipy import linalg
 
 def low_rank_matrix(Q, eigvals, eigvecs, r: int = 2):
     """
@@ -369,8 +361,101 @@ def generate_Q(graph_param, size: int = 20, mode: str = 'reg', seed=42):
 
         # Get Laplacian
         Q = np.array(nx.laplacian_matrix(G).todense())
-
     else:
         raise NotImplementedError(f"{mode} not implemented")
-
     return Q
+
+def compute_vtilde(V):
+    """
+    Compute the V_tilde matrix for M=3 (Max-3-Cut problem).
+
+    This function implements the transformation described in equation (14):
+    1. First creates the V_hat matrix by rotating V by angles π/3, π, 5π/3
+    2. Then concatenates the real and imaginary parts to form V_tilde
+
+    Parameters
+    ----------
+    V : ndarray (n, r)
+        Complex matrix where Q = V @ V†, with dimensions (n, r)
+        where n is the number of vertices and r is the rank
+
+    Returns
+    -------
+    V_tilde : ndarray (3n, 2r)
+        Real matrix representing the decision boundaries
+    """
+    import numpy as np
+
+    n, r = V.shape  # n = number of vertices, r = rank
+
+    # Initialize V_tilde matrix
+    V_tilde = np.zeros((3*n, 2*r))
+
+    # Step 1: Compute the V_hat matrix
+    # V_hat = [e^(-jπ/3)V; -V; e^(-j5π/3)V]
+
+    # Define the rotation angles θ_k = {π/3, π, 5π/3}
+    thetas = np.array([np.pi/3, np.pi, 5*np.pi/3])
+
+    # Initialize V_hat with dimensions (3p, r)
+    V_hat = np.zeros((3*n, r), dtype=complex)
+
+    # Fill V_hat with rotated versions of V
+    for k in range(3):
+        rotation = np.exp(-1j * thetas[k])
+        V_hat[k*n:(k+1)*n, :] = rotation * V
+
+    # Step 2: Construct V_tilde by concatenating real and imaginary parts
+
+    # Interleave real and imaginary parts
+    # V_tilde = [Re{V_hat_:,1} Im{V_hat_:,1} Re{V_hat_:,2} Im{V_hat_:,2} ... Re{V_hat_:,r} Im{V_hat_:,r}]
+    for j in range(r):
+        V_tilde[:, 2*j] = np.real(V_hat[:, j])     # Real part in even columns
+        V_tilde[:, 2*j+1] = np.imag(V_hat[:, j])   # Imaginary part in odd columns
+
+    return V_tilde
+
+def find_intersection(VI):
+    """
+    Find the intersection point of hyperplanes defined by the rows of VI.
+
+    Parameters
+    ----------
+    VI : ndarray
+        Matrix where each row represents a hyperplane in the space.
+
+    Returns
+    -------
+    c_tilde : ndarray
+        Normalized vector in the null space of VI, representing the
+        intersection point of the hyperplanes.
+    """
+    # Get dimensions of VI
+    rows, cols = VI.shape
+
+    # Check that VI has full rank
+    matrix_rank = np.linalg.matrix_rank(VI)
+    min_dim = min(rows, cols)
+
+    if matrix_rank != min_dim:
+        raise ValueError('VI matrix is not full rank')
+
+    # Compute null space of VI
+    # In Python, we can use scipy.linalg.null_space
+    null_space = linalg.null_space(VI)
+
+    # If null space is empty (no solution), raise an error
+    if null_space.size == 0:
+        raise ValueError('No intersection found - null space is empty')
+
+    # If null space has multiple columns, take the first one
+    if null_space.shape[1] > 1:
+        c_tilde = null_space[:, 0]
+    else:
+        c_tilde = null_space.flatten()
+
+    # Normalize the vector
+    c_tilde = c_tilde / np.linalg.norm(c_tilde)
+
+    return c_tilde
+
