@@ -19,4 +19,11 @@ on worker: ray start --address='192.168.154.11:6379' --num-cpus=200
 ### ray test
 python -c "import ray; ray.init(address='auto'); print(ray.cluster_resources())"
 
+### check allocation status
+sinfo -N -o "%N %c %m %e %C" \
+    | awk 'NR==1{print; next} {print $1, $2, $3/1024, $4/1024, $5}'
+
+### submit job
+sbatch experiments/single_node_rank_r.sh 100 2
+
 

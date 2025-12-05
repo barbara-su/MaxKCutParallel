@@ -5,16 +5,21 @@
 
 #SBATCH --partition=commons
 #SBATCH --cpus-per-task=4
-#SBATCH --mem=0
+#SBATCH --mem=20G
 #SBATCH --time=23:00:00
 
-# Read n from first argument, default to 20000 if not provided
+# Read n, rank, and output directory from arguments
+# Default n to 20000, rank to 2, out dir to "graphs" if not provided
 N=${1:-20000}
+R=${2:-2}
+OUT_DIR=${3:-graphs}
 
 echo "Job started on $(hostname)"
 echo "SLURM_CPUS_PER_TASK: $SLURM_CPUS_PER_TASK"
 echo "GPUs allocated: $CUDA_VISIBLE_DEVICES"
 echo "Using n = $N"
+echo "Using rank = $R"
+echo "Using output directory = $OUT_DIR"
 
 # Clean environment
 module purge || true
@@ -29,6 +34,6 @@ source ~/miniforge3/etc/profile.d/conda.sh
 conda activate ./rayenv
 
 # Run python code
-python src/gen_qv.py --n="$N"
+python src/gen_qv.py --n "$N" --rank "$R" --out_dir "$OUT_DIR"
 
 echo "Job complete."

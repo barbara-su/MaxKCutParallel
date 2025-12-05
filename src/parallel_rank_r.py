@@ -9,7 +9,7 @@ import json
 from datetime import datetime
 import itertools
 import os
-from parallel_rank1 import process_rank1_parallel
+from parallel_rank_1 import process_rank_1_parallel
 
 # ignore the ray warning
 warnings.filterwarnings(
@@ -250,6 +250,10 @@ def main():
     log.info("Starting MAX 3 CUT experiment")
     ray.init(address="auto", ignore_reinit_error=True)
     log.info("Ray initialized")
+    
+    resources = ray.available_resources()
+    num_workers = int(resources.get("CPU", 1))
+    log.info(f"Detected {num_workers} Ray workers (CPU slots)")
 
     log.info("Loading Q and V or computing them")
     
@@ -283,7 +287,7 @@ def main():
 
     if args.rank == 1:
         log.info("Executing parallel rank 1 algorithm")
-        best_score, best_k, best_z = process_rank1_parallel(V[:, 0], Q, K=3)
+        best_score, best_k, best_z = process_rank_1_parallel(V[:, 0], Q, K=3)
     else:
         log.info(f"Executing parallel rank {args.rank} algorithm")
         best_score, best_k, best_z = process_rankr_parallel(V, Q, K=3)
@@ -303,7 +307,8 @@ def main():
         "time_seconds": float(elapsed),
         "best_k": best_k.tolist(),
         "best_z_real": np.real(best_z).tolist(),
-        "best_z_imag": np.imag(best_z).tolist()
+        "best_z_imag": np.imag(best_z).tolist(),
+        "num_workers": num_workers,
     }
 
     os.makedirs(args.results_dir, exist_ok=True)
@@ -313,3 +318,6 @@ def main():
     with open(path, "w") as f:
         json.dump(output, f, indent=2)
     log.info(f"Saved results to {path}")
+
+if __name__ == "__main__":
+    main()
