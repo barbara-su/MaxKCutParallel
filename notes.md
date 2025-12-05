@@ -24,6 +24,9 @@ sinfo -N -o "%N %c %m %e %C" \
     | awk 'NR==1{print; next} {print $1, $2, $3/1024, $4/1024, $5}'
 
 ### submit job
-sbatch experiments/single_node_rank_r.sh 100 2
+sbatch experiments/single_node_gen_graph.sh 500 1 graphs_rank_1
+sbatch experiments/single_node_rank_1.sh 500
+sbatch experiments/single_node_rank_r.sh 500 2
+sbatch experiments/single_node_gen_graph.sh 500 2
 
 

@@ -33,6 +33,6 @@ ray stop
 ray start --head --port=5050
 
 # Run python code
-python src/parallel_rank_1.py --n "$N" --graph_dir "graphs"
+python src/parallel_rank_1.py --n "$N" --graph_dir "graphs_rank_1"
 
 echo "Job complete."
