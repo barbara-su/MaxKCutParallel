@@ -121,13 +121,12 @@ def process_combination_batch(V_tilde,
 
     return best_score, best_candidate, batch_id
 
-def process_rankr_single(V, Q, K=3):
+def process_rankr_parallel(V, Q, K=3):
     """
-    Single rank-r enumeration using Algorithm 2 with Ray.
-    Does not recurse on lower ranks.
+    Parallel rank-r MAX-K-CUT using Algorithm 2 with Ray.
     """
     n, r = V.shape
-    log.info(f"Rank r subroutine (single rank): n = {n}, r = {r}, K = {K}")
+    log.info(f"Rank r subroutine: n = {n}, r = {r}, K = {K}")
 
     # compute v_tilde
     log.info("Computing V_tilde")
@@ -166,7 +165,7 @@ def process_rankr_single(V, Q, K=3):
         batch_size = max(1, num_combinations // (num_cpus * 10))
     else:
         batch_size = 1
-
+        
     log.info(f"Using {num_cpus} CPUs, batch size {batch_size}")
 
     # put objects into Ray object store
@@ -223,48 +222,15 @@ def process_rankr_single(V, Q, K=3):
             log.info(f"New best score from batch {b_id}: {best_score}")
 
     elapsed = time.time() - start_time
-    log.info(f"Rank r single-rank search complete in {elapsed:.4f} seconds")
+    log.info(f"Rank r search complete in {elapsed:.4f} seconds")
 
     if best_candidate is None:
         raise RuntimeError("Rank r algorithm did not find any feasible candidate")
 
+    # convert complex spins to integer labels
     best_k = complex_to_partition(best_candidate, K)
     best_z = best_candidate
     return float(best_score), best_k, best_z
-
-def process_rankr_recursive(V, Q, K=3):
-    """
-    Recursive rank-r max-k-cut
-    """
-    n, r = V.shape
-    log.info(f"Recursive rank solver at rank r = {r}")
-
-    # base case: r = 1, use the rank 1 Ray routine
-    if r == 1:
-        log.info("Base case r = 1, calling process_rank_1_parallel")
-        best_score, best_k, best_z = process_rank_1_parallel(V[:, 0], Q, K)
-        return best_score, best_k, best_z
-
-    # compute best candidate at current rank r
-    curr_score, curr_k, curr_z = process_rankr_single(V, Q, K)
-
-    best_score = curr_score
-    best_k = curr_k
-    best_z = curr_z
-
-    # recursively consider lower rank r - 1
-    if r > 1:
-        log.info(f"Recursing to lower rank r = {r-1}")
-        lower_score, lower_k, lower_z = process_rankr_recursive(V[:, :r-1], Q, K)
-
-        if lower_score > best_score:
-            log.info(f"Lower rank {r-1} improved score from {best_score} to {lower_score}")
-            best_score = lower_score
-            best_k = lower_k
-            best_z = lower_z
-
-    return best_score, best_k, best_z
-
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Parallel MAX k CUT experiment")
@@ -323,9 +289,9 @@ def main():
         log.info("Executing parallel rank 1 algorithm")
         best_score, best_k, best_z = process_rank_1_parallel(V[:, 0], Q, K=3)
     else:
-        log.info(f"Executing recursive rank {args.rank} algorithm (r = 1..{args.rank})")
-        best_score, best_k, best_z = process_rankr_recursive(V, Q, K=3)
-    
+        log.info(f"Executing parallel rank {args.rank} algorithm")
+        best_score, best_k, best_z = process_rankr_parallel(V, Q, K=3)
+
     elapsed = time.time() - start
 
     log.info(f"Rank {args.rank} result: score = {best_score}")
