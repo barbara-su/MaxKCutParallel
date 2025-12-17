@@ -35,6 +35,12 @@ unset LD_PRELOAD || true
 export XALT_EXECUTABLE_TRACKING=0
 export XALT_RUNNABLE=0
 
+# openblas 
+export OMP_NUM_THREADS=1
+export OPENBLAS_NUM_THREADS=1
+export MKL_NUM_THREADS=1
+export NUMEXPR_NUM_THREADS=1
+
 # Conda
 cd /home/bs82/max-k-cut-parallel/
 mkdir -p logs

@@ -40,7 +40,9 @@ def process_rank_1_batch(l_values, k0, sorted_idx, Q, roots, K, batch_id):
             idx = sorted_idx[:l]
             k[idx] = (k[idx] + 1) % K
         z = roots[k]
-        score = np.real(z.conj() @ Q @ z)
+        # score = np.real(z.conj() @ Q @ z)
+        # score = np.vdot(z, Q @ z).real
+        score = np.einsum('i,ij,j->', z.conj(), Q, z).real
         if score > best_score:
             best_score = score
             best_l = int(l)
@@ -145,11 +147,6 @@ def process_rank_1_parallel(V, Q, K=3, candidates_per_task=10):
     return best_score, best_k, best_z, best_l
 
 
-def compute_recovery(z_alg, Q, opt_value):
-    alg_value = float(np.real(z_alg.conj() @ Q @ z_alg))
-    return alg_value / opt_value
-
-
 def parse_args():
     parser = argparse.ArgumentParser(description="Parallel MAX k CUT experiment (rank 1)")
     parser.add_argument("--n", type=int, default=10000, help="Problem size")
@@ -227,8 +224,8 @@ def main():
         "precision": args.precision,
         "candidates_per_task": int(args.candidates_per_task),
         "best_l": int(best_l),
-        "best_score": float(best_score),
-        "time_seconds": float(elapsed),
+        "best_score": best_score,
+        "time_seconds": elapsed,
         "best_k": best_k.tolist(),
         "best_z_real": np.real(best_z).tolist(),
         "best_z_imag": np.imag(best_z).tolist(),

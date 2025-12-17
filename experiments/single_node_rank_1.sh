@@ -29,6 +29,12 @@ echo "Using precision = $PRECISION"
 echo "Using candidates_per_task = $CANDIDATES_PER_TASK"
 echo "Using seed = $SEED"
 
+# openblas 
+export OMP_NUM_THREADS=1
+export OPENBLAS_NUM_THREADS=1
+export MKL_NUM_THREADS=1
+export NUMEXPR_NUM_THREADS=1
+
 # Clean environment
 module purge || true
 unset LD_PRELOAD || true
