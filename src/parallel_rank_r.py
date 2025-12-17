@@ -290,12 +290,6 @@ def parse_args():
     parser.add_argument("--results_dir", type=str, default="results", help="Directory to store outputs")
     parser.add_argument("--graph_dir", type=str, default=None,
                         help="Directory containing Q_{n}.npy and V_{n}.npy")
-    # correctness check
-    parser.add_argument(
-        "--compute_recovery",
-        action="store_true",
-        help="If set, compute SDP optimal value and recovery ratio."
-    )
     return parser.parse_args()
 
 def main():
@@ -369,6 +363,7 @@ def main():
     if args.compute_recovery:
         opt_value = solve_sdp_optimal(Q)
         recovery = compute_recovery(best_z, Q, opt_value)
+        log.info(f"Score: {opt_value}")
         log.info(f"Recovery ratio: {recovery}")
         output["recovery_ratio"] = float(recovery)
 

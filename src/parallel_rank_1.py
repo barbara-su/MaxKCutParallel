@@ -9,6 +9,7 @@ import argparse
 import json
 from datetime import datetime
 import os
+from itertools import product
 
 # ignore the ray warning
 warnings.filterwarnings(
@@ -110,22 +111,53 @@ def compute_recovery(z_alg, Q, opt_value):
     alg_value = np.real(z_alg.conj() @ Q @ z_alg)
     return alg_value / opt_value
 
-def solve_sdp_optimal(Q):
-    n = Q.shape[0]
-    log.info(f"Solving SDP relaxation for n={n}")
-    X = cvx.Variable((n, n), PSD=True)
-    obj = cvx.Maximize(cvx.sum(cvx.multiply(Q, X)))
-    constraints = [cvx.diag(X) == 1]
-    prob = cvx.Problem(obj, constraints)
-    prob.solve(solver=cvx.SCS, verbose=False)
-    log.info("SDP optimal value computed")
-    return prob.value
+def opt_K_cut(Q, K=2):
+    """
+    Optimal max-k cut computation
+    """
+    n = Q.shape[0]  # Number of vertices
+    groups = range(K)  # Possible colors/groups (0 to K-1)
+    candidate_colors = list(product(groups, repeat=n))
+    best_score = float('-inf')  # Initialize with worst possible score
+    best_colors = None  # Will store the optimal coloring
+
+    # Evaluate each possible coloring
+    for colors in candidate_colors:
+        zs = np.exp(2 * np.pi * 1j * np.array(colors) / K)
+        score = zs.conj() @ Q @ zs
+
+        if np.real(score) > best_score:
+            best_score = np.real(score) 
+            best_colors = colors
+
+    return best_score, best_colors
+
+def generate_debug_QV(n=10, seed=42):
+    """
+    Generate a random rank-1 symmetric matrix Q = v v^T
+    and return Q along with its (complex) rank-1 factor V.
+
+    Q has rank 1 with probability 1 due to random v.
+    """
+    rng = np.random.default_rng(seed)
+
+    # random real vector
+    v = rng.normal(size=(n, 1))
+
+    # rank-1 symmetric matrix
+    Q = v @ v.T               # shape (n, n)
+
+    # treat v as the eigenvector matrix V
+    V = v.astype(complex)     # shape (n, 1)
+
+    return Q, V
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Parallel MAX k CUT experiment")
     parser.add_argument("--n", type=int, default=10000, help="Problem size")
     parser.add_argument("--seed", type=int, default=42, help="Random seed")
-    parser.add_argument("--compute_recovery", action="store_true", help="Compute recovery ratio")
+    parser.add_argument("--debug", action="store_true", help="Compute correctness with opt_K_cut")
     parser.add_argument("--results_dir", type=str, default="results", help="Directory to store outputs")
     parser.add_argument("--graph_dir", type=str, default=None,
                         help="Directory containing Q_{n}.npy and V_{n}.npy")
@@ -144,22 +176,26 @@ def main():
     num_workers = int(resources.get("CPU", 1))
     log.info(f"Detected {num_workers} Ray workers (CPU slots)")
 
-    log.info("Loading Q and V...")
-    
-    if args.graph_dir is not None:
-        q_path = os.path.join(args.graph_dir, f"Q_{args.n}.npy")
-        v_path = os.path.join(args.graph_dir, f"V_{args.n}.npy")
+    # load Q, V is not in debug mode
+    if not args.debug:
+        log.info("Loading Q and V...")
+        
+        if args.graph_dir is not None:
+            q_path = os.path.join(args.graph_dir, f"Q_{args.n}.npy")
+            v_path = os.path.join(args.graph_dir, f"V_{args.n}.npy")
 
-        log.info(f"Loading Q from {q_path}")
-        log.info(f"Loading V from {v_path}")
+            log.info(f"Loading Q from {q_path}")
+            log.info(f"Loading V from {v_path}")
 
-        Q = np.load(q_path)
-        V = np.load(v_path)
+            Q = np.load(q_path)
+            V = np.load(v_path)
+        else:
+            Q = generate_Q(0.5, args.n, 'erdos_renyi', seed=args.seed)
+            log.info("Random graph Laplacian generated")
+            eigvals, eigvecs = np.linalg.eigh(Q)
+            _, V = low_rank_matrix(Q, eigvals, eigvecs, r=1)
     else:
-        Q = generate_Q(0.5, args.n, 'erdos_renyi', seed=args.seed)
-        log.info("Random graph Laplacian generated")
-        eigvals, eigvecs = np.linalg.eigh(Q)
-        _, V = low_rank_matrix(Q, eigvals, eigvecs, r=1)
+        Q, V = generate_debug_QV()
     
     log.info("Eigen decomposition complete and top eigenvector extracted")
 
@@ -183,14 +219,9 @@ def main():
         "best_z_imag": np.imag(best_z).tolist(),
         "num_workers": num_workers,
     }
-
-    # this only works for n <= 10
-    if args.compute_recovery:
-        opt_value = solve_sdp_optimal(Q)
-        recovery = compute_recovery(best_z, Q, opt_value)
-        log.info(f"Recovery ratio: {recovery}")
-        output["recovery_ratio"] = float(recovery)
-
+    if args.debug:
+        best_score, _ = opt_K_cut(Q, 1)
+        log.info(f"correct score: {best_score}")
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = f"{timestamp}_result_n{args.n}.json"
     path = os.path.join(args.results_dir, filename)

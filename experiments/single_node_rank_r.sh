@@ -13,15 +13,14 @@
 N=${1:-20000}
 R=${2:-2}
 GRAPH_DIR=${3:-graphs}
+RECOVERY_FLAG=${4:-0}
 
-echo "Job started on $(hostname)"
-echo "SLURM_CPUS_PER_TASK: $SLURM_CPUS_PER_TASK"
-echo "GPUs allocated: $CUDA_VISIBLE_DEVICES"
 echo "Using n = $N"
 echo "Using rank = $R"
 echo "Using graph_dir = $GRAPH_DIR"
+echo "Compute recovery: $RECOVERY_FLAG"
 
-# Clean environment
+# Clean env
 module purge || true
 unset LD_PRELOAD || true
 export XALT_EXECUTABLE_TRACKING=0
@@ -37,7 +36,11 @@ conda activate ./rayenv
 ray stop
 ray start --head --port=5050
 
-# Run python code
-python src/parallel_rank_r.py --n "$N" --rank "$R" --graph_dir "$GRAPH_DIR"
+# Run python with or without recovery
+if [ "$RECOVERY_FLAG" -eq 1 ]; then
+    python src/parallel_rank_r.py --n "$N" --rank "$R" --graph_dir "$GRAPH_DIR" --compute_recovery
+else
+    python src/parallel_rank_r.py --n "$N" --rank "$R" --graph_dir "$GRAPH_DIR"
+fi
 
 echo "Job complete."
