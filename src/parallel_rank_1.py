@@ -111,48 +111,6 @@ def compute_recovery(z_alg, Q, opt_value):
     alg_value = np.real(z_alg.conj() @ Q @ z_alg)
     return alg_value / opt_value
 
-def opt_K_cut(Q, K=2):
-    """
-    Optimal max-k cut computation
-    """
-    n = Q.shape[0]  # Number of vertices
-    groups = range(K)  # Possible colors/groups (0 to K-1)
-    candidate_colors = list(product(groups, repeat=n))
-    best_score = float('-inf')  # Initialize with worst possible score
-    best_colors = None  # Will store the optimal coloring
-
-    # Evaluate each possible coloring
-    for colors in candidate_colors:
-        zs = np.exp(2 * np.pi * 1j * np.array(colors) / K)
-        score = zs.conj() @ Q @ zs
-
-        if np.real(score) > best_score:
-            best_score = np.real(score) 
-            best_colors = colors
-
-    return best_score, best_colors
-
-def generate_debug_QV(n=10, seed=42):
-    """
-    Generate a random rank-1 symmetric matrix Q = v v^T
-    and return Q along with its (complex) rank-1 factor V.
-
-    Q has rank 1 with probability 1 due to random v.
-    """
-    rng = np.random.default_rng(seed)
-
-    # random real vector
-    v = rng.normal(size=(n, 1))
-
-    # rank-1 symmetric matrix
-    Q = v @ v.T               # shape (n, n)
-
-    # treat v as the eigenvector matrix V
-    V = v.astype(complex)     # shape (n, 1)
-
-    return Q, V
-
-
 def parse_args():
     parser = argparse.ArgumentParser(description="Parallel MAX k CUT experiment")
     parser.add_argument("--n", type=int, default=10000, help="Problem size")
@@ -166,12 +124,10 @@ def parse_args():
 
 def main():
     args = parse_args()
-
     np.random.seed(args.seed)
     log.info("Starting MAX 3 CUT experiment")
     ray.init(address="auto", ignore_reinit_error=True)
     log.info("Ray initialized")
-    
     resources = ray.available_resources()
     num_workers = int(resources.get("CPU", 1))
     log.info(f"Detected {num_workers} Ray workers (CPU slots)")
@@ -194,11 +150,11 @@ def main():
             log.info("Random graph Laplacian generated")
             eigvals, eigvecs = np.linalg.eigh(Q)
             _, V = low_rank_matrix(Q, eigvals, eigvecs, r=1)
+            log.info("Eigen decomposition complete and top eigenvector extracted")
     else:
-        Q, V = generate_debug_QV()
+        log.info("Generating rank 1 Q, V for debug...")
+        Q, V = generate_debug_QV(args.n, 1, seed=args.seed)
     
-    log.info("Eigen decomposition complete and top eigenvector extracted")
-
     log.info("Executing parallel rank 1 algorithm")
     start = time.time()
     best_score, best_k, best_z = process_rank_1_parallel(V[:, 0], Q, K=3)
@@ -219,12 +175,16 @@ def main():
         "best_z_imag": np.imag(best_z).tolist(),
         "num_workers": num_workers,
     }
+    
     if args.debug:
-        best_score, _ = opt_K_cut(Q, 1)
-        log.info(f"correct score: {best_score}")
+        log.info(f"Computing optimal K-cut...")
+        best_score, _ = opt_K_cut(Q)
+        log.info(f"Correct score: {best_score}")
+        
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = f"{timestamp}_result_n{args.n}.json"
     path = os.path.join(args.results_dir, filename)
+    
     with open(path, "w") as f:
         json.dump(output, f, indent=2)
     log.info(f"Saved results to {path}")

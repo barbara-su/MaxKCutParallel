@@ -3,6 +3,7 @@ import numpy as np
 import math
 from scipy import sparse
 from scipy import linalg
+from itertools import product
 
 def low_rank_matrix(Q, eigvals, eigvecs, r: int = 2):
     """
@@ -671,3 +672,44 @@ def complex_to_partition(z, K=3):
         partition[i] = np.argmin(distances)
 
     return partition
+
+
+def generate_debug_QV(n=10, rank=1, seed=42):
+    """
+    Generate a random symmetric PSD matrix Q = A A^T of (intended) rank = rank,
+    and return Q along with its (complex) factor V = A.
+
+    If 1 <= rank <= n, then rank(Q) = rank with probability 1 under Gaussian A.
+    """
+    if not (isinstance(rank, int) and rank >= 1):
+        raise ValueError("rank must be a positive integer.")
+    if rank > n:
+        raise ValueError("rank must satisfy rank <= n.")
+
+    rng = np.random.default_rng(seed)
+    A = rng.normal(size=(n, rank))   # shape (n, rank)
+    Q = A @ A.T                      # shape (n, n), symmetric PSD
+    V = A.astype(complex)            # shape (n, rank)
+
+    return Q, V
+
+def opt_K_cut(Q, K=3):
+    """
+    Optimal max-k cut computation
+    """
+    n = Q.shape[0]  # Number of vertices
+    groups = range(K)  # Possible colors/groups (0 to K-1)
+    candidate_colors = list(product(groups, repeat=n))
+    best_score = float('-inf')  # Initialize with worst possible score
+    best_colors = None  # Will store the optimal coloring
+
+    # Evaluate each possible coloring
+    for colors in candidate_colors:
+        zs = np.exp(2 * np.pi * 1j * np.array(colors) / K)
+        score = zs.conj() @ Q @ zs
+
+        if np.real(score) > best_score:
+            best_score = np.real(score) 
+            best_colors = colors
+
+    return best_score, best_colors
