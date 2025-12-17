@@ -124,13 +124,16 @@ def process_combination_batch(V_tilde,
     return best_score, best_candidate, batch_id
 
 
-def process_rankr_single(V, Q, K=3):
+def process_rankr_single(V, Q, K=3, candidates_per_task=1000):
     """
     Single rank-r enumeration using Algorithm 2 with Ray.
     Does not recurse on lower ranks.
     """
     n, r = V.shape
     log.info(f"Rank r subroutine (single rank): n = {n}, r = {r}, K = {K}")
+
+    if candidates_per_task <= 0:
+        raise ValueError("--candidates_per_task must be a positive integer")
 
     # compute v_tilde
     log.info("Computing V_tilde")
@@ -161,9 +164,12 @@ def process_rankr_single(V, Q, K=3):
     num_cpus = int(resources.get("CPU", 1))
     num_cpus = max(1, num_cpus)
 
-    # 10 batches per cpu
-    batch_size = max(1, num_combinations // (num_cpus * 10)) if num_combinations > 0 else 1
-    log.info(f"Using {num_cpus} CPUs, batch size {batch_size}")
+    # NOTE: now candidates_per_task is the chunk size (combos per Ray task), not derived from num_cpus.
+    batch_size = int(candidates_per_task)
+    total_tasks = (num_combinations + batch_size - 1) // batch_size if num_combinations > 0 else 0
+
+    log.info(f"Using {num_cpus} CPUs, candidates_per_task (batch_size) {batch_size}")
+    log.info(f"Total Ray tasks (ceil(num_combinations/batch_size)): {total_tasks}")
 
     # put objects into Ray object store
     V_tilde_ref = ray.put(V_tilde)
@@ -229,7 +235,7 @@ def process_rankr_single(V, Q, K=3):
     return float(best_score), best_k, best_z
 
 
-def process_rankr_recursive(V, Q, K=3):
+def process_rankr_recursive(V, Q, K=3, candidates_per_task=1000):
     """
     Recursive rank-r max-k-cut
     """
@@ -239,11 +245,15 @@ def process_rankr_recursive(V, Q, K=3):
     # base case: r = 1, use the rank 1 Ray routine
     if r == 1:
         log.info("Base case r = 1, calling process_rank_1_parallel")
-        best_score, best_k, best_z = process_rank_1_parallel(V[:, 0], Q, K)
+        best_score, best_k, best_z = process_rank_1_parallel(
+            V[:, 0], Q, K, candidates_per_task=candidates_per_task
+        )
         return best_score, best_k, best_z
 
     # compute best candidate at current rank r
-    curr_score, curr_k, curr_z = process_rankr_single(V, Q, K)
+    curr_score, curr_k, curr_z, _, _, _ = process_rankr_single(
+        V, Q, K, candidates_per_task=candidates_per_task
+    )
 
     best_score = curr_score
     best_k = curr_k
@@ -252,7 +262,9 @@ def process_rankr_recursive(V, Q, K=3):
     # recursively consider lower rank r - 1
     if r > 1:
         log.info(f"Recursing to lower rank r = {r-1}")
-        lower_score, lower_k, lower_z = process_rankr_recursive(V[:, :r-1], Q, K)
+        lower_score, lower_k, lower_z = process_rankr_recursive(
+            V[:, :r-1], Q, K, candidates_per_task=candidates_per_task
+        )
 
         if lower_score > best_score:
             log.info(f"Lower rank {r-1} improved score from {best_score} to {lower_score}")
@@ -270,6 +282,8 @@ def parse_args():
     parser.add_argument("--rank", type=int, default=1, help="Low rank parameter r")
     parser.add_argument("--precision", type=int, default=64, choices=[16, 32, 64],
                         help="Numeric precision: 16, 32, or 64 (default: 64)")
+    parser.add_argument("--candidates_per_task", type=int, default=1000,
+                        help="Max enumeration candidates per Ray task. Rank-1: prefix lengths l. Rank-r: combinations.")
     parser.add_argument("--debug", action="store_true", help="Compute recovery ratio")
     parser.add_argument("--results_dir", type=str, default="results", help="Directory to store outputs")
     parser.add_argument("--graph_dir", type=str, default=None,
@@ -304,22 +318,22 @@ def main():
             Q = np.load(q_path)
             V_full = np.load(v_path)
 
+            # if stored V has more columns than needed, truncate
             if V_full.shape[1] < args.rank:
-                raise ValueError(
-                    f"Loaded V has only {V_full.shape[1]} columns, but rank {args.rank} was requested"
-                )
+                raise ValueError(f"Loaded V has only {V_full.shape[1]} columns, "
+                                f"but rank {args.rank} was requested")
             V = V_full[:, :args.rank]
 
             Q = np.asarray(Q, dtype=float_dtype)
             V = np.asarray(V, dtype=complex_dtype)
 
         else:
-            Q = generate_Q(0.5, args.n, "erdos_renyi", seed=args.seed)
+            Q = generate_Q(0.5, args.n, 'erdos_renyi', seed=args.seed)
             Q = np.asarray(Q, dtype=float_dtype)
             log.info("Random graph Laplacian generated")
 
-            # eigh is safest in float64
             eigvals, eigvecs = np.linalg.eigh(Q.astype(np.float64, copy=False))
+            # low_rank_matrix should return V with shape (n, args.rank)
             _, V = low_rank_matrix(Q, eigvals, eigvecs, r=args.rank)
             V = np.asarray(V, dtype=complex_dtype)
 
@@ -335,10 +349,29 @@ def main():
 
     if args.rank == 1:
         log.info("Executing parallel rank 1 algorithm")
-        best_score, best_k, best_z = process_rank_1_parallel(V[:, 0], Q, K=3)
+        best_score, best_k, best_z = process_rank_1_parallel(
+            V[:, 0], Q, K=3, candidates_per_task=args.candidates_per_task
+        )
+        num_candidates = args.n + 1
+        total_tasks = (num_candidates + args.candidates_per_task - 1) // args.candidates_per_task
     else:
         log.info(f"Executing recursive rank {args.rank} algorithm (r = 1..{args.rank})")
-        best_score, best_k, best_z = process_rankr_recursive(V, Q, K=3)
+
+        # log/store top-rank combination count
+        top_n = V.shape[0]
+        top_r = V.shape[1]
+        num_vtilde_rows = 3 * top_n
+        comb_size = 2 * top_r - 1
+        num_candidates = int(math.comb(num_vtilde_rows, comb_size))
+        total_tasks = (num_candidates + args.candidates_per_task - 1) // args.candidates_per_task
+
+        best_score, best_k, best_z = process_rankr_recursive(
+            V, Q, K=3, candidates_per_task=args.candidates_per_task
+        )
+        extra = {
+            "num_candidates": int(num_candidates),
+            "total_tasks": int(total_tasks),
+        }
 
     elapsed = time.time() - start
 
@@ -352,6 +385,7 @@ def main():
         "seed": args.seed,
         "rank": args.rank,
         "precision": args.precision,
+        "candidates_per_task": int(args.candidates_per_task),
         "best_score": float(best_score),
         "time_seconds": float(elapsed),
         "best_k": best_k.tolist(),
@@ -366,7 +400,7 @@ def main():
 
     os.makedirs(args.results_dir, exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"{timestamp}_result_n{args.n}_r{args.rank}_p{args.precision}.json"
+    filename = f"{timestamp}_result_n{args.n}_r{args.rank}_p{args.precision}_cpt{args.candidates_per_task}.json"
     path = os.path.join(args.results_dir, filename)
     with open(path, "w") as f:
         json.dump(output, f, indent=2)
