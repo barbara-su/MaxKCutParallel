@@ -4,8 +4,8 @@
 #SBATCH --error=logs/rank-r-maxcut-%j.err
 
 #SBATCH --partition=commons
-#SBATCH --cpus-per-task=100
-#SBATCH --mem=500G
+#SBATCH --cpus-per-task=208
+#SBATCH --mem=0
 #SBATCH --time=23:00:00
 
 # Read n, rank, and graph_dir from arguments

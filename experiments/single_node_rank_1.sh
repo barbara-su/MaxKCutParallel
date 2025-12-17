@@ -4,17 +4,24 @@
 #SBATCH --error=logs/rank-1-maxcut-%j.err
 
 #SBATCH --partition=commons
-#SBATCH --cpus-per-task=50
-#SBATCH --mem=200G
+#SBATCH --cpus-per-task=208
+#SBATCH --mem=0
 #SBATCH --time=23:00:00
 
-# Read n from first argument, default to 20000 if not provided
+# Args:
+#   1: n (default 20000)
+#   2: results_dir (default "results")
+#   3: precision in {16,32,64} (default 64)
 N=${1:-20000}
+RESULTS_DIR=${2:-results}
+PRECISION=${3:-64}
 
 echo "Job started on $(hostname)"
 echo "SLURM_CPUS_PER_TASK: $SLURM_CPUS_PER_TASK"
 echo "GPUs allocated: $CUDA_VISIBLE_DEVICES"
 echo "Using n = $N"
+echo "Using results_dir = $RESULTS_DIR"
+echo "Using precision = $PRECISION"
 
 # Clean environment
 module purge || true
@@ -33,6 +40,10 @@ ray stop
 ray start --head --port=5050
 
 # Run python code
-python src/parallel_rank_1.py --n "$N" --graph_dir "graphs_rank_1" --debug
+python src/parallel_rank_1.py \
+  --n "$N" \
+  --graph_dir "graphs/graphs_rank_1" \
+  --results_dir "$RESULTS_DIR" \
+  --precision "$PRECISION" \
 
 echo "Job complete."

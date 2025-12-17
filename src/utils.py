@@ -713,3 +713,26 @@ def opt_K_cut(Q, K=3):
             best_colors = colors
 
     return best_score, best_colors
+
+
+def set_numpy_precision(precision: int):
+    """
+    Simple "global" precision switch.
+    - 16 -> float16 / complex64 (complex32 is not supported in NumPy)
+    - 32 -> float32 / complex64
+    - 64 -> float64 / complex128
+    """
+    if precision not in (16, 32, 64):
+        raise ValueError("--precision must be one of {16, 32, 64}")
+
+    if precision == 16:
+        float_dtype = np.float16
+        complex_dtype = np.complex64
+    elif precision == 32:
+        float_dtype = np.float32
+        complex_dtype = np.complex64
+    else:
+        float_dtype = np.float64
+        complex_dtype = np.complex128
+
+    return float_dtype, complex_dtype

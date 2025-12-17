@@ -9,8 +9,9 @@ import json
 from datetime import datetime
 import itertools
 import os
+import math
 from src.parallel_rank_1 import process_rank_1_parallel
-import cvxpy as cvx
+import cvxpy as cvx  # kept for parity
 
 # ignore the ray warning
 warnings.filterwarnings(
@@ -59,7 +60,7 @@ def process_combination_batch(V_tilde,
                 continue
 
             # candidate spin vector
-            candidate = np.zeros(n, dtype=complex)
+            candidate = np.zeros(n, dtype=V.dtype)
 
             # adjust sign of c_tilde
             c_tilde = c_tilde * sign_c
@@ -104,14 +105,14 @@ def process_combination_batch(V_tilde,
                         continue
 
                 # fallback
-                if not assigned or np.abs(candidate[v_idx]) < 1e-10:
+                if (not assigned) or (np.abs(candidate[v_idx]) < 1e-10):
                     v_c = V[v_idx] @ c
                     metric = np.real(np.conj(s) * v_c)
                     s_idx = int(np.argmax(metric))
                     candidate[v_idx] = s[s_idx]
 
             # evaluate objective
-            score = np.real(candidate.conj() @ Q @ candidate)
+            score = float(np.real(candidate.conj() @ Q @ candidate))
 
             if score > best_score:
                 best_score = score
@@ -121,6 +122,7 @@ def process_combination_batch(V_tilde,
             continue
 
     return best_score, best_candidate, batch_id
+
 
 def process_rankr_single(V, Q, K=3):
     """
@@ -139,7 +141,7 @@ def process_rankr_single(V, Q, K=3):
     row_mapping, inverse_mapping = get_row_mapping(n, K)
 
     # Kth roots of unity
-    s = np.exp(1j * 2 * np.pi * np.arange(K) / K)
+    s = np.exp(1j * 2 * np.pi * np.arange(K) / K).astype(V.dtype, copy=False)
 
     # number of V_tilde rows and combination size
     num_vtilde_rows = K * n
@@ -156,18 +158,11 @@ def process_rankr_single(V, Q, K=3):
 
     # decide batch size
     resources = ray.available_resources()
-    if "CPU" in resources:
-        num_cpus = int(resources["CPU"])
-    else:
-        num_cpus = 1
+    num_cpus = int(resources.get("CPU", 1))
     num_cpus = max(1, num_cpus)
 
     # 10 batches per cpu
-    if num_combinations > 0:
-        batch_size = max(1, num_combinations // (num_cpus * 10))
-    else:
-        batch_size = 1
-
+    batch_size = max(1, num_combinations // (num_cpus * 10)) if num_combinations > 0 else 1
     log.info(f"Using {num_cpus} CPUs, batch size {batch_size}")
 
     # put objects into Ray object store
@@ -233,6 +228,7 @@ def process_rankr_single(V, Q, K=3):
     best_z = best_candidate
     return float(best_score), best_k, best_z
 
+
 def process_rankr_recursive(V, Q, K=3):
     """
     Recursive rank-r max-k-cut
@@ -272,20 +268,26 @@ def parse_args():
     parser.add_argument("--n", type=int, default=10000, help="Problem size")
     parser.add_argument("--seed", type=int, default=42, help="Random seed")
     parser.add_argument("--rank", type=int, default=1, help="Low rank parameter r")
+    parser.add_argument("--precision", type=int, default=64, choices=[16, 32, 64],
+                        help="Numeric precision: 16, 32, or 64 (default: 64)")
     parser.add_argument("--debug", action="store_true", help="Compute recovery ratio")
     parser.add_argument("--results_dir", type=str, default="results", help="Directory to store outputs")
     parser.add_argument("--graph_dir", type=str, default=None,
                         help="Directory containing Q_{n}.npy and V_{n}.npy")
     return parser.parse_args()
 
+
 def main():
     args = parse_args()
+
+    float_dtype, complex_dtype = set_numpy_precision(args.precision)
+    log.info(f"Using precision={args.precision} -> float={float_dtype.__name__}, complex={complex_dtype.__name__}")
 
     np.random.seed(args.seed)
     log.info("Starting MAX 3 CUT experiment")
     ray.init(address="auto", ignore_reinit_error=True)
     log.info("Ray initialized")
-    
+
     resources = ray.available_resources()
     num_workers = int(resources.get("CPU", 1))
     log.info(f"Detected {num_workers} Ray workers (CPU slots)")
@@ -302,23 +304,31 @@ def main():
             Q = np.load(q_path)
             V_full = np.load(v_path)
 
-            # if stored V has more columns than needed, truncate
             if V_full.shape[1] < args.rank:
-                raise ValueError(f"Loaded V has only {V_full.shape[1]} columns, "
-                                f"but rank {args.rank} was requested")
+                raise ValueError(
+                    f"Loaded V has only {V_full.shape[1]} columns, but rank {args.rank} was requested"
+                )
             V = V_full[:, :args.rank]
 
+            Q = np.asarray(Q, dtype=float_dtype)
+            V = np.asarray(V, dtype=complex_dtype)
+
         else:
-            Q = generate_Q(0.5, args.n, 'erdos_renyi', seed=args.seed)
+            Q = generate_Q(0.5, args.n, "erdos_renyi", seed=args.seed)
+            Q = np.asarray(Q, dtype=float_dtype)
             log.info("Random graph Laplacian generated")
 
-            eigvals, eigvecs = np.linalg.eigh(Q)
-            # low_rank_matrix should return V with shape (n, args.rank)
+            # eigh is safest in float64
+            eigvals, eigvecs = np.linalg.eigh(Q.astype(np.float64, copy=False))
             _, V = low_rank_matrix(Q, eigvals, eigvecs, r=args.rank)
+            V = np.asarray(V, dtype=complex_dtype)
+
     else:
         log.info("Generating debug low rank Q, V")
-        Q, V = generate_debug_QV(args.n, args.rank, args.seed)
-        
+        Q, V = generate_debug_QV(n=args.n, rank=args.rank, seed=args.seed)
+        Q = np.asarray(Q, dtype=float_dtype)
+        V = np.asarray(V, dtype=complex_dtype)
+
     log.info(f"Eigen decomposition complete and low rank factor V has shape {V.shape}")
 
     start = time.time()
@@ -329,18 +339,19 @@ def main():
     else:
         log.info(f"Executing recursive rank {args.rank} algorithm (r = 1..{args.rank})")
         best_score, best_k, best_z = process_rankr_recursive(V, Q, K=3)
-    
+
     elapsed = time.time() - start
 
     log.info(f"Rank {args.rank} result: score = {best_score}")
     log.info(f"Execution time: {elapsed:.4f} seconds")
     log.info(f"Final partition assignment k:\n{best_k}")
     log.info(f"Computed complex spin vector z:\n{best_z}")
-    
+
     output = {
         "n": args.n,
         "seed": args.seed,
         "rank": args.rank,
+        "precision": args.precision,
         "best_score": float(best_score),
         "time_seconds": float(elapsed),
         "best_k": best_k.tolist(),
@@ -348,18 +359,19 @@ def main():
         "best_z_imag": np.imag(best_z).tolist(),
         "num_workers": num_workers,
     }
-    
-    if args.debug: # will only work for n = 10
-        opt_score, _ = opt_K_cut(Q)
+
+    if args.debug:  # will only work for n = 10
+        opt_score, _ = opt_K_cut(Q.astype(np.float64, copy=False))
         log.info(f"Correct score: {opt_score}")
-        
+
     os.makedirs(args.results_dir, exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"{timestamp}_result_n{args.n}_r{args.rank}.json"
+    filename = f"{timestamp}_result_n{args.n}_r{args.rank}_p{args.precision}.json"
     path = os.path.join(args.results_dir, filename)
     with open(path, "w") as f:
         json.dump(output, f, indent=2)
     log.info(f"Saved results to {path}")
+
 
 if __name__ == "__main__":
     main()
