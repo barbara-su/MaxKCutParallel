@@ -1,7 +1,6 @@
 import numpy as np
 import ray
 from utils import *
-import cvxpy as cvx
 import time
 import logging
 import warnings
@@ -9,15 +8,15 @@ import argparse
 import json
 from datetime import datetime
 import os
-from itertools import product
+import itertools
 
-# ignore the ray warning
+# Ignore the Ray warning
 warnings.filterwarnings(
     "ignore",
     message="pkg_resources is deprecated as an API"
 )
 
-# initialize logging
+# Initialize logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
@@ -27,115 +26,169 @@ log = logging.getLogger(__name__)
 
 
 @ray.remote
-def process_rank_1_candidate(l, k0, sorted_idx, Q, roots, K):
-    k = k0.copy()
-    k[sorted_idx[:l]] = (k[sorted_idx[:l]] + 1) % K
-    z = roots[k]
-    score = np.real(z.conj() @ Q @ z)
-    return score
+def process_rank_1_batch(l_values, k0, sorted_idx, Q, roots, K, batch_id):
+    """
+    Process a batch of prefix lengths l for the rank-1 algorithm.
 
-def process_rank_1_parallel(V, Q, K):
+    For each l in l_values:
+      - flip the first l indices (in sorted order) by +1 mod K
+      - evaluate z^* Q z
+    Return the best score and best l in this batch.
+    """
+    best_score = float("-inf")
+    best_l = None
+
+    for l in l_values:
+        k = k0.copy()
+        if l > 0:
+            idx = sorted_idx[:l]
+            k[idx] = (k[idx] + 1) % K
+        z = roots[k]
+        score = float(np.real(z.conj() @ Q @ z))
+        if score > best_score:
+            best_score = score
+            best_l = int(l)
+
+    return best_score, best_l, batch_id
+
+
+def process_rank_1_parallel(V, Q, K=3):
+    """
+    Parallel rank-1 max-k-cut sweep over prefix lengths l = 0..n.
+
+    Parallel pattern matches your rank-r logic:
+      - stream batches
+      - submit all Ray tasks
+      - collect and track the global best
+    """
     n = V.shape[0]
     log.info(f"Rank 1 subroutine: received eigenvector of length {n}")
+
     real_q1 = np.real(V).flatten()
     im_q1 = np.imag(V).flatten()
-    
+
     thetas = np.arctan2(im_q1, real_q1)
-    thetas = np.where(thetas < 0, thetas + 2*np.pi, thetas)
+    thetas = np.where(thetas < 0, thetas + 2 * np.pi, thetas)
+
     b = K * thetas / (2 * np.pi)
     b_floor = np.floor(b).astype(int)
     k0 = b_floor % K
-
     log.info("Initial assignment k0 computed")
 
     phi_hat = 0.5 - b + b_floor
     phis = 2 * np.pi * phi_hat / K
     sorted_idx = np.argsort(phis)
 
-    # Use available CPU to determine batch size.
+    # Decide batch size similarly to rank-r: about 10 batches per CPU.
+    num_candidates = n + 1
     resources = ray.available_resources()
-    if "CPU" in resources:
-        batch_size = int(resources["CPU"])
-    else:
-        batch_size = 1
+    num_cpus = int(resources.get("CPU", 1))
+    num_cpus = max(1, num_cpus)
 
-    batch_size = max(1, batch_size)
-    log.info(f"Batch size set to number of available workers: {batch_size}")
-    
-    # publish the objects through ray's object store
+    batch_size = max(1, num_candidates // (num_cpus * 10)) if num_candidates > 0 else 1
+    log.info(f"Total candidates (prefix lengths): {num_candidates}")
+    log.info(f"Using {num_cpus} CPUs, batch size {batch_size}")
+
+    # Publish objects in Ray object store
     k0_ref = ray.put(k0)
     Q_ref = ray.put(Q)
     sorted_idx_ref = ray.put(sorted_idx)
 
-    # precompute phase table and publish
     roots = np.exp(2 * np.pi * 1j * np.arange(K) / K)
     roots_ref = ray.put(roots)
-    
-    best_score = -np.inf
+
+    # Stream batches without materializing all l values
+    def batched_l_values():
+        iterator = iter(range(num_candidates))
+        while True:
+            batch = list(itertools.islice(iterator, batch_size))
+            if not batch:
+                break
+            yield batch
+
+    # Launch Ray tasks
+    futures = []
+    batch_id = 0
+    start_time = time.time()
+
+    for batch in batched_l_values():
+        fut = process_rank_1_batch.remote(
+            batch,
+            k0_ref,
+            sorted_idx_ref,
+            Q_ref,
+            roots_ref,
+            K,
+            batch_id,
+        )
+        futures.append(fut)
+        batch_id += 1
+
+    log.info(f"Submitted {len(futures)} batches to Ray")
+
+    # Collect results
+    best_score = float("-inf")
     best_l = 0
 
-    for batch_start in range(0, n + 1, batch_size):
-        batch_end = min(batch_start + batch_size, n + 1)
-        futures = [
-            process_rank_1_candidate.remote(
-                l, 
-                k0_ref, 
-                sorted_idx_ref, 
-                Q_ref, 
-                roots_ref, 
-                K
-            )
-            for l in range(batch_start, batch_end)
-        ]
-        batch_scores = ray.get(futures)
-        
-        # update max
-        local_max_idx = int(np.argmax(batch_scores))
-        local_max = batch_scores[local_max_idx]
-        if local_max > best_score:
-            best_score = local_max
-            best_l = batch_start + local_max_idx
-        log.info(f"Completed batch {batch_start} to {batch_end - 1}")
+    for fut in futures:
+        batch_score, batch_best_l, b_id = ray.get(fut)
+        log.info(f"Completed batch {b_id}")
+        if batch_best_l is None:
+            continue
+        if batch_score > best_score:
+            best_score = batch_score
+            best_l = batch_best_l
+            log.info(f"New best score from batch {b_id}: {best_score} (l = {best_l})")
+
+    elapsed = time.time() - start_time
+    log.info(f"Rank 1 search complete in {elapsed:.4f} seconds")
     log.info(f"Best prefix l = {best_l}")
 
-    # reconstruct the assignment
+    # Reconstruct best assignment
     best_k = k0.copy()
-    best_k[sorted_idx[:best_l]] = (best_k[sorted_idx[:best_l]] + 1) % K
-
-    # compute final z vector
+    if best_l > 0:
+        best_k[sorted_idx[:best_l]] = (best_k[sorted_idx[:best_l]] + 1) % K
     best_z = roots[best_k]
 
-    return best_score, best_k, best_z
+    return float(best_score), best_k, best_z
+
 
 def compute_recovery(z_alg, Q, opt_value):
-    alg_value = np.real(z_alg.conj() @ Q @ z_alg)
+    alg_value = float(np.real(z_alg.conj() @ Q @ z_alg))
     return alg_value / opt_value
 
+
 def parse_args():
-    parser = argparse.ArgumentParser(description="Parallel MAX k CUT experiment")
+    parser = argparse.ArgumentParser(description="Parallel MAX k CUT experiment (rank 1)")
     parser.add_argument("--n", type=int, default=10000, help="Problem size")
     parser.add_argument("--seed", type=int, default=42, help="Random seed")
     parser.add_argument("--debug", action="store_true", help="Compute correctness with opt_K_cut")
     parser.add_argument("--results_dir", type=str, default="results", help="Directory to store outputs")
-    parser.add_argument("--graph_dir", type=str, default=None,
-                        help="Directory containing Q_{n}.npy and V_{n}.npy")
+    parser.add_argument(
+        "--graph_dir",
+        type=str,
+        default=None,
+        help="Directory containing Q_{n}.npy and V_{n}.npy",
+    )
     return parser.parse_args()
 
 
 def main():
     args = parse_args()
     np.random.seed(args.seed)
-    log.info("Starting MAX 3 CUT experiment")
+
+    log.info("Starting MAX 3 CUT experiment (rank 1)")
     ray.init(address="auto", ignore_reinit_error=True)
     log.info("Ray initialized")
+
     resources = ray.available_resources()
     num_workers = int(resources.get("CPU", 1))
     log.info(f"Detected {num_workers} Ray workers (CPU slots)")
 
-    # load Q, V is not in debug mode
+    # Load Q and V if not in debug mode
     if not args.debug:
         log.info("Loading Q and V...")
-        
+
         if args.graph_dir is not None:
             q_path = os.path.join(args.graph_dir, f"Q_{args.n}.npy")
             v_path = os.path.join(args.graph_dir, f"V_{args.n}.npy")
@@ -146,15 +199,15 @@ def main():
             Q = np.load(q_path)
             V = np.load(v_path)
         else:
-            Q = generate_Q(0.5, args.n, 'erdos_renyi', seed=args.seed)
+            Q = generate_Q(0.5, args.n, "erdos_renyi", seed=args.seed)
             log.info("Random graph Laplacian generated")
             eigvals, eigvecs = np.linalg.eigh(Q)
             _, V = low_rank_matrix(Q, eigvals, eigvecs, r=1)
             log.info("Eigen decomposition complete and top eigenvector extracted")
     else:
-        log.info("Generating rank 1 Q, V for debug...")
-        Q, V = generate_debug_QV(args.n, 1, seed=args.seed)
-    
+        log.info("Generating debug low rank Q, V (rank 1)")
+        Q, V = generate_debug_QV(n=args.n, rank=1, seed=args.seed)
+
     log.info("Executing parallel rank 1 algorithm")
     start = time.time()
     best_score, best_k, best_z = process_rank_1_parallel(V[:, 0], Q, K=3)
@@ -164,10 +217,11 @@ def main():
     log.info(f"Execution time: {elapsed:.4f} seconds")
     log.info(f"Final partition assignment k:\n{best_k}")
     log.info(f"Computed complex spin vector z:\n{best_z}")
-    
+
     output = {
         "n": args.n,
         "seed": args.seed,
+        "rank": 1,
         "best_score": float(best_score),
         "time_seconds": float(elapsed),
         "best_k": best_k.tolist(),
@@ -175,16 +229,17 @@ def main():
         "best_z_imag": np.imag(best_z).tolist(),
         "num_workers": num_workers,
     }
-    
+
     if args.debug:
-        log.info(f"Computing optimal K-cut...")
-        best_score, _ = opt_K_cut(Q)
-        log.info(f"Correct score: {best_score}")
-        
+        log.info("Computing optimal K-cut...")
+        opt_score, _ = opt_K_cut(Q)
+        log.info(f"Correct score: {opt_score}")
+
+    os.makedirs(args.results_dir, exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"{timestamp}_result_n{args.n}.json"
+    filename = f"{timestamp}_result_n{args.n}_r1.json"
     path = os.path.join(args.results_dir, filename)
-    
+
     with open(path, "w") as f:
         json.dump(output, f, indent=2)
     log.info(f"Saved results to {path}")

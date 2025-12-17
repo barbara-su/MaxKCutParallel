@@ -9,7 +9,7 @@ import json
 from datetime import datetime
 import itertools
 import os
-from parallel_rank_1 import process_rank_1_parallel
+from src.parallel_rank_1 import process_rank_1_parallel
 import cvxpy as cvx
 
 # ignore the ray warning
@@ -349,9 +349,9 @@ def main():
         "num_workers": num_workers,
     }
     
-    if args.debug:
-        best_score, _ = opt_K_cut(Q)
-        log.info(f"Correct score: {best_score}")
+    if args.debug: # will only work for n = 10
+        opt_score, _ = opt_K_cut(Q)
+        log.info(f"Correct score: {opt_score}")
         
     os.makedirs(args.results_dir, exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
