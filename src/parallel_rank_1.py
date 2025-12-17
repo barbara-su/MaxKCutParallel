@@ -40,7 +40,7 @@ def process_rank_1_batch(l_values, k0, sorted_idx, Q, roots, K, batch_id):
             idx = sorted_idx[:l]
             k[idx] = (k[idx] + 1) % K
         z = roots[k]
-        score = float(np.real(z.conj() @ Q @ z))
+        score = np.real(z.conj() @ Q @ z)
         if score > best_score:
             best_score = score
             best_l = int(l)
@@ -109,13 +109,12 @@ def process_rank_1_parallel(V, Q, K=3, candidates_per_task=10):
     batch_id = 0
     start_time = time.time()
 
-    for batch in batched_l_values():
-        futures.append(
-            process_rank_1_batch.remote(
-                batch, k0_ref, sorted_idx_ref, Q_ref, roots_ref, K, batch_id
-            )
+    futures = [
+        process_rank_1_batch.remote(
+            batch, k0_ref, sorted_idx_ref, Q_ref, roots_ref, K, batch_id
         )
-        batch_id += 1
+        for batch_id, batch in enumerate(batched_l_values())
+    ]
 
     log.info(f"Submitted {len(futures)} tasks to Ray")
 
@@ -143,7 +142,7 @@ def process_rank_1_parallel(V, Q, K=3, candidates_per_task=10):
         best_k[sorted_idx[:best_l]] = (best_k[sorted_idx[:best_l]] + 1) % K
     best_z = roots[best_k]
 
-    return float(best_score), best_k, best_z
+    return best_score, best_k, best_z, best_l
 
 
 def compute_recovery(z_alg, Q, opt_value):
@@ -210,7 +209,7 @@ def main():
     log.info("Executing parallel rank 1 algorithm")
     start = time.time()
 
-    best_score, best_k, best_z = process_rank_1_parallel(
+    best_score, best_k, best_z, best_l = process_rank_1_parallel(
         V[:, 0], Q, K=3, candidates_per_task=args.candidates_per_task
     )
 
@@ -219,6 +218,7 @@ def main():
     log.info(f"Rank 1 result: score = {best_score}")
     log.info(f"Execution time: {elapsed:.4f} seconds")
     log.info(f"candidates_per_task={args.candidates_per_task}")
+    log.info(f"best_l={best_l}")
 
     output = {
         "n": args.n,
@@ -226,6 +226,7 @@ def main():
         "rank": 1,
         "precision": args.precision,
         "candidates_per_task": int(args.candidates_per_task),
+        "best_l": int(best_l),
         "best_score": float(best_score),
         "time_seconds": float(elapsed),
         "best_k": best_k.tolist(),
