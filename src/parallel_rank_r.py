@@ -138,11 +138,10 @@ def process_rankr_single(V, Q, K=3, candidates_per_task=1000):
     if candidates_per_task <= 0:
         raise ValueError("--candidates_per_task must be a positive integer")
 
-    # compute v_tilde
+    # compute V_tilde
     log.info("Computing V_tilde")
     V_tilde = compute_vtilde(V)
 
-    # row mappings between V_tilde rows and vertices
     log.info("Computing row mappings for V_tilde")
     row_mapping, inverse_mapping = get_row_mapping(n, K)
 
@@ -152,77 +151,113 @@ def process_rankr_single(V, Q, K=3, candidates_per_task=1000):
     # number of V_tilde rows and combination size
     num_vtilde_rows = K * n
     comb_size = 2 * r - 1
-
     if comb_size > num_vtilde_rows:
         raise ValueError("Combination size 2r - 1 exceeds K * n")
 
     # theoretical number of combinations
     num_combinations = math.comb(num_vtilde_rows, comb_size)
-    log.info(f"Total number of (2r - 1)-tuples: C({num_vtilde_rows}, {comb_size}) = {num_combinations}")
+    log.info(
+        f"Total number of (2r - 1)-tuples: C({num_vtilde_rows}, {comb_size}) = {num_combinations}"
+    )
 
-    # decide batch size
     resources = ray.available_resources()
     num_cpus = max(1, int(resources.get("CPU", 1)))
 
-    batch_size = int(candidates_per_task)
-    total_tasks = (num_combinations + batch_size - 1) // batch_size if num_combinations > 0 else 0
+    total_tasks = (num_combinations + candidates_per_task - 1) // candidates_per_task if num_combinations > 0 else 0
+    log.info(f"Using {num_cpus} CPUs, candidates_per_task {candidates_per_task}")
+    log.info(f"Total Ray tasks (ceil(num_combinations/candidates_per_task)): {total_tasks}")
 
-    log.info(f"Using {num_cpus} CPUs, candidates_per_task (batch_size) {batch_size}")
-    log.info(f"Total Ray tasks (ceil(num_combinations/batch_size)): {total_tasks}")
-
-    # put objects into Ray object store
+    # Put objects into Ray object store
     V_tilde_ref = ray.put(V_tilde)
     V_ref = ray.put(V)
     Q_ref = ray.put(Q)
     row_mapping_ref = ray.put(row_mapping)
     inverse_mapping_ref = ray.put(inverse_mapping)
     s_ref = ray.put(s)
-
-    # helper to stream batches without storing all combinations
+    
+    # Stream batches without storing all combinations
     def batched_combinations():
+        # go over (Kn, 2n-1) combinations
         iterator = itertools.combinations(range(num_vtilde_rows), comb_size)
         while True:
-            batch = list(itertools.islice(iterator, batch_size))
+            # each batch is candidates per task
+            batch = list(itertools.islice(iterator, candidates_per_task))
             if not batch:
                 break
             yield batch
 
-    # launch Ray tasks
+    # Submit tasks incrementally and cap in-flight tasks
     start_time = time.time()
-    futures = [
-        process_combination_batch.remote(
+
+    # record in_flight task, cap it. 
+    # in_flight = task we submit but has not completed
+    # cap it so we only submit a certain number of task at the same time.
+    max_in_flight = max(2 * num_cpus, 1)
+    in_flight = []
+    submitted = 0
+    completed = 0
+
+    best_score = float("-inf")
+    best_candidate = None
+
+    # submit a single task to a remote worker
+    def submit_one(combinations_batch, batch_id):
+        return process_combination_batch.remote(
             V_tilde_ref,
             V_ref,
             K,
             r,
             Q_ref,
-            batch,
+            combinations_batch,
             batch_id,
             row_mapping_ref,
             inverse_mapping_ref,
             s_ref,
         )
-        for batch_id, batch in enumerate(batched_combinations())
-    ]
 
-    log.info(f"Submitted {len(futures)} batches to Ray")
+    next_batch_id = 0
 
-    # collect results
-    best_score = float("-inf")
-    best_candidate = None
+    for combinations_batch in batched_combinations():
+        # submit it
+        in_flight.append(submit_one(combinations_batch, next_batch_id))
+        next_batch_id += 1
+        submitted += 1
 
-    for fut in futures:
-        batch_score, batch_candidate, b_id = ray.get(fut)
-        log.info(f"Completed batch {b_id}")
-        if batch_candidate is None:
-            continue
-        if batch_score > best_score:
+        # do not allow further submission before a task is returned
+        if len(in_flight) >= max_in_flight:
+            done, in_flight = ray.wait(in_flight, num_returns=1)
+            batch_score, batch_candidate, b_id = ray.get(done[0])
+            completed += 1
+
+            if batch_candidate is not None and batch_score > best_score:
+                best_score = float(batch_score)
+                best_candidate = batch_candidate
+                log.info(f"New best score from batch {b_id}: {best_score}")
+
+            if completed % 1000 == 0:
+                log.info(
+                    f"Progress: submitted={submitted}, completed={completed}, in_flight={len(in_flight)}"
+                )
+
+    # wait for reset of task to be done
+    while in_flight:
+        done, in_flight = ray.wait(in_flight, num_returns=1)
+        batch_score, batch_candidate, b_id = ray.get(done[0])
+        completed += 1
+
+        if batch_candidate is not None and batch_score > best_score:
             best_score = float(batch_score)
             best_candidate = batch_candidate
             log.info(f"New best score from batch {b_id}: {best_score}")
 
+        if completed % 1000 == 0:
+            log.info(
+                f"Progress: submitted={submitted}, completed={completed}, in_flight={len(in_flight)}"
+            )
+
     elapsed = time.time() - start_time
     log.info(f"Rank r single-rank search complete in {elapsed:.4f} seconds")
+    log.info(f"Total submitted batches: {submitted}, completed: {completed}")
 
     if best_candidate is None:
         raise RuntimeError("Rank r algorithm did not find any feasible candidate")

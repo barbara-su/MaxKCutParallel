@@ -3,7 +3,7 @@
 #SBATCH --output=logs/multi-nodes-rank-r-%j.out
 #SBATCH --error=logs/multi-nodes-rank-r-%j.err
 
-#SBATCH --nodes=8
+#SBATCH --nodes=6
 #SBATCH --tasks-per-node=1
 #SBATCH --partition=commons
 #SBATCH --cpus-per-task=100
