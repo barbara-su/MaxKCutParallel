@@ -12,3 +12,5 @@ sbatch experiments/multi_node_rank_1.sh 30000 results/scaling_tests 32 10
 sbatch experiments/generate_graphs/single_node_gen_graph.sh 40000 1 graphs/graphs_rank_1
 
 sbatch experiments/multi_node_rank_1_sparse.sh 20000 results/sparsity_tests 32 10
+
+sbatch experiments/multi_node_rank_1_incremental.sh 20000 results/incremental_tests 32 10

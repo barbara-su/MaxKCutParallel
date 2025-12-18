@@ -3,11 +3,11 @@
 #SBATCH --output=logs/multi-nodes-rank-1-%j.out
 #SBATCH --error=logs/multi-nodes-rank-1-%j.err
 
-#SBATCH --nodes=7
+#SBATCH --nodes=4
 #SBATCH --tasks-per-node=1
 #SBATCH --partition=commons
-#SBATCH --cpus-per-task=100
-#SBATCH --mem=300G
+#SBATCH --cpus-per-task=102
+#SBATCH --mem=350G
 #SBATCH --time=23:00:00
 
 # Args (match newest single_node_rank.sh):
