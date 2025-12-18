@@ -11,7 +11,7 @@ import itertools
 import os
 import math
 
-# IMPORTANT: this imported function returns 4 values:
+# This imported function returns 4 values:
 # (best_score, best_k, best_z, best_l)
 from parallel_rank_1 import process_rank_1_parallel
 
