@@ -11,50 +11,100 @@ import os
 import itertools
 
 # Ignore the Ray warning
-warnings.filterwarnings(
-    "ignore",
-    message="pkg_resources is deprecated as an API"
-)
+warnings.filterwarnings("ignore", message="pkg_resources is deprecated as an API")
 
 # Initialize logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S"
+    datefmt="%Y-%m-%d %H:%M:%S",
 )
 log = logging.getLogger(__name__)
 
 
 @ray.remote
-def process_rank_1_batch(l_values, k0, sorted_idx, Q, roots, K, batch_id):
+def process_rank_1_batch(
+    l_values,
+    k0,
+    sorted_idx,
+    Q,
+    roots,
+    omega,
+    omega_minus_1_abs2,
+    K,
+    batch_id,
+):
     """
-    One Ray task: evaluate a batch of candidate prefix lengths (l_values).
-    Returns the best (score, l) within this task.
-    """
-    best_score = float("-inf")
-    best_l = None
+    One Ray task: evaluate a contiguous batch of prefix lengths l_values,
+    using incremental updates.
 
-    for l in l_values:
-        k = k0.copy()
-        if l > 0:
-            idx = sorted_idx[:l]
-            k[idx] = (k[idx] + 1) % K
-        z = roots[k]
-        score = np.einsum('i,ij,j->', z.conj(), Q, z).real
+    Assumes l_values is increasing (true for batched_l_values()).
+
+    Returns (best_score, best_l, batch_id).
+    """
+    if not l_values:
+        return float("-inf"), None, batch_id
+
+    # Start at the first l in the batch
+    l0 = int(l_values[0])
+
+    # Construct k and z for l0
+    k = k0.copy()
+    if l0 > 0:
+        idx0 = sorted_idx[:l0]
+        k[idx0] = (k[idx0] + 1) % K
+
+    z = roots[k].copy()  # dtype follows roots (which follows V dtype)
+
+    # Initialize Qz and score once for this batch
+    Qz = Q @ z
+    score = np.vdot(z, Qz).real
+
+    best_score = score
+    best_l = l0
+
+    # Incrementally walk forward inside this batch
+    for l in l_values[1:]:
+        l = int(l)
+        i = int(sorted_idx[l - 1])  # newly included index
+
+        z_i_old = z[i]
+        delta = (omega - 1) * z_i_old          # z_i_new - z_i_old
+        Qz_i_old = Qz[i]                       # (Qz)_i before the update
+
+        # score update: exact quadratic-form update for single-coordinate change
+        score += 2.0 * np.real(np.conj(delta) * Qz_i_old) + omega_minus_1_abs2 * Q[i, i]
+
+        # update z
+        z[i] = z_i_old + delta
+
+        # update Qz: Qz <- Qz + delta * Q[:, i]
+        Qz += delta * Q[:, i]
+
         if score > best_score:
             best_score = score
-            best_l = int(l)
+            best_l = l
 
     return best_score, best_l, batch_id
 
 
 def process_rank_1_parallel(V, Q, K=3, candidates_per_task=10):
+    """
+    Rank-1 parallel sweep over l = 0..n.
+
+    Adds:
+      - incremental update inside each task (batch)
+      - capped in-flight Ray tasks (same idea as your rank-r code)
+
+    Keeps Q dense (no sparse conversion here), per your request.
+    """
     n = V.shape[0]
     log.info(f"Rank 1 subroutine: received eigenvector of length {n}")
 
     if candidates_per_task <= 0:
         raise ValueError("--candidates_per_task must be a positive integer")
 
+    # initial assignment
     real_q1 = np.real(V).flatten()
     im_q1 = np.imag(V).flatten()
 
@@ -81,12 +131,18 @@ def process_rank_1_parallel(V, Q, K=3, candidates_per_task=10):
     log.info(f"candidates_per_task: {candidates_per_task}")
     log.info(f"Total Ray tasks to submit (ceil(n/candidates_per_task)): {total_tasks}")
 
+    # Publish objects in Ray object store
     k0_ref = ray.put(k0)
     Q_ref = ray.put(Q)
     sorted_idx_ref = ray.put(sorted_idx)
 
-    roots = np.exp(2 * np.pi * 1j * np.arange(K) / K)
+    roots = np.exp(2 * np.pi * 1j * np.arange(K) / K).astype(V.dtype, copy=False)
     roots_ref = ray.put(roots)
+
+    omega = roots[1]
+    omega_minus_1_abs2 = np.abs(omega - 1) ** 2
+    omega_ref = ray.put(omega)
+    omega_minus_1_abs2_ref = ray.put(omega_minus_1_abs2)
 
     def batched_l_values():
         iterator = iter(range(num_candidates))
@@ -98,7 +154,7 @@ def process_rank_1_parallel(V, Q, K=3, candidates_per_task=10):
 
     start_time = time.time()
 
-    # --- NEW: cap in-flight tasks ---
+    # Cap in-flight tasks
     max_in_flight = max(2 * num_cpus, 1)
     in_flight = []
     submitted = 0
@@ -109,16 +165,22 @@ def process_rank_1_parallel(V, Q, K=3, candidates_per_task=10):
 
     batch_id = 0
     for batch in batched_l_values():
-        # submit
         in_flight.append(
             process_rank_1_batch.remote(
-                batch, k0_ref, sorted_idx_ref, Q_ref, roots_ref, K, batch_id
+                batch,
+                k0_ref,
+                sorted_idx_ref,
+                Q_ref,
+                roots_ref,
+                omega_ref,
+                omega_minus_1_abs2_ref,
+                K,
+                batch_id,
             )
         )
         submitted += 1
         batch_id += 1
 
-        # drain when at cap
         if len(in_flight) >= max_in_flight:
             done, in_flight = ray.wait(in_flight, num_returns=1)
             batch_score, batch_best_l, b_id = ray.get(done[0])
@@ -130,7 +192,7 @@ def process_rank_1_parallel(V, Q, K=3, candidates_per_task=10):
                 best_l = batch_best_l
                 log.info(f"New best from task {b_id}: score={best_score} (l={best_l})")
 
-    # drain remaining
+    # Drain remaining tasks
     while in_flight:
         done, in_flight = ray.wait(in_flight, num_returns=1)
         batch_score, batch_best_l, b_id = ray.get(done[0])
@@ -147,6 +209,7 @@ def process_rank_1_parallel(V, Q, K=3, candidates_per_task=10):
     log.info(f"Submitted={submitted}, completed={completed}, max_in_flight={max_in_flight}")
     log.info(f"Best prefix l = {best_l}")
 
+    # Reconstruct best assignment
     best_k = k0.copy()
     if best_l > 0:
         best_k[sorted_idx[:best_l]] = (best_k[sorted_idx[:best_l]] + 1) % K
@@ -159,14 +222,22 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Parallel MAX k CUT experiment (rank 1)")
     parser.add_argument("--n", type=int, default=10000, help="Problem size")
     parser.add_argument("--seed", type=int, default=42, help="Random seed")
-    parser.add_argument("--precision", type=int, default=64, choices=[16, 32, 64],
-                        help="Numeric precision: 16, 32, or 64 (default: 64)")
-    parser.add_argument("--candidates_per_task", type=int, default=10,
-                        help="How many candidates (l values) each Ray task evaluates serially (default: 10).")
+    parser.add_argument(
+        "--precision",
+        type=int,
+        default=64,
+        choices=[16, 32, 64],
+        help="Numeric precision: 16, 32, or 64 (default: 64)",
+    )
+    parser.add_argument(
+        "--candidates_per_task",
+        type=int,
+        default=10,
+        help="How many candidates (l values) each Ray task evaluates serially (default: 10).",
+    )
     parser.add_argument("--debug", action="store_true", help="Compute correctness with opt_K_cut")
     parser.add_argument("--results_dir", type=str, default="results", help="Directory to store outputs")
-    parser.add_argument("--graph_dir", type=str, default=None,
-                        help="Directory containing Q_{n}.npy and V_{n}.npy")
+    parser.add_argument("--graph_dir", type=str, default=None, help="Directory containing Q_{n}.npy and V_{n}.npy")
     return parser.parse_args()
 
 
@@ -211,7 +282,7 @@ def main():
         Q = np.asarray(Q, dtype=float_dtype)
         V = np.asarray(V, dtype=complex_dtype)
 
-    log.info("Executing parallel rank 1 algorithm")
+    log.info("Executing parallel rank 1 algorithm (incremental updates + in-flight cap)")
     start = time.time()
 
     best_score, best_k, best_z, best_l = process_rank_1_parallel(
@@ -232,7 +303,7 @@ def main():
         "precision": args.precision,
         "candidates_per_task": args.candidates_per_task,
         "best_l": best_l,
-        "best_score": best_score,
+        "best_score": float(best_score),
         "time_seconds": elapsed,
         "best_k": best_k.tolist(),
         "best_z_real": np.real(best_z).tolist(),

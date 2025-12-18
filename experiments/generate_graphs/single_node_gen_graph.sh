@@ -4,7 +4,7 @@
 #SBATCH --error=logs/gen-graph-%j.err
 
 #SBATCH --partition=commons
-#SBATCH --cpus-per-task=8
+#SBATCH --cpus-per-task=17
 #SBATCH --mem=200G
 #SBATCH --time=23:00:00
 
