@@ -112,7 +112,7 @@ def process_combination_batch(V_tilde,
                     candidate[v_idx] = s[s_idx]
 
             # evaluate objective
-            score = np.real(candidate.conj() @ Q @ candidate)
+            score = np.einsum('i,ij,j->', candidate.conj(), Q, candidate).real
 
             if score > best_score:
                 best_score = float(score)
@@ -381,9 +381,9 @@ def main():
         "seed": args.seed,
         "rank": args.rank,
         "precision": args.precision,
-        "candidates_per_task": int(args.candidates_per_task),
-        "best_score": float(best_score),
-        "time_seconds": float(elapsed),
+        "candidates_per_task": args.candidates_per_task,
+        "best_score": best_score,
+        "time_seconds": elapsed,
         "best_k": best_k.tolist(),
         "best_z_real": np.real(best_z).tolist(),
         "best_z_imag": np.imag(best_z).tolist(),

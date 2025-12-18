@@ -40,8 +40,6 @@ def process_rank_1_batch(l_values, k0, sorted_idx, Q, roots, K, batch_id):
             idx = sorted_idx[:l]
             k[idx] = (k[idx] + 1) % K
         z = roots[k]
-        # score = np.real(z.conj() @ Q @ z)
-        # score = np.vdot(z, Q @ z).real
         score = np.einsum('i,ij,j->', z.conj(), Q, z).real
         if score > best_score:
             best_score = score
@@ -222,8 +220,8 @@ def main():
         "seed": args.seed,
         "rank": 1,
         "precision": args.precision,
-        "candidates_per_task": int(args.candidates_per_task),
-        "best_l": int(best_l),
+        "candidates_per_task": args.candidates_per_task,
+        "best_l": best_l,
         "best_score": best_score,
         "time_seconds": elapsed,
         "best_k": best_k.tolist(),
