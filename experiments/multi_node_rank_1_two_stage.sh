@@ -10,17 +10,19 @@
 #SBATCH --mem=300G
 #SBATCH --time=23:00:00
 
-# Args (match newest single_node_rank.sh):
+# Args:
 #   1: n (default 20000)
 #   2: results_dir (default "results")
 #   3: precision in {16,32,64} (default 64)
 #   4: candidates_per_task (default 10)
 #   5: seed (default 42)
+#   6: X = generator_percent (default 5.0)
 N=${1:-20000}
 RESULTS_DIR=${2:-results}
 PRECISION=${3:-64}
 CANDIDATES_PER_TASK=${4:-10}
 SEED=${5:-42}
+GENERATOR_PERCENT=${6:-5.0}
 
 echo "Job started on $(hostname)"
 echo "SLURM_JOB_NUM_NODES: $SLURM_JOB_NUM_NODES"
@@ -30,6 +32,7 @@ echo "Using results_dir = $RESULTS_DIR"
 echo "Using precision = $PRECISION"
 echo "Using candidates_per_task = $CANDIDATES_PER_TASK"
 echo "Using seed = $SEED"
+echo "Using generator_percent (X) = $GENERATOR_PERCENT"
 
 # BLAS threading: avoid oversubscription (Ray parallelism provides concurrency)
 export OMP_NUM_THREADS=1
@@ -61,19 +64,20 @@ ip_head="${head_ip}:${port}"
 export ip_head
 echo "Ray head GCS address: $ip_head"
 
-# Run via symmetric_run (keep this)
+# Run via symmetric_run
 srun --nodes="$SLURM_JOB_NUM_NODES" --ntasks="$SLURM_JOB_NUM_NODES" \
   python -m read_only.symmetric_run \
     --address "$ip_head" \
     --min-nodes "$SLURM_JOB_NUM_NODES" \
     --num-cpus "$SLURM_CPUS_PER_TASK" \
     -- \
-    python -u src/parallel_rank_1.py \
+    python -u src/two_stage_parallel_rank_1.py \
       --n "$N" \
       --seed "$SEED" \
       --graph_dir "graphs/graphs_rank_1" \
       --results_dir "$RESULTS_DIR" \
       --precision "$PRECISION" \
-      --candidates_per_task "$CANDIDATES_PER_TASK"
+      --candidates_per_task "$CANDIDATES_PER_TASK" \
+      --generator_percent "$GENERATOR_PERCENT"
 
 echo "Job complete."

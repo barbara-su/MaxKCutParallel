@@ -4,8 +4,8 @@
 #SBATCH --error=logs/gen-graph-%j.err
 
 #SBATCH --partition=commons
-#SBATCH --cpus-per-task=17
-#SBATCH --mem=200G
+#SBATCH --cpus-per-task=2
+#SBATCH --mem=400G
 #SBATCH --time=23:00:00
 
 # Read n, rank, and output directory from arguments
