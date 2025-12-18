@@ -10,40 +10,43 @@ from datetime import datetime
 import itertools
 import os
 import math
+
+# IMPORTANT: this imported function returns 4 values:
+# (best_score, best_k, best_z, best_l)
 from parallel_rank_1 import process_rank_1_parallel
 
 # ignore the ray warning
-warnings.filterwarnings(
-    "ignore",
-    message="pkg_resources is deprecated as an API"
-)
+warnings.filterwarnings("ignore", message="pkg_resources is deprecated as an API")
 
 # initialize logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S"
+    datefmt="%Y-%m-%d %H:%M:%S",
 )
 log = logging.getLogger(__name__)
 
+
 @ray.remote
-def process_combination_batch(V_tilde,
-                              V,
-                              K,
-                              r,
-                              Q,
-                              combinations_batch,
-                              batch_id,
-                              row_mapping,
-                              inverse_mapping,
-                              s):
+def process_combination_batch(
+    V_tilde,
+    V,
+    K,
+    r,
+    Q,
+    combinations_batch,
+    batch_id,
+    row_mapping,
+    inverse_mapping,
+    s,
+):
     """
     Process a batch of combinations for the rank-r algorithm.
+    Returns best (score, candidate) within this batch.
     """
     n = V.shape[0]
     best_score = float("-inf")
     best_candidate = None
-    best_combo = None  # NEW: store the best combination (V_tilde row indices) in this batch
 
     for combo in combinations_batch:
         try:
@@ -112,17 +115,16 @@ def process_combination_batch(V_tilde,
                     candidate[v_idx] = s[s_idx]
 
             # evaluate objective
-            score = np.einsum('i,ij,j->', candidate.conj(), Q, candidate).real
+            score = np.einsum("i,ij,j->", candidate.conj(), Q, candidate).real
 
             if score > best_score:
                 best_score = float(score)
                 best_candidate = candidate.copy()
-                best_combo = tuple(combo)  # NEW: remember which combo achieved the best score
 
         except (ValueError, np.linalg.LinAlgError):
             continue
 
-    return best_score, best_candidate, best_combo, batch_id
+    return best_score, best_candidate, batch_id
 
 
 def process_rankr_single(V, Q, K=3, candidates_per_task=1000):
@@ -156,16 +158,12 @@ def process_rankr_single(V, Q, K=3, candidates_per_task=1000):
 
     # theoretical number of combinations
     num_combinations = math.comb(num_vtilde_rows, comb_size)
-    log.info(
-        f"Total number of (2r - 1)-tuples: C({num_vtilde_rows}, {comb_size}) = {num_combinations}"
-    )
+    log.info(f"Total number of (2r - 1)-tuples: C({num_vtilde_rows}, {comb_size}) = {num_combinations}")
 
     # decide batch size
     resources = ray.available_resources()
-    num_cpus = int(resources.get("CPU", 1))
-    num_cpus = max(1, num_cpus)
+    num_cpus = max(1, int(resources.get("CPU", 1)))
 
-    # NOTE: now candidates_per_task is the chunk size (combos per Ray task), not derived from num_cpus.
     batch_size = int(candidates_per_task)
     total_tasks = (num_combinations + batch_size - 1) // batch_size if num_combinations > 0 else 0
 
@@ -212,19 +210,15 @@ def process_rankr_single(V, Q, K=3, candidates_per_task=1000):
     # collect results
     best_score = float("-inf")
     best_candidate = None
-    best_combo = None  # NEW: best combo globally
-    best_combo_batch_id = None  # NEW: which Ray task produced the best combo
 
     for fut in futures:
-        batch_score, batch_candidate, batch_combo, b_id = ray.get(fut)
+        batch_score, batch_candidate, b_id = ray.get(fut)
         log.info(f"Completed batch {b_id}")
         if batch_candidate is None:
             continue
         if batch_score > best_score:
             best_score = float(batch_score)
             best_candidate = batch_candidate
-            best_combo = batch_combo
-            best_combo_batch_id = int(b_id)
             log.info(f"New best score from batch {b_id}: {best_score}")
 
     elapsed = time.time() - start_time
@@ -235,7 +229,7 @@ def process_rankr_single(V, Q, K=3, candidates_per_task=1000):
 
     best_k = complex_to_partition(best_candidate, K)
     best_z = best_candidate
-    return best_score, best_k, best_z, best_combo, best_combo_batch_id
+    return best_score, best_k, best_z
 
 
 def process_rankr_recursive(V, Q, K=3, candidates_per_task=1000):
@@ -248,39 +242,25 @@ def process_rankr_recursive(V, Q, K=3, candidates_per_task=1000):
     # base case: r = 1, use the rank 1 Ray routine
     if r == 1:
         log.info("Base case r = 1, calling process_rank_1_parallel")
-        best_score, best_k, best_z = process_rank_1_parallel(
+        best_score, best_k, best_z, _ = process_rank_1_parallel( # only keep best_l for rank_1
             V[:, 0], Q, K, candidates_per_task=candidates_per_task
         )
-        # NEW: no rank-r combo at rank 1
-        return best_score, best_k, best_z, None, None
+        return best_score, best_k, best_z
 
-    # compute best candidate at current rank r
-    curr_score, curr_k, curr_z, curr_combo, curr_combo_batch_id = process_rankr_single(
-        V, Q, K, candidates_per_task=candidates_per_task
-    )
-
-    best_score = curr_score
-    best_k = curr_k
-    best_z = curr_z
-    best_combo = curr_combo
-    best_combo_batch_id = curr_combo_batch_id
+    # current rank
+    best_score, best_k, best_z = process_rankr_single(V, Q, K, candidates_per_task=candidates_per_task)
 
     # recursively consider lower rank r - 1
-    if r > 1:
-        log.info(f"Recursing to lower rank r = {r-1}")
-        lower_score, lower_k, lower_z, lower_combo, lower_combo_batch_id = process_rankr_recursive(
-            V[:, :r-1], Q, K, candidates_per_task=candidates_per_task
-        )
+    log.info(f"Recursing to lower rank r = {r-1}")
+    lower_score, lower_k, lower_z = process_rankr_recursive(
+        V[:, : r - 1], Q, K, candidates_per_task=candidates_per_task
+    )
 
-        if lower_score > best_score:
-            log.info(f"Lower rank {r-1} improved score from {best_score} to {lower_score}")
-            best_score = lower_score
-            best_k = lower_k
-            best_z = lower_z
-            best_combo = lower_combo
-            best_combo_batch_id = lower_combo_batch_id
+    if lower_score > best_score:
+        log.info(f"Lower rank {r-1} improved score from {best_score} to {lower_score}")
+        best_score, best_k, best_z = lower_score, lower_k, lower_z
 
-    return best_score, best_k, best_z, best_combo, best_combo_batch_id
+    return best_score, best_k, best_z
 
 
 def parse_args():
@@ -288,14 +268,22 @@ def parse_args():
     parser.add_argument("--n", type=int, default=10000, help="Problem size")
     parser.add_argument("--seed", type=int, default=42, help="Random seed")
     parser.add_argument("--rank", type=int, default=1, help="Low rank parameter r")
-    parser.add_argument("--precision", type=int, default=64, choices=[16, 32, 64],
-                        help="Numeric precision: 16, 32, or 64 (default: 64)")
-    parser.add_argument("--candidates_per_task", type=int, default=1000,
-                        help="Max enumeration candidates per Ray task. Rank-1: prefix lengths l. Rank-r: combinations.")
+    parser.add_argument(
+        "--precision",
+        type=int,
+        default=64,
+        choices=[16, 32, 64],
+        help="Numeric precision: 16, 32, or 64 (default: 64)",
+    )
+    parser.add_argument(
+        "--candidates_per_task",
+        type=int,
+        default=1000,
+        help="Max enumeration candidates per Ray task. Rank-1: prefix lengths l. Rank-r: combinations.",
+    )
     parser.add_argument("--debug", action="store_true", help="Compute recovery ratio")
     parser.add_argument("--results_dir", type=str, default="results", help="Directory to store outputs")
-    parser.add_argument("--graph_dir", type=str, default=None,
-                        help="Directory containing Q_{n}.npy and V_{n}.npy")
+    parser.add_argument("--graph_dir", type=str, default=None, help="Directory containing Q_{n}.npy and V_{n}.npy")
     return parser.parse_args()
 
 
@@ -326,22 +314,21 @@ def main():
             Q = np.load(q_path)
             V_full = np.load(v_path)
 
-            # if stored V has more columns than needed, truncate
             if V_full.shape[1] < args.rank:
-                raise ValueError(f"Loaded V has only {V_full.shape[1]} columns, "
-                                f"but rank {args.rank} was requested")
-            V = V_full[:, :args.rank]
+                raise ValueError(
+                    f"Loaded V has only {V_full.shape[1]} columns, but rank {args.rank} was requested"
+                )
+            V = V_full[:, : args.rank]
 
             Q = np.asarray(Q, dtype=float_dtype)
             V = np.asarray(V, dtype=complex_dtype)
 
         else:
-            Q = generate_Q(0.5, args.n, 'erdos_renyi', seed=args.seed)
+            Q = generate_Q(0.5, args.n, "erdos_renyi", seed=args.seed)
             Q = np.asarray(Q, dtype=float_dtype)
             log.info("Random graph Laplacian generated")
 
             eigvals, eigvecs = np.linalg.eigh(Q.astype(np.float64, copy=False))
-            # low_rank_matrix should return V with shape (n, args.rank)
             _, V = low_rank_matrix(Q, eigvals, eigvecs, r=args.rank)
             V = np.asarray(V, dtype=complex_dtype)
 
@@ -355,17 +342,14 @@ def main():
 
     start = time.time()
 
-    best_combo = None
-    best_combo_batch_id = None
-
     if args.rank == 1:
         log.info("Executing parallel rank 1 algorithm")
-        best_score, best_k, best_z = process_rank_1_parallel(
+        best_score, best_k, best_z, _best_l = process_rank_1_parallel(
             V[:, 0], Q, K=3, candidates_per_task=args.candidates_per_task
         )
     else:
         log.info(f"Executing recursive rank {args.rank} algorithm (r = 1..{args.rank})")
-        best_score, best_k, best_z, best_combo, best_combo_batch_id = process_rankr_recursive(
+        best_score, best_k, best_z = process_rankr_recursive(
             V, Q, K=3, candidates_per_task=args.candidates_per_task
         )
 
@@ -388,9 +372,6 @@ def main():
         "best_z_real": np.real(best_z).tolist(),
         "best_z_imag": np.imag(best_z).tolist(),
         "num_workers": num_workers,
-        # NEW: for rank-r, store the best combination of V_tilde rows (length 2r-1)
-        "best_combo_vtilde_rows": None if best_combo is None else list(best_combo),
-        "best_combo_batch_id": None if best_combo_batch_id is None else int(best_combo_batch_id),
     }
 
     if args.debug:  # will only work for n = 10

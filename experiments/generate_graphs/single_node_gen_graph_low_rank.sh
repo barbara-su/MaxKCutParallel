@@ -4,7 +4,7 @@
 #SBATCH --error=logs/gen-graph-%j.err
 
 #SBATCH --partition=commons
-#SBATCH --cpus-per-task=4
+#SBATCH --cpus-per-task=8
 #SBATCH --mem=20G
 #SBATCH --time=23:00:00
 
@@ -21,6 +21,9 @@ echo "Using n = $N"
 echo "Using rank = $R"
 echo "Using output directory = $OUT_DIR"
 
+# openblas
+export OMP_NUM_THREADS=8
+
 # Clean environment
 module purge || true
 unset LD_PRELOAD || true
@@ -34,6 +37,6 @@ source ~/miniforge3/etc/profile.d/conda.sh
 conda activate ./rayenv
 
 # Run python code
-python src/gen_qv_low_rank.py --n "$N" --rank "$R" --out_dir "$OUT_DIR"
+python src/graph_generators/gen_qv_low_rank.py --n "$N" --rank "$R" --out_dir "$OUT_DIR"
 
 echo "Job complete."

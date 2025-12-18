@@ -29,4 +29,7 @@ sbatch experiments/single_node_rank_1.sh 500
 sbatch experiments/single_node_rank_r.sh 500 2
 sbatch experiments/single_node_gen_graph.sh 500 2
 
+### open blas
+https://stackoverflow.com/questions/11443302/compiling-numpy-with-openblas-integration/14391693?noredirect=1#comment32392960_14391693
+
 
