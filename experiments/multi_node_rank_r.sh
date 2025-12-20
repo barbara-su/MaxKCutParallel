@@ -6,8 +6,8 @@
 #SBATCH --nodes=6
 #SBATCH --tasks-per-node=1
 #SBATCH --partition=commons
-#SBATCH --cpus-per-task=100
-#SBATCH --mem=300G
+#SBATCH --cpus-per-task=80
+#SBATCH --mem=200G
 #SBATCH --time=23:00:00
 
 # Args (match single-node rank-r script):

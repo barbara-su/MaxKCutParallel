@@ -24,3 +24,7 @@ sbatch experiments/multi_node_rank_1_two_stage.sh 10000 results/two_stage_tests 
 
 sbatch experiments/multi_node_rank_1.sh 10000 results/scaling_tests 32 10
 
+sbatch experiments/multi_node_rank_r.sh 800 2 graphs/graphs_rank_2 results/scaling_tests 32 10000
+
+sbatch experiments/multi_node_rank_r.sh 1000 2 graphs/graphs_rank_2 results/scaling_tests 32 10000
+
