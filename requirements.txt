@@ -37,7 +37,7 @@ matplotlib==3.10.7
 msgpack==1.1.2
 multidict==6.7.0
 networkx==3.5
-numpy==2.3.5
+numpy @ file:///home/conda/feedstock_root/build_artifacts/bld/rattler-build_numpy_1763351006/work/dist/numpy-2.3.5-cp311-cp311-linux_x86_64.whl#sha256=321966b39af6fd2451eac0fb457d64b1c9253896a6d48f621f8b24194d97e91a
 nvidia-ml-py==13.580.82
 opencensus==0.11.4
 opencensus-context==0.1.3
