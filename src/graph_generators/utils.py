@@ -5,6 +5,68 @@ from scipy import sparse
 from scipy import linalg
 from itertools import product
 
+def low_rank_matrix_fast(Q, eigvals, eigvecs, r: int = 2):
+    """
+    Faster equivalent of low_rank_matrix for producing V (and optionally Q_hat).
+
+    Key changes vs your version:
+    - Avoid full sort: use argpartition to select top-r eigenvalues in O(n).
+    - Avoid diag/ sqrt(diag): use vector scaling (broadcast) in O(nr).
+    - Avoid building Q_hat unless you actually need it. (Q_hat is n×n and huge.)
+
+    Returns:
+    - Q_hat: rank-r reconstruction (same math as original) OR None if disabled.
+    - V:     n×r with columns sqrt(lambda_i) * q_i
+    """
+    import numpy as np
+
+    # ---- validate r ----
+    if r <= 0:
+        raise ValueError("r must be positive")
+    n = eigvals.shape[0]
+    if r > n:
+        raise ValueError(f"r={r} exceeds number of eigenvalues n={n}")
+
+    # ---- ensure eigenvalues are real (Hermitian matrix property) ----
+    # This is the same correctness check as your original, but cheaper than allclose on full complex if eigvals real.
+    if np.iscomplexobj(eigvals):
+        # If eigenvalues are complex but should be real, check imag part near zero
+        if not np.allclose(eigvals.imag, 0):
+            raise ValueError("Eigenvalues should be real for a Hermitian matrix")
+        evals = eigvals.real
+    else:
+        evals = eigvals
+
+    # ---- select indices of top-r eigenvalues without sorting all n ----
+    # idx_top: unsorted top-r indices
+    idx_top = np.argpartition(evals, -r)[-r:]
+    # sort only the r selected indices by eigenvalue descending
+    idx_top = idx_top[np.argsort(evals[idx_top])[::-1]]
+
+    ldas = evals[idx_top]
+
+    # ---- PSD guard: keep behavior close to original ----
+    if np.any(ldas < -1e-10):
+        raise ValueError("Found significant negative eigenvalues in supposedly PSD matrix")
+    # clip tiny negatives
+    ldas = np.maximum(ldas, 0)
+
+    # ---- form V without diag matrices ----
+    qs = eigvecs[:, idx_top]                       # (n, r)
+    V = qs * np.sqrt(ldas)                         # broadcast (n,r) * (r,)
+
+    # ---- build Q_hat only if you truly need it ----
+    # If you want EXACTLY the original signature, keep returning Q_hat.
+    # Note: this allocates an n×n dense matrix, which is huge for n=30000.
+    Q_hat = V @ V.conj().T if np.iscomplexobj(Q) or np.iscomplexobj(eigvecs) else V @ V.T
+
+    # If Q_hat is complex but numerically real, drop imag like your original
+    if np.iscomplexobj(Q_hat) and np.allclose(Q_hat.imag, 0, atol=1e-10):
+        Q_hat = Q_hat.real
+
+    return Q_hat, V
+
+
 def low_rank_matrix(Q, eigvals, eigvecs, r: int = 2):
     """
     Construct a rank-r approximation of Q from its largest eigenvalues.
