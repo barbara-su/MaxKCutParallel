@@ -4,8 +4,8 @@
 #SBATCH --error=logs/rank-1-maxcut-%j.err
 
 #SBATCH --partition=commons
-#SBATCH --cpus-per-task=208
-#SBATCH --mem=0
+#SBATCH --cpus-per-task=100
+#SBATCH --mem=200G
 #SBATCH --time=23:00:00
 
 # Args:

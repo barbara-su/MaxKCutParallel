@@ -33,3 +33,6 @@ sbatch experiments/single_node_gen_graph.sh 500 2
 https://stackoverflow.com/questions/11443302/compiling-numpy-with-openblas-integration/14391693?noredirect=1#comment32392960_14391693
 
 
+# get codex to work
+conda install -c conda-forge nodejs=20 -y
+npm install -g @openai/codex
