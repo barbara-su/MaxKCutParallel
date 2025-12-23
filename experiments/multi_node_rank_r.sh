@@ -10,19 +10,26 @@
 #SBATCH --mem=200G
 #SBATCH --time=23:00:00
 
-# Args (match single-node rank-r script):
+# Args:
 #   1: n (default 20000)
 #   2: rank (default 2)
 #   3: graph_dir (default "graphs")
 #   4: results_dir (default "results")
 #   5: precision in {16,32,64} (default 64)
 #   6: candidates_per_task (default 1000)
+#   7: debug flag (0/1, default 0)
 N=${1:-20000}
 R=${2:-2}
 GRAPH_DIR=${3:-graphs}
 RESULTS_DIR=${4:-results}
 PRECISION=${5:-64}
 CANDIDATES_PER_TASK=${6:-1000}
+DEBUG_FLAG=${7:-0}
+
+DEBUG_ARG=""
+if [ "$DEBUG_FLAG" -eq 1 ]; then
+  DEBUG_ARG="--debug"
+fi
 
 echo "Job started on $(hostname)"
 echo "SLURM_JOB_NUM_NODES: $SLURM_JOB_NUM_NODES"
@@ -33,6 +40,7 @@ echo "Using graph_dir = $GRAPH_DIR"
 echo "Using results_dir = $RESULTS_DIR"
 echo "Using precision = $PRECISION"
 echo "Using candidates_per_task = $CANDIDATES_PER_TASK"
+echo "Debug enabled: $DEBUG_FLAG"
 
 # BLAS threading: avoid oversubscription
 export OMP_NUM_THREADS=1
@@ -76,6 +84,7 @@ srun --nodes="$SLURM_JOB_NUM_NODES" --ntasks="$SLURM_JOB_NUM_NODES" \
       --graph_dir "$GRAPH_DIR" \
       --results_dir "$RESULTS_DIR" \
       --precision "$PRECISION" \
-      --candidates_per_task "$CANDIDATES_PER_TASK"
+      --candidates_per_task "$CANDIDATES_PER_TASK" \
+      $DEBUG_ARG
 
 echo "Job complete."
