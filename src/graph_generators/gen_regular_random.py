@@ -3,6 +3,7 @@ import os
 import numpy as np
 import networkx as nx
 from utils import *
+from gen_v import gen_V_given_Q
 
 def main():
     parser = argparse.ArgumentParser(
@@ -43,9 +44,8 @@ def main():
     G = nx.random_regular_graph(d=d, n=n, seed=seed)
     Q = np.array(nx.laplacian_matrix(G).todense())
 
-    # eigen decomposition
-    eigvals, eigvecs = np.linalg.eigh(Q)
-    _, V = low_rank_matrix(Q, eigvals, eigvecs, r=r)
+    # generate V
+    V = gen_V_given_Q(Q, r)
 
     print(f"Q shape: {Q.shape}")
     print(f"V shape: {V.shape}")

@@ -28,3 +28,10 @@ sbatch experiments/multi_node_rank_r.sh 800 2 graphs/graphs_rank_2 results/scali
 
 sbatch experiments/multi_node_rank_r.sh 1000 2 graphs/graphs_rank_2 results/scaling_tests 32 10000
 
+debug: sbatch experiments/multi_node_rank_r.sh 15 3 graphs/debug_graphs results/debug 32 1000 1
+
+
+
+
+
+
