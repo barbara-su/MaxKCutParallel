@@ -39,3 +39,5 @@ npm install -g @openai/codex
 
 # copy folder
 rsync -av --include='*/' --exclude='*' graphs/gset_random results
+
+rsync -av --include='*/' --exclude='*' results /home/bs82/ROS
