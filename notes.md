@@ -36,3 +36,6 @@ https://stackoverflow.com/questions/11443302/compiling-numpy-with-openblas-integ
 # get codex to work
 conda install -c conda-forge nodejs=20 -y
 npm install -g @openai/codex
+
+# copy folder
+rsync -av --include='*/' --exclude='*' graphs/gset_random results

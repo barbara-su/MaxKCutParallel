@@ -7,15 +7,15 @@ from gen_v import gen_V_given_Q
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Generate random regular graph and low-rank eigenvector matrix."
+        description="Generate an Erdos-Renyi graph and a low-rank eigenvector matrix."
     )
     parser.add_argument(
         "--n", type=int, default=10000,
         help="Number of nodes in the graph."
     )
     parser.add_argument(
-        "--d", type=float, default=3,
-        help="Degree of each node."
+        "--p", type=float, required=True,
+        help="Edge probability for Erdos-Renyi G(n, p). Must be in [0, 1]."
     )
     parser.add_argument(
         "--seed", type=int, default=42,
@@ -32,16 +32,21 @@ def main():
     args = parser.parse_args()
 
     n = args.n
-    d = args.d
+    p = args.p
     seed = args.seed
     r = args.rank
     out_dir = args.out_dir
 
-    print(f"Generating {d}-regular graph with n = {n}, seed = {seed}, rank = {r}")
+    if not (0.0 <= p <= 1.0):
+        raise ValueError(f"--p must be in [0, 1], got {p}")
+
+    print(f"Generating Erdos-Renyi graph G(n,p) with n = {n}, p = {p}, seed = {seed}, rank = {r}")
     os.makedirs(out_dir, exist_ok=True)
 
     # generate graph
-    G = nx.random_regular_graph(d=d, n=n, seed=seed)
+    G = nx.erdos_renyi_graph(n=n, p=p, seed=seed, directed=False)
+
+    # Laplacian (dense)
     Q = np.array(nx.laplacian_matrix(G).todense())
 
     # generate V
@@ -50,9 +55,10 @@ def main():
     print(f"Q shape: {Q.shape}")
     print(f"V shape: {V.shape}")
 
-    # save
-    q_path = os.path.join(out_dir, f"Q_{n}_seed_{seed}.npy")
-    v_path = os.path.join(out_dir, f"V_{n}_seed_{seed}.npy")
+    # save (include p in filename, formatted safely)
+    p_tag = f"{p:.6g}".replace(".", "p")
+    q_path = os.path.join(out_dir, f"Q_{n}_p_{p_tag}_seed_{seed}.npy")
+    v_path = os.path.join(out_dir, f"V_{n}_p_{p_tag}_seed_{seed}.npy")
 
     np.save(q_path, Q)
     np.save(v_path, V)
