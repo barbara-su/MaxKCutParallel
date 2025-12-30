@@ -41,3 +41,6 @@ npm install -g @openai/codex
 rsync -av --include='*/' --exclude='*' graphs/gset_random results
 
 rsync -av --include='*/' --exclude='*' results /home/bs82/ROS
+
+# zip something
+zip -r rank_1_results.zip results

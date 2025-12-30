@@ -84,19 +84,20 @@ echo "Job complete."
 # random_low=0, random_high=10
 # random_low=0, random_high=100
 
-# sbatch experiments/generate_graphs/gen_gset.sh 70 graphs/gset_random/1_1 1 42 true 0.9 1.1 gset
-# sbatch experiments/generate_graphs/gen_gset.sh 70 graphs/gset_random/10 1 42 true 0 10 gset
-# sbatch experiments/generate_graphs/gen_gset.sh 70 graphs/gset_random/100 1 42 true 0 100 gset
+# sbatch experiments/generate_graphs/gen_gset.sh 70 /scratch/bs82/graphs/gset_random/1_1 1 42 true 0.9 1.1 gset
+# sbatch experiments/generate_graphs/gen_gset.sh 70 /scratch/bs82/graphs/gset_random/10 1 42 true 0 10 gset
+# sbatch experiments/generate_graphs/gen_gset.sh 70 /scratch/bs82/graphs/gset_random/100 1 42 true 0 100 gset
 
-# sbatch experiments/generate_graphs/gen_gset.sh 72 graphs/gset_random/1_1 1 42 true 0.9 1.1 gset
-# sbatch experiments/generate_graphs/gen_gset.sh 72 graphs/gset_random/10 1 42 true 0 10 gset
-# sbatch experiments/generate_graphs/gen_gset.sh 72 graphs/gset_random/100 1 42 true 0 100 gset
+# sbatch experiments/generate_graphs/gen_gset.sh 72 /scratch/bs82/graphs/gset_random/1_1 1 42 true 0.9 1.1 gset
+# sbatch experiments/generate_graphs/gen_gset.sh 72 /scratch/bs82/graphs/gset_random/10 1 42 true 0 10 gset
+# sbatch experiments/generate_graphs/gen_gset.sh 72 /scratch/bs82/graphs/gset_random/100 1 42 true 0 100 gset
 
-# sbatch experiments/generate_graphs/gen_gset.sh 77 graphs/gset_random/1_1 1 42 true 0.9 1.1 gset
-# sbatch experiments/generate_graphs/gen_gset.sh 77 graphs/gset_random/10 1 42 true 0 10 gset
-# sbatch experiments/generate_graphs/gen_gset.sh 77 graphs/gset_random/100 1 42 true 0 100 gset
+# sbatch experiments/generate_graphs/gen_gset.sh 77 /scratch/bs82/graphs/gset_random/1_1 1 42 true 0.9 1.1 gset
+# sbatch experiments/generate_graphs/gen_gset.sh 77 /scratch/bs82/graphs/gset_random/10 1 42 true 0 10 gset
+# sbatch experiments/generate_graphs/gen_gset.sh 77 /scratch/bs82/graphs/gset_random/100 1 42 true 0 100 gset
 
-# sbatch experiments/generate_graphs/gen_gset.sh 81 graphs/gset_random/1_1 1 42 true 0.9 1.1 gset
-# sbatch experiments/generate_graphs/gen_gset.sh 81 graphs/gset_random/10 1 42 true 0 10 gset
-# sbatch experiments/generate_graphs/gen_gset.sh 81 graphs/gset_random/100 1 42 true 0 100 gset
+# sbatch experiments/generate_graphs/gen_gset.sh 81 /scratch/bs82/graphs/gset_random/1_1 1 42 true 0.9 1.1 gset
+# sbatch experiments/generate_graphs/gen_gset.sh 81 /scratch/bs82/graphs/gset_random/10 1 42 true 0 10 gset
+# sbatch experiments/generate_graphs/gen_gset.sh 81 /scratch/bs82/graphs/gset_random/100 1 42 true 0 100 gset
 
+# sbatch experiments/generate_graphs/gen_gset.sh 35 /scratch/bs82/graphs/ANYCSP_missing_gset 1 42 false 0 0 gset

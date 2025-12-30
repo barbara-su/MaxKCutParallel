@@ -60,11 +60,11 @@ def main():
         G.add_nodes_from(range(num_nodes))
         for line in f:
             i, j, w = map(int, line.split()[:3])
-            if random_weights is False:
+            if random_weights:
+                G.add_edge(i - 1, j - 1, weight=float(w) * ((random_high - random_low) * np.random.rand() + random_low))
+            else:
                 G.add_edge(i - 1, j - 1, weight=float(w))
-            elif random_weights is True:
-                G.add_edge(i - 1, j - 1, weight=float(w) *((random_high - random_low) * np.random.rand() + random_low))
-
+                
     # generate graph
     print(f"Using G{gset} from GSet, n = {n}, seed = {seed}, rank = {r}")
     os.makedirs(out_dir, exist_ok=True)
@@ -78,8 +78,8 @@ def main():
     print(f"V shape: {V.shape}")
 
     # save
-    q_path = os.path.join(out_dir, f"Q_gset{gset}.npy")
-    v_path = os.path.join(out_dir, f"V_gset{gset}.npy")
+    q_path = os.path.join(out_dir, f"Q_gset_{gset}.npy")
+    v_path = os.path.join(out_dir, f"V_gset_{gset}.npy")
 
     np.save(q_path, Q)
     np.save(v_path, V)

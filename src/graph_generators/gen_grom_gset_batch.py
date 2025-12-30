@@ -128,8 +128,8 @@ def main():
         # Make per-graph seed deterministic but distinct
         seed = base_seed + gset_id
 
-        q_path = os.path.join(out_dir, f"Q_gset{gset_id}_r{r}_{rw_tag}_seed{seed}_low{low_tag}_high{high_tag}.npy")
-        v_path = os.path.join(out_dir, f"V_gset{gset_id}_r{r}_{rw_tag}_seed{seed}_low{low_tag}_high{high_tag}.npy")
+        q_path = os.path.join(out_dir, f"Q_gset_{gset_id}.npy")
+        v_path = os.path.join(out_dir, f"V_gset_{gset_id}.npy")
 
         if skip_existing and os.path.exists(q_path) and os.path.exists(v_path):
             print(f"[skip existing] gset={gset_id} -> {q_path}, {v_path}")

@@ -1,14 +1,14 @@
 #!/bin/bash
-#SBATCH --exclude=bg5u16g1
+
 #SBATCH --job-name=multi-nodes-rank-r-dir
 #SBATCH --output=logs/multi-nodes-rank-r-dir-%j.out
 #SBATCH --error=logs/multi-nodes-rank-r-dir-%j.err
 
-#SBATCH --nodes=6
+#SBATCH --nodes=4
 #SBATCH --tasks-per-node=1
 #SBATCH --partition=commons
-#SBATCH --cpus-per-task=80
-#SBATCH --mem=200G
+#SBATCH --cpus-per-task=100
+#SBATCH --mem=300G
 #SBATCH --time=23:00:00
 
 # One Ray cluster, many instances.
@@ -49,6 +49,14 @@ echo "Using rank = $R"
 echo "Using precision = $PRECISION"
 echo "Using candidates_per_task = $CANDIDATES_PER_TASK"
 echo "Debug enabled: $DEBUG_FLAG"
+
+nodes=$(scontrol show hostnames "$SLURM_JOB_NODELIST")
+nodes_array=($nodes)
+
+echo "Allocated nodes:"
+for n in "${nodes_array[@]}"; do
+  echo "  $n"
+done
 
 # BLAS threading: avoid oversubscription
 export OMP_NUM_THREADS=1
@@ -126,6 +134,28 @@ echo "Job complete."
 # sbatch experiments/multi_node_rank_r_dir.sh graphs/erdos_renyi/rank_2/p075/n50 results/erdos_renyi/rank_2/p075/n50 2 32 1000
 # sbatch experiments/multi_node_rank_r_dir.sh graphs/erdos_renyi/rank_2/p075/n100 results/erdos_renyi/rank_2/p075/n100 2 32 10000
 
+
+
+
+# sbatch experiments/multi_node_rank_r_dir.sh graphs/erdos_renyi/rank_3/p01/n20 results/erdos_renyi/rank_3/p01/n20 3 32 1000
+# sbatch experiments/multi_node_rank_r_dir.sh graphs/erdos_renyi/rank_3/p01/n50 results/erdos_renyi/rank_3/p01/n50 3 32 1000
+# sbatch experiments/multi_node_rank_r_dir.sh graphs/erdos_renyi/rank_3/p01/n100 results/erdos_renyi/rank_3/p01/n100 3 32 10000
+
+# sbatch experiments/multi_node_rank_r_dir.sh graphs/erdos_renyi/rank_3/p025/n20 results/erdos_renyi/rank_3/p025/n20 3 32 1000
+# sbatch experiments/multi_node_rank_r_dir.sh graphs/erdos_renyi/rank_3/p025/n50 results/erdos_renyi/rank_3/p025/n50 3 32 1000
+# sbatch experiments/multi_node_rank_r_dir.sh graphs/erdos_renyi/rank_3/p025/n100 results/erdos_renyi/rank_3/p025/n100 3 32 10000
+
+# sbatch experiments/multi_node_rank_r_dir.sh graphs/erdos_renyi/rank_3/p05/n20 results/erdos_renyi/rank_3/p05/n20 3 32 1000
+# sbatch experiments/multi_node_rank_r_dir.sh graphs/erdos_renyi/rank_3/p05/n50 results/erdos_renyi/rank_3/p05/n50 3 32 1000
+# sbatch experiments/multi_node_rank_r_dir.sh graphs/erdos_renyi/rank_3/p05/n100 results/erdos_renyi/rank_3/p05/n100 3 32 10000
+
+# sbatch experiments/multi_node_rank_r_dir.sh graphs/erdos_renyi/rank_3/p075/n20 results/erdos_renyi/rank_3/p075/n20 3 32 1000
+# sbatch experiments/multi_node_rank_r_dir.sh graphs/erdos_renyi/rank_3/p075/n50 results/erdos_renyi/rank_3/p075/n50 3 32 1000
+# sbatch experiments/multi_node_rank_r_dir.sh graphs/erdos_renyi/rank_3/p075/n100 results/erdos_renyi/rank_3/p075/n100 3 32 10000
+
+
+
+
 # sbatch experiments/multi_node_rank_r_dir.sh graphs/regular_graph/3_regular_graph_rank_2/n20 results/regular_graph/3_regular_graph_rank_2/n20 2 32 1000
 # sbatch experiments/multi_node_rank_r_dir.sh graphs/regular_graph/3_regular_graph_rank_2/n50 results/regular_graph/3_regular_graph_rank_2/n50 2 32 1000
 # sbatch experiments/multi_node_rank_r_dir.sh graphs/regular_graph/3_regular_graph_rank_2/n100 results/regular_graph/3_regular_graph_rank_2/n100 2 32 10000
@@ -133,3 +163,18 @@ echo "Job complete."
 # sbatch experiments/multi_node_rank_r_dir.sh graphs/regular_graph/5_regular_graph_rank_2/n20 results/regular_graph/5_regular_graph_rank_2/n20 2 32 1000
 # sbatch experiments/multi_node_rank_r_dir.sh graphs/regular_graph/5_regular_graph_rank_2/n50 results/regular_graph/5_regular_graph_rank_2/n50 2 32 1000
 # sbatch experiments/multi_node_rank_r_dir.sh graphs/regular_graph/5_regular_graph_rank_2/n100 results/regular_graph/5_regular_graph_rank_2/n100 2 32 10000
+
+
+# sbatch experiments/multi_node_rank_r_dir.sh graphs/regular_graph/3_regular_graph_rank_3/n20 results/regular_graph/3_regular_graph_rank_3/n20 3 32 10000
+# sbatch experiments/multi_node_rank_r_dir.sh graphs/regular_graph/3_regular_graph_rank_3/n50 results/regular_graph/3_regular_graph_rank_3/n50 3 32 10000
+# sbatch experiments/multi_node_rank_r_dir.sh graphs/regular_graph/3_regular_graph_rank_3/n100 results/regular_graph/3_regular_graph_rank_3/n100 3 32 10000
+
+# sbatch experiments/multi_node_rank_r_dir.sh graphs/regular_graph/5_regular_graph_rank_3/n20 results/regular_graph/5_regular_graph_rank_3/n20 3 32 10000
+# sbatch experiments/multi_node_rank_r_dir.sh graphs/regular_graph/5_regular_graph_rank_3/n50 results/regular_graph/5_regular_graph_rank_3/n50 3 32 10000
+# sbatch experiments/multi_node_rank_r_dir.sh graphs/regular_graph/5_regular_graph_rank_3/n100 results/regular_graph/5_regular_graph_rank_3/n100 3 32 10000
+
+# sbatch experiments/multi_node_rank_r_dir.sh /scratch/bs82/graphs/gset results/gset 1 32 100
+
+# sbatch experiments/multi_node_rank_r_dir.sh /scratch/bs82/graphs/gset_random/1_1 results/gset_random/1_1 1 32 100
+# sbatch experiments/multi_node_rank_r_dir.sh /scratch/bs82/graphs/gset_random/10 results/gset_random/10 1 32 100
+# sbatch experiments/multi_node_rank_r_dir.sh /scratch/bs82/graphs/gset_random/100 results/gset_random/100 1 32 100

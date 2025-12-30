@@ -1,0 +1,8 @@
+
+# sbatch experiments/multi_node_rank_r_dir.sh graphs/regular_graph/3_regular_graph_rank_3/n20 results/regular_graph/3_regular_graph_rank_3/n20 3 32 1000
+# sbatch experiments/multi_node_rank_r_dir.sh graphs/regular_graph/3_regular_graph_rank_3/n50 results/regular_graph/3_regular_graph_rank_3/n50 3 32 1000
+# sbatch experiments/multi_node_rank_r_dir.sh graphs/regular_graph/3_regular_graph_rank_3/n100 results/regular_graph/3_regular_graph_rank_3/n100 3 32 10000
+
+# sbatch experiments/multi_node_rank_r_dir.sh graphs/regular_graph/5_regular_graph_rank_3/n20 results/regular_graph/5_regular_graph_rank_3/n20 3 32 1000
+# sbatch experiments/multi_node_rank_r_dir.sh graphs/regular_graph/5_regular_graph_rank_3/n50 results/regular_graph/5_regular_graph_rank_3/n50 3 32 1000
+# sbatch experiments/multi_node_rank_r_dir.sh graphs/regular_graph/5_regular_graph_rank_3/n100 results/regular_graph/5_regular_graph_rank_3/n100 3 32 10000

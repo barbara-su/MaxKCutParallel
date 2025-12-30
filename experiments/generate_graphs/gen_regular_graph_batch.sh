@@ -59,3 +59,11 @@ echo "Job complete."
 
 # to run, call
 # sbatch experiments/generate_graphs/gen_regular_graph_batch.sh 100 5 2 20 graphs/5_regular_graph_rank_2/n100
+
+# sbatch experiments/generate_graphs/gen_regular_graph_batch.sh 20 3 3 20 graphs/3_regular_graph_rank_3/n20
+# sbatch experiments/generate_graphs/gen_regular_graph_batch.sh 50 3 3 20 graphs/3_regular_graph_rank_3/n50
+# sbatch experiments/generate_graphs/gen_regular_graph_batch.sh 100 3 3 20 graphs/3_regular_graph_rank_3/n100
+
+# sbatch experiments/generate_graphs/gen_regular_graph_batch.sh 20 5 3 20 graphs/5_regular_graph_rank_3/n20
+# sbatch experiments/generate_graphs/gen_regular_graph_batch.sh 50 5 3 20 graphs/5_regular_graph_rank_3/n50
+# sbatch experiments/generate_graphs/gen_regular_graph_batch.sh 100 5 3 20 graphs/5_regular_graph_rank_3/n100
