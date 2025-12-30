@@ -1,5 +1,5 @@
 #!/bin/bash
-
+#SBATCH --exclude=bg2u16g1,bg2u24g1,bg5u16g1
 #SBATCH --job-name=multi-nodes-rank-r-dir
 #SBATCH --output=logs/multi-nodes-rank-r-dir-%j.out
 #SBATCH --error=logs/multi-nodes-rank-r-dir-%j.err
@@ -154,27 +154,36 @@ echo "Job complete."
 # sbatch experiments/multi_node_rank_r_dir.sh graphs/erdos_renyi/rank_3/p075/n100 results/erdos_renyi/rank_3/p075/n100 3 32 10000
 
 
+# sbatch experiments/multi_node_rank_r_dir.sh /scratch/bs82/graphs/regular_graph/3_regular_graph_rank_1/n20 results/regular_graph/3_regular_graph_rank_1/n20 1 32 10
+# sbatch experiments/multi_node_rank_r_dir.sh /scratch/bs82/graphs/regular_graph/3_regular_graph_rank_1/n50 results/regular_graph/3_regular_graph_rank_1/n50 1 32 10
+# sbatch experiments/multi_node_rank_r_dir.sh /scratch/bs82/graphs/regular_graph/3_regular_graph_rank_1/n100 results/regular_graph/3_regular_graph_rank_1/n100 1 32 100
+
+# sbatch experiments/multi_node_rank_r_dir.sh /scratch/bs82/graphs/regular_graph/5_regular_graph_rank_1/n20 results/regular_graph/5_regular_graph_rank_1/n20 1 32 10
+# sbatch experiments/multi_node_rank_r_dir.sh /scratch/bs82/graphs/regular_graph/5_regular_graph_rank_1/n50 results/regular_graph/5_regular_graph_rank_1/n50 1 32 10
+# sbatch experiments/multi_node_rank_r_dir.sh /scratch/bs82/graphs/regular_graph/5_regular_graph_rank_1/n100 results/regular_graph/5_regular_graph_rank_1/n100 1 32 100
+
+# sbatch experiments/multi_node_rank_r_dir.sh /scratch/bs82/graphs/regular_graph/3_regular_graph_rank_2/n20 results/regular_graph/3_regular_graph_rank_2/n20 2 32 1000
+# sbatch experiments/multi_node_rank_r_dir.sh /scratch/bs82/graphs/regular_graph/3_regular_graph_rank_2/n50 results/regular_graph/3_regular_graph_rank_2/n50 2 32 1000
+# sbatch experiments/multi_node_rank_r_dir.sh /scratch/bs82/graphs/regular_graph/3_regular_graph_rank_2/n100 results/regular_graph/3_regular_graph_rank_2/n100 2 32 10000
+
+# sbatch experiments/multi_node_rank_r_dir.sh /scratch/bs82/graphs/regular_graph/5_regular_graph_rank_2/n20 results/regular_graph/5_regular_graph_rank_2/n20 2 32 1000
+# sbatch experiments/multi_node_rank_r_dir.sh /scratch/bs82/graphs/regular_graph/5_regular_graph_rank_2/n50 results/regular_graph/5_regular_graph_rank_2/n50 2 32 1000
+# sbatch experiments/multi_node_rank_r_dir.sh /scratch/bs82/graphs/regular_graph/5_regular_graph_rank_2/n100 results/regular_graph/5_regular_graph_rank_2/n100 2 32 10000
 
 
-# sbatch experiments/multi_node_rank_r_dir.sh graphs/regular_graph/3_regular_graph_rank_2/n20 results/regular_graph/3_regular_graph_rank_2/n20 2 32 1000
-# sbatch experiments/multi_node_rank_r_dir.sh graphs/regular_graph/3_regular_graph_rank_2/n50 results/regular_graph/3_regular_graph_rank_2/n50 2 32 1000
-# sbatch experiments/multi_node_rank_r_dir.sh graphs/regular_graph/3_regular_graph_rank_2/n100 results/regular_graph/3_regular_graph_rank_2/n100 2 32 10000
+# sbatch experiments/multi_node_rank_r_dir.sh /scratch/bs82/graphs/regular_graph/3_regular_graph_rank_3/n20 results/regular_graph/3_regular_graph_rank_3/n20 3 32 10000
+# sbatch experiments/multi_node_rank_r_dir.sh /scratch/bs82/graphs/regular_graph/3_regular_graph_rank_3/n50 results/regular_graph/3_regular_graph_rank_3/n50 3 32 10000
+# sbatch experiments/multi_node_rank_r_dir.sh /scratch/bs82/graphs/regular_graph/3_regular_graph_rank_3/n100 results/regular_graph/3_regular_graph_rank_3/n100 3 32 10000
 
-# sbatch experiments/multi_node_rank_r_dir.sh graphs/regular_graph/5_regular_graph_rank_2/n20 results/regular_graph/5_regular_graph_rank_2/n20 2 32 1000
-# sbatch experiments/multi_node_rank_r_dir.sh graphs/regular_graph/5_regular_graph_rank_2/n50 results/regular_graph/5_regular_graph_rank_2/n50 2 32 1000
-# sbatch experiments/multi_node_rank_r_dir.sh graphs/regular_graph/5_regular_graph_rank_2/n100 results/regular_graph/5_regular_graph_rank_2/n100 2 32 10000
-
-
-# sbatch experiments/multi_node_rank_r_dir.sh graphs/regular_graph/3_regular_graph_rank_3/n20 results/regular_graph/3_regular_graph_rank_3/n20 3 32 10000
-# sbatch experiments/multi_node_rank_r_dir.sh graphs/regular_graph/3_regular_graph_rank_3/n50 results/regular_graph/3_regular_graph_rank_3/n50 3 32 10000
-# sbatch experiments/multi_node_rank_r_dir.sh graphs/regular_graph/3_regular_graph_rank_3/n100 results/regular_graph/3_regular_graph_rank_3/n100 3 32 10000
-
-# sbatch experiments/multi_node_rank_r_dir.sh graphs/regular_graph/5_regular_graph_rank_3/n20 results/regular_graph/5_regular_graph_rank_3/n20 3 32 10000
-# sbatch experiments/multi_node_rank_r_dir.sh graphs/regular_graph/5_regular_graph_rank_3/n50 results/regular_graph/5_regular_graph_rank_3/n50 3 32 10000
-# sbatch experiments/multi_node_rank_r_dir.sh graphs/regular_graph/5_regular_graph_rank_3/n100 results/regular_graph/5_regular_graph_rank_3/n100 3 32 10000
+# sbatch experiments/multi_node_rank_r_dir.sh /scratch/bs82/graphs/regular_graph/5_regular_graph_rank_3/n20 results/regular_graph/5_regular_graph_rank_3/n20 3 32 10000
+# sbatch experiments/multi_node_rank_r_dir.sh /scratch/bs82/graphs/regular_graph/5_regular_graph_rank_3/n50 results/regular_graph/5_regular_graph_rank_3/n50 3 32 10000
+# sbatch experiments/multi_node_rank_r_dir.sh /scratch/bs82/graphs/regular_graph/5_regular_graph_rank_3/n100 results/regular_graph/5_regular_graph_rank_3/n100 3 32 10000
 
 # sbatch experiments/multi_node_rank_r_dir.sh /scratch/bs82/graphs/gset results/gset 1 32 100
 
 # sbatch experiments/multi_node_rank_r_dir.sh /scratch/bs82/graphs/gset_random/1_1 results/gset_random/1_1 1 32 100
 # sbatch experiments/multi_node_rank_r_dir.sh /scratch/bs82/graphs/gset_random/10 results/gset_random/10 1 32 100
 # sbatch experiments/multi_node_rank_r_dir.sh /scratch/bs82/graphs/gset_random/100 results/gset_random/100 1 32 100
+
+
+# sbatch experiments/multi_node_rank_r_dir.sh /scratch/bs82/graphs/gset_rank_2 results/gset_rank_2 2 32 10000

@@ -5,7 +5,7 @@
   "precision": 32,
   "candidates_per_task": 10000,
   "best_score": 705.0,
-  "time_seconds": 16.523141384124756,
+  "time_seconds": 16.044604301452637,
   "best_k": [
     0,
     2,

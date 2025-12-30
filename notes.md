@@ -44,3 +44,6 @@ rsync -av --include='*/' --exclude='*' results /home/bs82/ROS
 
 # zip something
 zip -r rank_1_results.zip results
+
+# cancel a bunch of tasks
+SUBSTR="multi-no"; squeue -u "$USER" -h -o "%i %j" | awk -v s="$SUBSTR" '$2 ~ s {print $1}' | xargs -r scancel
