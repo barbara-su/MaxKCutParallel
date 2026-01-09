@@ -79,6 +79,16 @@ def top_r_eigh(Q, r: int):
     evecs = evecs[:, ::-1]
     return evals, evecs
 
+
+def gen_V_given_Q(Q, r):
+     # Compute ONLY top-r eigenpairs (SciPy subset if available)
+    eigvals_top, eigvecs_top = top_r_eigh(Q, r)
+
+    # Build V from the top-r eigenpairs
+    V = low_rank_V_from_top_eigs(eigvals_top, eigvecs_top, r=r)
+    
+    return V
+
 def main():
     parser = argparse.ArgumentParser(
         description="Generate low-rank eigenvector matrix V from a saved Q (.npy)."
@@ -120,11 +130,7 @@ def main():
     log.info(f"Q shape: {Q.shape}")
     log.info(f"Computing V with rank r = {r}")
 
-    # Compute ONLY top-r eigenpairs (SciPy subset if available)
-    eigvals_top, eigvecs_top = top_r_eigh(Q, r)
-
-    # Build V from the top-r eigenpairs
-    V = low_rank_V_from_top_eigs(eigvals_top, eigvecs_top, r=r)
+    V = gen_V_given_Q(Q, r)
 
     log.info(f"V shape: {V.shape}")
 

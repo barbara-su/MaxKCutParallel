@@ -33,3 +33,17 @@ sbatch experiments/single_node_gen_graph.sh 500 2
 https://stackoverflow.com/questions/11443302/compiling-numpy-with-openblas-integration/14391693?noredirect=1#comment32392960_14391693
 
 
+# get codex to work
+conda install -c conda-forge nodejs=20 -y
+npm install -g @openai/codex
+
+# copy folder
+rsync -av --include='*/' --exclude='*' graphs/gset_random results
+
+rsync -av --include='*/' --exclude='*' results /home/bs82/ROS
+
+# zip something
+zip -r rank_1_results.zip results
+
+# Check allocation (GPU)
+sinfo -N -O "NodeList,CPUsState,Memory,FreeMem,Gres,GresUsed"   | awk 'NR==1{print; next} {print $1, $2, $3/1024, $4/1024, $5, $6}'
