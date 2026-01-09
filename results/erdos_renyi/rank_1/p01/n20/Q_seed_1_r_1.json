@@ -5,7 +5,7 @@
   "precision": 32,
   "candidates_per_task": 10,
   "best_score": 63.0,
-  "time_seconds": 0.0057675838470458984,
+  "time_seconds": 0.00404810905456543,
   "best_k": [
     1,
     1,
@@ -72,7 +72,7 @@
     -0.8660254037844384,
     0.0
   ],
-  "num_workers": 400,
+  "num_workers": 320,
   "q_file": "/scratch/bs82/graphs/erdos_renyi/rank_1/p01/n20/Q_20_seed_1.npy",
   "v_file": "/scratch/bs82/graphs/erdos_renyi/rank_1/p01/n20/V_20_seed_1.npy",
   "best_l": 15

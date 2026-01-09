@@ -45,5 +45,5 @@ rsync -av --include='*/' --exclude='*' results /home/bs82/ROS
 # zip something
 zip -r rank_1_results.zip results
 
-# cancel a bunch of tasks
-SUBSTR="multi-no"; squeue -u "$USER" -h -o "%i %j" | awk -v s="$SUBSTR" '$2 ~ s {print $1}' | xargs -r scancel
+# Check allocation (GPU)
+sinfo -N -O "NodeList,CPUsState,Memory,FreeMem,Gres,GresUsed"   | awk 'NR==1{print; next} {print $1, $2, $3/1024, $4/1024, $5, $6}'

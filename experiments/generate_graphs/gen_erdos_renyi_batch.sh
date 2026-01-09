@@ -99,9 +99,9 @@ echo "Job complete."
 # sbatch experiments/generate_graphs/gen_erdos_renyi_batch.sh 50 0.25 3 20 graphs/erdos_renyi/rank_3/p025/n50
 # sbatch experiments/generate_graphs/gen_erdos_renyi_batch.sh 100 0.25 3 20 graphs/erdos_renyi/rank_3/p025/n100
 
-# sbatch experiments/generate_graphs/gen_erdos_renyi_batch.sh 20 0.5 3 20 graphs/erdos_renyi/rank_2/p05/n20
-# sbatch experiments/generate_graphs/gen_erdos_renyi_batch.sh 50 0.5 3 20 graphs/erdos_renyi/rank_2/p05/n50
-# sbatch experiments/generate_graphs/gen_erdos_renyi_batch.sh 100 0.5 3 20 graphs/erdos_renyi/rank_2/p05/n100
+# sbatch experiments/generate_graphs/gen_erdos_renyi_batch.sh 20 0.5 3 20 /scratch/bs82/graphs/erdos_renyi/rank_3/p05/n20
+# sbatch experiments/generate_graphs/gen_erdos_renyi_batch.sh 50 0.5 3 20 /scratch/bs82/graphs/erdos_renyi/rank_3/p05/n50
+# sbatch experiments/generate_graphs/gen_erdos_renyi_batch.sh 100 0.5 3 20 /scratch/bs82/graphs/erdos_renyi/rank_3/p05/n100
 
 # sbatch experiments/generate_graphs/gen_erdos_renyi_batch.sh 20 0.75 3 20 graphs/erdos_renyi/rank_3/p075/n20
 # sbatch experiments/generate_graphs/gen_erdos_renyi_batch.sh 50 0.75 3 20 graphs/erdos_renyi/rank_3/p075/n50

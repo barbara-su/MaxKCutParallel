@@ -5,11 +5,11 @@
   "precision": 32,
   "candidates_per_task": 1000,
   "best_score": 75.0,
-  "time_seconds": 0.5241236686706543,
+  "time_seconds": 0.4211997985839844,
   "best_k": [
     2,
     1,
-    0,
+    2,
     1,
     0,
     2,
@@ -31,7 +31,7 @@
   "best_z_real": [
     -0.5,
     -0.5,
-    1.0,
+    -0.5,
     -0.5,
     1.0,
     -0.5,
@@ -53,7 +53,7 @@
   "best_z_imag": [
     -0.8660253882408142,
     0.8660253882408142,
-    0.0,
+    -0.8660253882408142,
     0.8660253882408142,
     0.0,
     -0.8660253882408142,
@@ -72,7 +72,7 @@
     -0.8660253882408142,
     0.8660253882408142
   ],
-  "num_workers": 400,
+  "num_workers": 320,
   "q_file": "/scratch/bs82/graphs/erdos_renyi/rank_2/p01/n20/Q_20_seed_7.npy",
   "v_file": "/scratch/bs82/graphs/erdos_renyi/rank_2/p01/n20/V_20_seed_7.npy"
 }

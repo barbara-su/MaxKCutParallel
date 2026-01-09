@@ -322,12 +322,14 @@ def process_rankr_recursive(V: np.ndarray, Q: np.ndarray, K: int = 3, candidates
 
 # New: Q_gset_<n>.npy
 # Q patterns
-_Q_PAT_OLD  = re.compile(r"^Q_(?P<n>\d+)_seed_(?P<seed>\d+).*\.npy$")
-_Q_PAT_GSET = re.compile(r"^Q_gset_(?P<n>\d+)\.npy$")
+_Q_PAT_OLD        = re.compile(r"^Q_(?P<n>\d+)_seed_(?P<seed>\d+).*\.npy$")
+_Q_PAT_GSET       = re.compile(r"^Q_gset_(?P<n>\d+)\.npy$")
+_Q_PAT_GSET_SEED  = re.compile(r"^Q_gset_(?P<n>\d+)_seed_(?P<seed>\d+).*\.npy$")
 
-# V patterns (same idea)
-_V_PAT_OLD  = re.compile(r"^V_(?P<n>\d+)_seed_(?P<seed>\d+).*\.npy$")
-_V_PAT_GSET = re.compile(r"^V_gset_(?P<n>\d+)\.npy$")
+# V patterns
+_V_PAT_OLD        = re.compile(r"^V_(?P<n>\d+)_seed_(?P<seed>\d+).*\.npy$")
+_V_PAT_GSET       = re.compile(r"^V_gset_(?P<n>\d+)\.npy$")
+_V_PAT_GSET_SEED  = re.compile(r"^V_gset_(?P<n>\d+)_seed_(?P<seed>\d+).*\.npy$")
 
 FIXED_SEED = 42
 
@@ -337,36 +339,43 @@ def discover_instances(qv_dir: Path) -> List[Tuple[int, int, Path, Path]]:
     Returns list of (n, seed, q_path, v_path) sorted by (n, seed).
 
     Accepts:
-      - Q_<n>_seed_<seed>*.npy and V_<n>_seed_<seed>*.npy
-      - Q_gset_<n>.npy        and V_gset_<n>.npy   (seed fixed to FIXED_SEED)
+      - Q_<n>_seed_<seed>*.npy      and V_<n>_seed_<seed>*.npy
+      - Q_gset_<n>.npy              and V_gset_<n>.npy        (seed fixed)
+      - Q_gset_<n>_seed_<seed>.npy  and V_gset_<n>_seed_<seed>.npy
 
     For each Q, chooses the first matching V candidate (deterministic via sorting).
     """
     q_files = sorted(
-        list(qv_dir.glob("Q_*_seed_*.npy")) + list(qv_dir.glob("Q_gset_*.npy"))
+        list(qv_dir.glob("Q_*_seed_*.npy")) +
+        list(qv_dir.glob("Q_gset_*.npy"))
     )
 
     out: List[Tuple[int, int, Path, Path]] = []
 
     for q in q_files:
+        # --- old style: Q_<n>_seed_<seed> ---
         m_old = _Q_PAT_OLD.match(q.name)
         if m_old:
             n = int(m_old.group("n"))
             seed = int(m_old.group("seed"))
-
-            # Prefer the old-style V, fall back to glob
             v_candidates = sorted(qv_dir.glob(f"V_{n}_seed_{seed}*.npy"))
 
         else:
-            m_gset = _Q_PAT_GSET.match(q.name)
-            if not m_gset:
-                continue
-            n = int(m_gset.group("n"))
-            seed = FIXED_SEED
+            # --- new gset-with-seed: Q_gset_<n>_seed_<seed> ---
+            m_gset_seed = _Q_PAT_GSET_SEED.match(q.name)
+            if m_gset_seed:
+                n = int(m_gset_seed.group("n"))
+                seed = int(m_gset_seed.group("seed"))
+                v_candidates = sorted(qv_dir.glob(f"V_gset_{n}_seed_{seed}*.npy"))
 
-            # gset V follows same pattern
-            v_candidates = sorted(qv_dir.glob(f"V_gset_{n}.npy"))
-            # (optionally allow suffixes: f"V_gset_{n}*.npy" if you have extras)
+            else:
+                # --- original gset (no seed): Q_gset_<n> ---
+                m_gset = _Q_PAT_GSET.match(q.name)
+                if not m_gset:
+                    continue
+                n = int(m_gset.group("n"))
+                seed = FIXED_SEED
+                v_candidates = sorted(qv_dir.glob(f"V_gset_{n}.npy"))
 
         if not v_candidates:
             log.warning(f"Missing V for n={n} seed={seed} (skip)")
@@ -376,6 +385,7 @@ def discover_instances(qv_dir: Path) -> List[Tuple[int, int, Path, Path]]:
 
     out.sort(key=lambda t: (t[0], t[1]))
     return out
+
 
 
 # _N_RE = re.compile(r"(?<!\d)(?P<n>\d+)(?!\d)")
