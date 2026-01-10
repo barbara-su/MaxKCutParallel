@@ -136,3 +136,20 @@ sbatch experiments/generate_graphs/gen_gset_many.sh 49 /scratch/bs82/graphs/gset
 sbatch experiments/generate_graphs/gen_gset_many.sh 50 /scratch/bs82/graphs/gset_random_many/50/1_1 1 0 20 1 0.9 1.1 gset 1
 sbatch experiments/generate_graphs/gen_gset_many.sh 50 /scratch/bs82/graphs/gset_random_many/50/10  1 40 20 1 0   10  gset 1
 sbatch experiments/generate_graphs/gen_gset_many.sh 50 /scratch/bs82/graphs/gset_random_many/50/100 1 80 20 1 0   100 gset 1
+
+# sbm experiments
+sbatch experiments/multi_node_rank_r_dir.sh /scratch/bs82/graphs/graphs_sbm/example results/graphs_sbm/example 1 32 100
+
+sbatch experiments/generate_graphs/gen_sbm_batch.sh 1000 2 "500 500" 0.01 0.1 1 20 /scratch/bs82/graphs/graphs_sbm/pout_0.1_pin_0.01
+sbatch experiments/generate_graphs/gen_sbm_batch.sh 1000 2 "500 500" 0.05 0.05 1 20 /scratch/bs82/graphs/graphs_sbm/pout_0.05_pin_0.05
+sbatch experiments/generate_graphs/gen_sbm_batch.sh 1000 10 "100 100 100 100 100 100 100 100 100 100" 0.5 0.01 1 20 /scratch/bs82/graphs/graphs_sbm/n1000_b10
+sbatch experiments/generate_graphs/gen_sbm_batch.sh 1000 100 "$(printf '10 %.0s' {1..100})" 0.5 0.01 1 20 /scratch/bs82/graphs/graphs_sbm/n1000_b100
+sbatch experiments/generate_graphs/gen_sbm_batch.sh 10000 100 "$(printf '100 %.0s' {1..100})" 0.5 0.01 1 20 /scratch/bs82/graphs/graphs_sbm/n10000_b100
+sbatch experiments/generate_graphs/gen_sbm_batch.sh 999 3 "333 333 333" 0.5 0.01 1 20 /scratch/bs82/graphs/graphs_sbm/n999_b3
+
+sbatch experiments/multi_node_rank_r_dir.sh /scratch/bs82/graphs/graphs_sbm/pout_0.1_pin_0.01 results/graphs_sbm/pout_0.1_pin_0.01 1 32 100
+sbatch experiments/multi_node_rank_r_dir.sh /scratch/bs82/graphs/graphs_sbm/pout_0.05_pin_0.05 results/graphs_sbm/pout_0.05_pin_0.05 1 32 100
+sbatch experiments/multi_node_rank_r_dir.sh /scratch/bs82/graphs/graphs_sbm/n1000_b10 results/graphs_sbm/n1000_b10 1 32 100
+sbatch experiments/multi_node_rank_r_dir.sh /scratch/bs82/graphs/graphs_sbm/n1000_b100 results/graphs_sbm/n1000_b100 1 32 100
+sbatch experiments/multi_node_rank_r_dir.sh /scratch/bs82/graphs/graphs_sbm/n10000_b100 results/graphs_sbm/n10000_b100 1 32 100
+sbatch experiments/multi_node_rank_r_dir.sh /scratch/bs82/graphs/graphs_sbm/n999_b3 results/graphs_sbm/n999_b3 1 32 100
