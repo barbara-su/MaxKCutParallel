@@ -114,6 +114,7 @@ srun --nodes="$SLURM_JOB_NUM_NODES" --ntasks="$SLURM_JOB_NUM_NODES" \
       --rank "$R" \
       --precision "$PRECISION" \
       --candidates_per_task "$CANDIDATES_PER_TASK" \
+      --skip_existing
       $DEBUG_ARG
 
 echo "Job complete."
