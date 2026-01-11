@@ -1,32 +1,3 @@
-#!/usr/bin/env python3
-"""
-parallel_rank_r_dir.py
-
-Run MANY (Q,V) instances from a directory inside ONE Ray cluster session,
-so you do NOT restart Ray per instance.
-
-Expected filenames (flexible, as long as these patterns match):
-  Q_<n>_seed_<seed>*.npy
-  V_<n>_seed_<seed>*.npy
-
-Example:
-  Q_20_seed_7.npy
-  V_20_seed_7.npy
-  Q_20000_seed_42_low0_high0.npy
-  V_20000_seed_42_low0_high0.npy
-
-Usage (inside your symmetric_run cluster):
-  python -u src/parallel_rank_r_dir.py \
-    --qv_dir graphs/erdos_renyi/rank_2/p01/n20 \
-    --results_dir results/erdos_renyi/rank_2/p01/n20 \
-    --rank 2 --precision 32 --candidates_per_task 1000
-
-Notes:
-- This script calls ray.init(address="auto") ONCE.
-- It loops through instances and runs rank-1 or recursive rank-r solver per instance.
-- It loads Q/V directly from the seeded filenames; no symlink hacks needed.
-"""
-
 import argparse
 import itertools
 import json
@@ -54,7 +25,6 @@ from utils import (
     convert_ctilde_to_complex,
     complex_to_partition,
     opt_K_cut,
-    generate_debug_QV,
 )
 from parallel_rank_1 import process_rank_1_parallel  # returns (best_score, best_k, best_z, best_l)
 
@@ -67,10 +37,6 @@ logging.basicConfig(
 )
 log = logging.getLogger(__name__)
 
-
-# ---------------------------
-# Rank-r Ray remote worker
-# ---------------------------
 @ray.remote
 def process_combination_batch(
     V_tilde,
