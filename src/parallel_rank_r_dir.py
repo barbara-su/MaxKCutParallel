@@ -291,161 +291,29 @@ def process_rankr_recursive(V: np.ndarray, Q: np.ndarray, K: int = 3, candidates
     return best_score, best_k, best_z
 
 
-# ---------------------------
-# Directory iteration logic
-# ---------------------------
-# _Q_PAT = re.compile(r"^Q_(?P<n>\d+)_seed_(?P<seed>\d+).*\.(npy)$")
-
-
-# def discover_instances(qv_dir: Path) -> List[Tuple[int, int, Path, Path]]:
-#     """
-#     Returns list of (n, seed, q_path, v_path) sorted by (n, seed).
-#     V path is chosen as the first match for V_<n>_seed_<seed>*.npy.
-#     """
-#     q_files = sorted(qv_dir.glob("Q_*_seed_*.npy"))
-#     out: List[Tuple[int, int, Path, Path]] = []
-
-#     for q in q_files:
-#         m = _Q_PAT.match(q.name)
-#         if not m:
-#             continue
-#         n = int(m.group("n"))
-#         seed = int(m.group("seed"))
-#         v_candidates = sorted(qv_dir.glob(f"V_{n}_seed_{seed}*.npy"))
-#         if not v_candidates:
-#             log.warning(f"Missing V for n={n} seed={seed} (skip)")
-#             continue
-#         out.append((n, seed, q, v_candidates[0]))
-
-#     out.sort(key=lambda t: (t[0], t[1]))
-#     return out
-
-# New: Q_gset_<n>.npy
-# Q patterns
-_Q_PAT_OLD        = re.compile(r"^Q_(?P<n>\d+)_seed_(?P<seed>\d+).*\.npy$")
-_Q_PAT_GSET       = re.compile(r"^Q_gset_(?P<n>\d+)\.npy$")
-_Q_PAT_GSET_SEED  = re.compile(r"^Q_gset_(?P<n>\d+)_seed_(?P<seed>\d+).*\.npy$")
-
-# V patterns
-_V_PAT_OLD        = re.compile(r"^V_(?P<n>\d+)_seed_(?P<seed>\d+).*\.npy$")
-_V_PAT_GSET       = re.compile(r"^V_gset_(?P<n>\d+)\.npy$")
-_V_PAT_GSET_SEED  = re.compile(r"^V_gset_(?P<n>\d+)_seed_(?P<seed>\d+).*\.npy$")
-
-FIXED_SEED = 42
-
-
-def discover_instances(qv_dir: Path) -> List[Tuple[int, int, Path, Path]]:
+def discover_instances(qv_dir: Path):
     """
-    Returns list of (n, seed, q_path, v_path) sorted by (n, seed).
+    For every file starting with 'Q' and ending with '.npy',
+    pair it with the corresponding 'V' file obtained by
+    replacing the leading 'Q' with 'V'.
 
-    Accepts:
-      - Q_<n>_seed_<seed>*.npy      and V_<n>_seed_<seed>*.npy
-      - Q_gset_<n>.npy              and V_gset_<n>.npy        (seed fixed)
-      - Q_gset_<n>_seed_<seed>.npy  and V_gset_<n>_seed_<seed>.npy
-
-    For each Q, chooses the first matching V candidate (deterministic via sorting).
+    Returns list of (q_path, v_path), sorted by filename.
     """
-    q_files = sorted(
-        list(qv_dir.glob("Q_*_seed_*.npy")) +
-        list(qv_dir.glob("Q_gset_*.npy"))
-    )
+    q_files = sorted(qv_dir.glob("Q*.npy"))
+    out = []
 
-    out: List[Tuple[int, int, Path, Path]] = []
+    for q_path in q_files:
+        v_name = "V" + q_path.name[1:]
+        v_path = q_path.parent / v_name
 
-    for q in q_files:
-        # --- old style: Q_<n>_seed_<seed> ---
-        m_old = _Q_PAT_OLD.match(q.name)
-        if m_old:
-            n = int(m_old.group("n"))
-            seed = int(m_old.group("seed"))
-            v_candidates = sorted(qv_dir.glob(f"V_{n}_seed_{seed}*.npy"))
-
-        else:
-            # --- new gset-with-seed: Q_gset_<n>_seed_<seed> ---
-            m_gset_seed = _Q_PAT_GSET_SEED.match(q.name)
-            if m_gset_seed:
-                n = int(m_gset_seed.group("n"))
-                seed = int(m_gset_seed.group("seed"))
-                v_candidates = sorted(qv_dir.glob(f"V_gset_{n}_seed_{seed}*.npy"))
-
-            else:
-                # --- original gset (no seed): Q_gset_<n> ---
-                m_gset = _Q_PAT_GSET.match(q.name)
-                if not m_gset:
-                    continue
-                n = int(m_gset.group("n"))
-                seed = FIXED_SEED
-                v_candidates = sorted(qv_dir.glob(f"V_gset_{n}.npy"))
-
-        if not v_candidates:
-            log.warning(f"Missing V for n={n} seed={seed} (skip)")
+        if not v_path.exists():
+            log.warning(f"Missing V for Q={q_path.name}, expected {v_name}. Skipping.")
             continue
 
-        out.append((n, seed, q, v_candidates[0]))
+        out.append((q_path, v_path))
 
-    out.sort(key=lambda t: (t[0], t[1]))
     return out
 
-
-
-# _N_RE = re.compile(r"(?<!\d)(?P<n>\d+)(?!\d)")
-
-# def _parse_n_from_name(name: str) -> int:
-#     """
-#     Best-effort: grab the first integer in the filename as n.
-#     If none found, return 0.
-#     Examples:
-#       Q_20000_seed_42.npy -> 20000
-#       Q20.npy -> 20
-#       Q_gset_1.npy -> 1
-#     """
-#     m = _N_RE.search(name)
-#     return int(m.group("n")) if m else 0
-
-
-# def discover_instances(qv_dir: Path) -> List[Tuple[int, int, Path, Path]]:
-#     """
-#     Returns list of (n, seed_dummy, q_path, v_path) sorted by (n, q_path.name).
-
-#     Rules:
-#     - Any file matching Q*.npy is accepted.
-#     - Seed is ignored (returned as 0).
-#     - V is matched by replacing the leading 'Q' with 'V' (same suffix).
-#       Example: Q_20_seed_7.npy -> V_20_seed_7.npy
-#     - If that exact V does not exist, fall back to V*.npy in the directory:
-#         * if exactly one V*.npy exists, use it
-#         * otherwise skip with a warning
-#     """
-#     q_files = sorted(qv_dir.glob("Q*.npy"))
-#     v_all = sorted(qv_dir.glob("V*.npy"))
-
-#     out: List[Tuple[int, int, Path, Path]] = []
-
-#     for q in q_files:
-#         n = _parse_n_from_name(q.name)
-
-#         # Primary: same-suffix pairing (Qxxxx -> Vxxxx)
-#         v_same = q.parent / ("V" + q.name[1:])
-#         if v_same.exists():
-#             out.append((n, 0, q, v_same))
-#             continue
-
-#         # Fallback: if there's exactly one V file, pair with it
-#         if len(v_all) == 1:
-#             out.append((n, 0, q, v_all[0]))
-#             continue
-
-#         log.warning(f"Missing/ambiguous V for Q={q.name} (expected {v_same.name}; V count={len(v_all)}). Skipping.")
-
-#     out.sort(key=lambda t: (t[0], t[2].name))
-#     return out
-
-
-# def result_already_exists(results_dir: Path, n: int, seed: int, rank: int, precision: int, cpt: int) -> bool:
-#     # Heuristic: any json containing these tokens in filename counts as existing.
-#     # Adjust if you want stricter matching.
-#     pattern = f"*n{n}_r{rank}_p{precision}_cpt{cpt}.json"
-#     return any(results_dir.glob(pattern))
 
 
 def parse_args():
@@ -494,9 +362,9 @@ def main():
 
     log.info(f"Discovered {len(instances)} instances to run (after slicing) from {qv_dir}")
 
-    for idx, (n, seed, q_path, v_path) in enumerate(instances):
+    for idx, (q_path, v_path) in enumerate(instances):
         log.info("============================================================")
-        log.info(f"[{idx+1}/{len(instances)}] n={n} seed={seed} rank={args.rank}")
+        log.info(f"[{idx+1}/{len(instances)}] rank={args.rank}")
         log.info(f"Q: {q_path}")
         log.info(f"V: {v_path}")
 
@@ -512,7 +380,7 @@ def main():
             V_full = V_full.reshape(-1, 1)
 
         if V_full.shape[1] < args.rank:
-            raise ValueError(f"V has {V_full.shape[1]} cols but rank={args.rank} requested for n={n} seed={seed}")
+            raise ValueError(f"V has {V_full.shape[1]} cols but rank={args.rank}")
 
         V = V_full[:, : args.rank]
 
@@ -532,8 +400,6 @@ def main():
         log.info(f"Done: score={best_score}, time={elapsed:.4f}s")
 
         output: Dict[str, object] = {
-            "n": n,
-            "seed": seed,
             "rank": args.rank,
             "precision": args.precision,
             "candidates_per_task": args.candidates_per_task,
@@ -554,10 +420,8 @@ def main():
             output["opt_score"] = float(opt_score)
             log.info(f"opt_score={opt_score}")
 
-        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-        fname = (
-            f"Q_seed_{seed}_r_{args.rank}.json"
-        )
+        stem = q_path.stem 
+        fname = f"{stem}_r{args.rank}.json"
         out_path = results_dir / fname
         with open(out_path, "w") as f:
             json.dump(output, f, indent=2)
