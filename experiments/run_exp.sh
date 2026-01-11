@@ -153,3 +153,6 @@ sbatch experiments/multi_node_rank_r_dir.sh /scratch/bs82/graphs/graphs_sbm/n100
 sbatch experiments/multi_node_rank_r_dir.sh /scratch/bs82/graphs/graphs_sbm/n1000_b100 results/graphs_sbm/n1000_b100 1 32 100
 sbatch experiments/multi_node_rank_r_dir.sh /scratch/bs82/graphs/graphs_sbm/n10000_b100 results/graphs_sbm/n10000_b100 1 32 100
 sbatch experiments/multi_node_rank_r_dir.sh /scratch/bs82/graphs/graphs_sbm/n999_b3 results/graphs_sbm/n999_b3 1 32 100
+
+sbatch experiments/multi_node_rank_r_dir.sh color_test/rank_1 results/color_test/rank_1 1 32 100
+sbatch experiments/multi_node_rank_r_dir.sh color_test/rank_2 results/color_test/rank_2 2 32 100
