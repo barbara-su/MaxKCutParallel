@@ -314,6 +314,10 @@ def discover_instances(qv_dir: Path):
 
     return out
 
+def result_already_exists(results_dir: Path, q_path: Path, rank: int) -> bool:
+    stem = q_path.stem
+    out_path = results_dir / f"{stem}_r{rank}.json"
+    return out_path.exists()
 
 
 def parse_args():
@@ -368,9 +372,9 @@ def main():
         log.info(f"Q: {q_path}")
         log.info(f"V: {v_path}")
 
-        # if args.skip_existing and result_already_exists(results_dir, n, seed, args.rank, args.precision, args.candidates_per_task):
-        #     log.info("Skip: existing result json detected.")
-        #     continue
+        if args.skip_existing and result_already_exists(results_dir, q_path, args.rank):
+            log.info("Skip: result file already exists.")
+            continue
 
         # Load
         Q = np.asarray(np.load(q_path), dtype=float_dtype)
