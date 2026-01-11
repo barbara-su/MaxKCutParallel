@@ -4,10 +4,6 @@ import numpy as np
 import networkx as nx
 from utils import *
 from gen_v import gen_V_given_Q
-<<<<<<< Updated upstream
-
-=======
->>>>>>> Stashed changes
 
 def main():
     parser = argparse.ArgumentParser(
@@ -119,15 +115,6 @@ def main():
         # generate graph
         print(f"Generating SBM graph with n = {n}, num_blocks = {num_blocks}, block_sizes = {block_sizes}, prob_within = {prob_within}, prob_between = {prob_between}, seed = {seed}, rank = {r}")
         Q = np.array(nx.laplacian_matrix(G).todense())
-
-<<<<<<< Updated upstream
-    V = gen_V_given_Q(Q, r)
-=======
-        # eigen decomposition
-        Q = np.array(nx.laplacian_matrix(G).todense())
-        eigvals, eigvecs = np.linalg.eigh(Q)   
-        print(eigvals)
->>>>>>> Stashed changes
 
         V = gen_V_given_Q(Q, r)
 
