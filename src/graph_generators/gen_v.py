@@ -89,6 +89,21 @@ def gen_V_given_Q(Q, r):
     
     return V
 
+
+def gen_Q_hat_given_V(V: np.ndarray) -> np.ndarray:
+    if V.ndim != 2:
+        raise ValueError(f"V must be 2D (n,r). Got shape {V.shape}")
+
+    if np.iscomplexobj(V):
+        Q_hat = V @ V.conj().T
+        # Clean tiny imaginary numerical noise if effectively real
+        if np.allclose(np.imag(Q_hat), 0, atol=1e-10):
+            Q_hat = np.real(Q_hat)
+    else:
+        Q_hat = V @ V.T
+    return Q_hat
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Generate low-rank eigenvector matrix V from a saved Q (.npy)."
