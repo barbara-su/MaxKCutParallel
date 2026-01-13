@@ -226,4 +226,4 @@ color
 color_test
 color.zip
 
-results_low_rank
+experiments/run_exp_note.sh
