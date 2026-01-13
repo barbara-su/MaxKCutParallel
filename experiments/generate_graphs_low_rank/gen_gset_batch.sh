@@ -84,5 +84,5 @@ echo "Job complete."
 # SKIP_EXISTING=${9:-true}
 
 # to call it
-# sbatch experiments/generate_graphs/gen_gset_batch.sh 1 42 false 0 0 gset /scratch/bs82/graphs/gset 81 true
-# sbatch experiments/generate_graphs/gen_gset_batch.sh 2 42 false 0 0 gset /scratch/graphs/gset_rank_2 81 true
+# sbatch experiments/generate_graphs_low_rank/gen_gset_batch.sh 1 42 false 0 0 gset /scratch/bs82/graphs_low_rank/gset 81 true
+# sbatch experiments/generate_graphs_low_rank/gen_gset_batch.sh 2 42 false 0 0 gset /scratch/graphs/gset_rank_2 81 true
