@@ -5,7 +5,7 @@
 
 #SBATCH --partition=commons
 #SBATCH --cpus-per-task=64
-#SBATCH --mem=400G
+#SBATCH --mem=2000G
 #SBATCH --time=23:00:00
 
 # Args:
