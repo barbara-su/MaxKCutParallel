@@ -4,8 +4,8 @@
 #SBATCH --error=logs/gen-qv-many-%j.err
 
 #SBATCH --partition=commons
-#SBATCH --cpus-per-task=64
-#SBATCH --mem=2000G
+#SBATCH --cpus-per-task=4
+#SBATCH --mem=500G
 #SBATCH --time=23:00:00
 
 # Args:

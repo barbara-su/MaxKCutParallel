@@ -8,9 +8,8 @@
 #SBATCH --tasks-per-node=1
 #SBATCH --partition=commons
 #SBATCH --cpus-per-task=70
-#SBATCH --mem=40G
+#SBATCH --mem=10G
 #SBATCH --time=23:00:00
-#SBATCH --exclude=bg2u24g1,bg3u16g1
 
 # One Ray cluster, many instances.
 # This calls src/parallel_rank_r_dir.py ONCE, which iterates the directory internally
