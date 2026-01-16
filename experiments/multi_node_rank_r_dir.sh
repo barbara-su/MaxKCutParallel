@@ -4,13 +4,13 @@
 #SBATCH --output=logs/multi-nodes-rank-r-dir-%j.out
 #SBATCH --error=logs/multi-nodes-rank-r-dir-%j.err
 
-#SBATCH --nodes=8
+#SBATCH --nodes=4
 #SBATCH --tasks-per-node=1
 #SBATCH --partition=commons
-#SBATCH --cpus-per-task=50
+#SBATCH --cpus-per-task=80
 #SBATCH --mem=50G
 #SBATCH --time=23:00:00
-#SBATCH --exclude=bg4u11g1,bg4u13g1
+#SBATCH --exclude=bg3u16g1,bg5u24g1,bg5u16g1
 
 # One Ray cluster, many instances.
 # This calls src/parallel_rank_r_dir.py ONCE, which iterates the directory internally
