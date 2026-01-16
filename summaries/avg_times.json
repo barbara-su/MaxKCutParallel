@@ -1,0 +1,230 @@
+{
+  "gset": {
+    "800": {
+      "Genetic": 1121.0042030130114,
+      "BQP": 13.256321668624878,
+      "Our Rank-1 Algorithm": 0.2565694195883615,
+      "Random": 1.6781393119267054
+    },
+    "2000": {
+      "Genetic": 9963.659617582956,
+      "BQP": 152.6178908067591,
+      "Our Rank-1 Algorithm": 1.6255522455487932,
+      "Random": 13.392262106850033
+    },
+    "10000": {
+      "BQP": 9920.712338527044,
+      "Our Rank-1 Algorithm": 57.19390066464742,
+      "Random": 288.632296482722
+    },
+    "1000": {
+      "BQP": 30.17169898748398,
+      "Our Rank-1 Algorithm": 0.3762058946821425,
+      "Random": 3.199907567765978
+    },
+    "3000": {
+      "BQP": 396.3660912513733,
+      "Our Rank-1 Algorithm": 4.433635314305623,
+      "Random": 30.37749234835307
+    },
+    "9000": {
+      "BQP": 6140.5490753650665,
+      "Our Rank-1 Algorithm": 42.08443784713745,
+      "Random": 229.15490794181824
+    },
+    "5000": {
+      "BQP": 2214.435018157959,
+      "Our Rank-1 Algorithm": 10.359037399291992,
+      "Random": 72.97606587409973
+    },
+    "7000": {
+      "BQP": 3910.7124461650847,
+      "Our Rank-1 Algorithm": 23.854085874557494,
+      "Random": 142.82648162841798
+    },
+    "8000": {
+      "BQP": 7091.689350366592,
+      "Our Rank-1 Algorithm": 32.2623975276947,
+      "Random": 187.98252630233765
+    },
+    "20000": {
+      "Our Rank-1 Algorithm": 219.56221461296082,
+      "Random": 1906.3721871376038
+    },
+    "14000": {
+      "Our Rank-1 Algorithm": 112.61288166046143,
+      "Random": 690.1796319484711
+    }
+  },
+  "regular_graph": {
+    "n20": {
+      "4": {
+        "Our Rank-2 Algorithm": 2.6661698818206787,
+        "Our Rank-3 Algorithm": 25.9754855632782,
+        "Goemans-Williamson": 0.022860288619995117,
+        "Our Rank-1 Algorithm": 0.00506281852722168,
+        "Coloring": 0.0031976699829101562
+      },
+      "3": {
+        "Our Rank-2 Algorithm": 0.47622013092041016,
+        "Our Rank-3 Algorithm": 19.511778831481934,
+        "Goemans-Williamson": 0.1505889892578125,
+        "Our Rank-1 Algorithm": 0.0037162303924560547,
+        "Coloring": 0.002817392349243164
+      },
+      "5": {
+        "Our Rank-2 Algorithm": 0.5692436695098877,
+        "Our Rank-3 Algorithm": 19.380871295928955,
+        "Goemans-Williamson": 0.29183292388916016,
+        "Our Rank-1 Algorithm": 0.0038170814514160156,
+        "Coloring": 0.0028467178344726562
+      }
+    },
+    "n100": {
+      "4": {
+        "Goemans-Williamson": 0.8975706100463867,
+        "Our Rank-1 Algorithm": 0.008447647094726562,
+        "Coloring": 0.13411736488342285
+      },
+      "3": {
+        "Our Rank-2 Algorithm": 15.940715789794922,
+        "Goemans-Williamson": 0.9985992908477783,
+        "Our Rank-1 Algorithm": 0.007861614227294922,
+        "Coloring": 0.14272546768188477
+      },
+      "5": {
+        "Our Rank-2 Algorithm": 16.044604301452637,
+        "Goemans-Williamson": 0.7497503757476807,
+        "Our Rank-1 Algorithm": 0.007775783538818359,
+        "Coloring": 0.159224271774292
+      }
+    },
+    "n50": {
+      "4": {
+        "Our Rank-2 Algorithm": 6.653045654296875,
+        "Our Rank-3 Algorithm": 2680.6555881500244,
+        "Goemans-Williamson": 0.12498712539672852,
+        "Our Rank-1 Algorithm": 0.005984306335449219,
+        "Coloring": 0.013571500778198242
+      },
+      "3": {
+        "Our Rank-2 Algorithm": 1.750734806060791,
+        "Our Rank-3 Algorithm": 1800.6958587169647,
+        "Goemans-Williamson": 0.2955920696258545,
+        "Our Rank-1 Algorithm": 0.0041005611419677734,
+        "Coloring": 0.011320829391479492
+      },
+      "5": {
+        "Our Rank-2 Algorithm": 1.7289927005767822,
+        "Our Rank-3 Algorithm": 1397.0014102458954,
+        "Goemans-Williamson": 0.3676598072052002,
+        "Our Rank-1 Algorithm": 0.004659891128540039,
+        "Coloring": 0.011643648147583008
+      }
+    }
+  },
+  "erdos_renyi": {
+    "n20": {
+      "p075": {
+        "Our Rank-2 Algorithm": 0.5039429664611816,
+        "Our Rank-3 Algorithm": 15.847810506820679,
+        "Goemans-Williamson": 0.3017446994781494,
+        "Our Rank-1 Algorithm": 0.00489497184753418,
+        "Coloring": 0.0036771297454833984
+      },
+      "p05": {
+        "Our Rank-2 Algorithm": 0.561098575592041,
+        "Our Rank-3 Algorithm": 16.068424701690674,
+        "Goemans-Williamson": 0.24467039108276367,
+        "Our Rank-1 Algorithm": 0.004854440689086914,
+        "Coloring": 0.002960205078125
+      },
+      "p025": {
+        "Our Rank-2 Algorithm": 0.4966545104980469,
+        "Our Rank-3 Algorithm": 15.54268503189087,
+        "Goemans-Williamson": 0.28516244888305664,
+        "Our Rank-1 Algorithm": 0.006310701370239258,
+        "Coloring": 0.003252267837524414
+      },
+      "p01": {
+        "Our Rank-2 Algorithm": 0.22034645080566406,
+        "Our Rank-3 Algorithm": 7.952885389328003,
+        "Goemans-Williamson": 0.17182517051696777,
+        "Our Rank-1 Algorithm": 0.0033376216888427734,
+        "Coloring": 0.0026397705078125
+      },
+      "p09": {
+        "Our Rank-2 Algorithm": 0.16915607452392578,
+        "Our Rank-3 Algorithm": 15.862303495407104,
+        "Our Rank-1 Algorithm": 0.003093719482421875,
+        "Coloring": 0.003284931182861328
+      }
+    },
+    "n100": {
+      "p075": {
+        "Our Rank-2 Algorithm": 15.867914199829102,
+        "Goemans-Williamson": 3.1386022567749023,
+        "Our Rank-1 Algorithm": 0.0061740875244140625,
+        "Coloring": 0.26039600372314453
+      },
+      "p05": {
+        "Our Rank-2 Algorithm": 16.680991649627686,
+        "Goemans-Williamson": 2.9882168769836426,
+        "Our Rank-1 Algorithm": 0.005926609039306641,
+        "Coloring": 0.2606372833251953
+      },
+      "p025": {
+        "Our Rank-2 Algorithm": 15.987869024276733,
+        "Goemans-Williamson": 1.3506126403808594,
+        "Our Rank-1 Algorithm": 0.006613016128540039,
+        "Coloring": 0.17584538459777832
+      },
+      "p01": {
+        "Our Rank-2 Algorithm": 15.742353916168213,
+        "Goemans-Williamson": 0.9152035713195801,
+        "Our Rank-1 Algorithm": 0.006329059600830078,
+        "Coloring": 0.21133732795715332
+      },
+      "p09": {
+        "Our Rank-2 Algorithm": 22.855618238449097,
+        "Goemans-Williamson": 3.7881829738616943,
+        "Our Rank-1 Algorithm": 0.005589962005615234,
+        "Coloring": 0.2578608989715576
+      }
+    },
+    "n50": {
+      "p075": {
+        "Our Rank-2 Algorithm": 1.5668838024139404,
+        "Goemans-Williamson": 1.0634150505065918,
+        "Our Rank-1 Algorithm": 0.005208253860473633,
+        "Coloring": 0.023320436477661133
+      },
+      "p05": {
+        "Our Rank-2 Algorithm": 1.8913028240203857,
+        "Goemans-Williamson": 0.847144603729248,
+        "Our Rank-1 Algorithm": 0.00518798828125,
+        "Coloring": 0.016834259033203125
+      },
+      "p025": {
+        "Our Rank-2 Algorithm": 1.5941143035888672,
+        "Our Rank-3 Algorithm": 6499.293913125992,
+        "Goemans-Williamson": 0.6452004909515381,
+        "Our Rank-1 Algorithm": 0.005347013473510742,
+        "Coloring": 0.01650524139404297
+      },
+      "p01": {
+        "Our Rank-2 Algorithm": 1.8214714527130127,
+        "Goemans-Williamson": 0.29421043395996094,
+        "Our Rank-1 Algorithm": 0.004923582077026367,
+        "Coloring": 0.012369632720947266
+      },
+      "p09": {
+        "Our Rank-2 Algorithm": 2.085303544998169,
+        "Our Rank-3 Algorithm": 2538.7965795993805,
+        "Goemans-Williamson": 0.4582395553588867,
+        "Our Rank-1 Algorithm": 0.004297971725463867,
+        "Coloring": 0.0206143856048584
+      }
+    }
+  }
+}
