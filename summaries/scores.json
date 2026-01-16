@@ -1,0 +1,3547 @@
+{
+  "gset": {
+    "800": {
+      "gset2": {
+        "Genetic": 14109,
+        "BQP": 14883,
+        "Our Rank-1 Algorithm": 12940,
+        "Random": 12974
+      },
+      "gset10": {
+        "Genetic": 1185,
+        "BQP": 2064,
+        "Our Rank-1 Algorithm": 940,
+        "Random": 95
+      },
+      "gset11": {
+        "Genetic": 406,
+        "BQP": 619,
+        "Our Rank-1 Algorithm": 426,
+        "Random": 91
+      },
+      "gset16": {
+        "Genetic": 3648,
+        "BQP": 3882,
+        "Our Rank-1 Algorithm": 3214,
+        "Random": 3203
+      },
+      "gset20": {
+        "Genetic": 610,
+        "BQP": 999,
+        "Our Rank-1 Algorithm": 550,
+        "Random": 63
+      },
+      "gset21": {
+        "Genetic": 587,
+        "BQP": 993,
+        "Our Rank-1 Algorithm": 534,
+        "Random": 57
+      },
+      "gset17": {
+        "Genetic": 3647,
+        "BQP": 3882,
+        "Our Rank-1 Algorithm": 3180,
+        "Random": 3212
+      },
+      "gset14": {
+        "Genetic": 3665,
+        "BQP": 3914,
+        "Our Rank-1 Algorithm": 3217,
+        "Random": 3224
+      },
+      "gset18": {
+        "Genetic": 678,
+        "BQP": 1073,
+        "Our Rank-1 Algorithm": 568,
+        "Random": 160
+      },
+      "gset19": {
+        "Genetic": 584,
+        "BQP": 952,
+        "Our Rank-1 Algorithm": 483,
+        "Random": 40
+      },
+      "gset15": {
+        "Genetic": 3636,
+        "BQP": 3887,
+        "Our Rank-1 Algorithm": 3138,
+        "Random": 3203
+      },
+      "gset12": {
+        "Genetic": 386,
+        "BQP": 612,
+        "Our Rank-1 Algorithm": 430,
+        "Random": 61
+      },
+      "gset13": {
+        "Genetic": 414,
+        "BQP": 650,
+        "Our Rank-1 Algorithm": 451,
+        "Random": 81
+      },
+      "gset1": {
+        "Genetic": 14087,
+        "BQP": 14859,
+        "Our Rank-1 Algorithm": 13331,
+        "Random": 12981
+      },
+      "gset3": {
+        "BQP": 14861,
+        "Our Rank-1 Algorithm": 13491,
+        "Random": 12967
+      },
+      "gset5": {
+        "BQP": 14818,
+        "Our Rank-1 Algorithm": 13338,
+        "Random": 12980
+      },
+      "gset6": {
+        "BQP": 2322,
+        "Our Rank-1 Algorithm": 905,
+        "Random": 295
+      },
+      "gset7": {
+        "BQP": 2082,
+        "Our Rank-1 Algorithm": 992,
+        "Random": 86
+      },
+      "gset4": {
+        "Our Rank-1 Algorithm": 13423,
+        "Random": 12989
+      },
+      "gset9": {
+        "Our Rank-1 Algorithm": 919,
+        "Random": 167
+      },
+      "gset8": {
+        "Our Rank-1 Algorithm": 986,
+        "Random": 128
+      }
+    },
+    "2000": {
+      "gset26": {
+        "Genetic": 14692,
+        "BQP": 16629,
+        "Our Rank-1 Algorithm": 14075,
+        "Random": 13559
+      },
+      "gset27": {
+        "Genetic": 1408,
+        "BQP": 3524,
+        "Our Rank-1 Algorithm": 1655,
+        "Random": 187
+      },
+      "gset22": {
+        "Genetic": 14639,
+        "BQP": 16669,
+        "Our Rank-1 Algorithm": 14145,
+        "Random": 13545
+      },
+      "gset23": {
+        "Genetic": 14752,
+        "BQP": 16629,
+        "Our Rank-1 Algorithm": 14251,
+        "Random": 13523
+      },
+      "gset24": {
+        "Genetic": 14652,
+        "BQP": 16593,
+        "Our Rank-1 Algorithm": 14130,
+        "Random": 13570
+      },
+      "gset25": {
+        "Genetic": 14712,
+        "BQP": 16655,
+        "Our Rank-1 Algorithm": 14157,
+        "Random": 13539
+      },
+      "gset30": {
+        "BQP": 3595,
+        "Our Rank-1 Algorithm": 1952,
+        "Random": 291
+      },
+      "gset31": {
+        "BQP": 3468,
+        "Our Rank-1 Algorithm": 1739,
+        "Random": 188
+      },
+      "gset36": {
+        "BQP": 9807,
+        "Our Rank-1 Algorithm": 7972,
+        "Random": 8018
+      },
+      "gset37": {
+        "BQP": 9826,
+        "Our Rank-1 Algorithm": 8078,
+        "Random": 8054
+      },
+      "gset38": {
+        "BQP": 9816,
+        "Our Rank-1 Algorithm": 7962,
+        "Random": 8048
+      },
+      "gset34": {
+        "BQP": 1490,
+        "Our Rank-1 Algorithm": 861,
+        "Random": 78
+      },
+      "gset35": {
+        "BQP": 9769,
+        "Our Rank-1 Algorithm": 8083,
+        "Random": 8003
+      },
+      "gset32": {
+        "BQP": 1536,
+        "Our Rank-1 Algorithm": 1027,
+        "Random": 105
+      },
+      "gset28": {
+        "BQP": 3427,
+        "Our Rank-1 Algorithm": 1736,
+        "Random": 132
+      },
+      "gset29": {
+        "BQP": 3551,
+        "Our Rank-1 Algorithm": 1905,
+        "Random": 339
+      },
+      "gset33": {
+        "BQP": 1494,
+        "Our Rank-1 Algorithm": 1048,
+        "Random": 71
+      },
+      "gset40": {
+        "Our Rank-1 Algorithm": 1234,
+        "Random": 138
+      },
+      "gset39": {
+        "Our Rank-1 Algorithm": 1405,
+        "Random": 199
+      },
+      "gset42": {
+        "Our Rank-1 Algorithm": 1362,
+        "Random": 263
+      },
+      "gset41": {
+        "Our Rank-1 Algorithm": 1361,
+        "Random": 146
+      }
+    },
+    "10000": {
+      "gset67": {
+        "BQP": 7576,
+        "Our Rank-1 Algorithm": 3117,
+        "Random": 152
+      },
+      "gset70": {
+        "BQP": 9997,
+        "Our Rank-1 Algorithm": 9333,
+        "Random": 6839
+      },
+      "gset72": {
+        "BQP": 7665,
+        "Our Rank-1 Algorithm": 2514,
+        "Random": 239
+      }
+    },
+    "1000": {
+      "gset47": {
+        "BQP": 8308,
+        "Our Rank-1 Algorithm": 7034,
+        "Random": 6806
+      },
+      "gset51": {
+        "BQP": 4915,
+        "Our Rank-1 Algorithm": 4015,
+        "Random": 4063
+      },
+      "gset46": {
+        "BQP": 8336,
+        "Our Rank-1 Algorithm": 6942,
+        "Random": 6817
+      },
+      "gset54": {
+        "BQP": 4918,
+        "Our Rank-1 Algorithm": 4083,
+        "Random": 4077
+      },
+      "gset53": {
+        "BQP": 4895,
+        "Our Rank-1 Algorithm": 4020,
+        "Random": 4042
+      },
+      "gset45": {
+        "BQP": 8298,
+        "Our Rank-1 Algorithm": 6986,
+        "Random": 6790
+      },
+      "gset44": {
+        "BQP": 8282,
+        "Our Rank-1 Algorithm": 6817,
+        "Random": 6803
+      },
+      "gset52": {
+        "BQP": 4925,
+        "Our Rank-1 Algorithm": 4033,
+        "Random": 4048
+      },
+      "gset43": {
+        "Our Rank-1 Algorithm": 6839,
+        "Random": 6805
+      }
+    },
+    "3000": {
+      "gset50": {
+        "BQP": 5998,
+        "Our Rank-1 Algorithm": 5934,
+        "Random": 4145
+      },
+      "gset49": {
+        "BQP": 5996,
+        "Our Rank-1 Algorithm": 6000,
+        "Random": 4153
+      },
+      "gset48": {
+        "Our Rank-1 Algorithm": 6000,
+        "Random": 4124
+      }
+    },
+    "9000": {
+      "gset66": {
+        "BQP": 6942,
+        "Our Rank-1 Algorithm": 2548,
+        "Random": 287
+      }
+    },
+    "5000": {
+      "gset57": {
+        "BQP": 3790,
+        "Our Rank-1 Algorithm": 1668,
+        "Random": 141
+      },
+      "gset56": {
+        "BQP": 4208,
+        "Our Rank-1 Algorithm": 2741,
+        "Random": 170
+      },
+      "gset55": {
+        "BQP": 12055,
+        "Our Rank-1 Algorithm": 9956,
+        "Random": 8552
+      },
+      "gset59": {
+        "BQP": 6619,
+        "Our Rank-1 Algorithm": 3362,
+        "Random": 385
+      },
+      "gset58": {
+        "BQP": 24631,
+        "Our Rank-1 Algorithm": 20291,
+        "Random": 19982
+      }
+    },
+    "7000": {
+      "gset61": {
+        "BQP": 6124,
+        "Our Rank-1 Algorithm": 4026,
+        "Random": 465
+      },
+      "gset60": {
+        "BQP": 16548,
+        "Our Rank-1 Algorithm": 13724,
+        "Random": 11662
+      },
+      "gset63": {
+        "BQP": 34450,
+        "Our Rank-1 Algorithm": 28633,
+        "Random": 28012
+      },
+      "gset62": {
+        "BQP": 5261,
+        "Our Rank-1 Algorithm": 2540,
+        "Random": 159
+      },
+      "gset64": {
+        "BQP": 9528,
+        "Our Rank-1 Algorithm": 4710,
+        "Random": 747
+      }
+    },
+    "8000": {
+      "gset65": {
+        "BQP": 6055,
+        "Our Rank-1 Algorithm": 3636,
+        "Random": 209
+      }
+    },
+    "20000": {
+      "gset81": {
+        "Our Rank-1 Algorithm": 4122,
+        "Random": 416
+      }
+    },
+    "14000": {
+      "gset77": {
+        "Our Rank-1 Algorithm": 4011,
+        "Random": 427
+      }
+    }
+  },
+  "regular_graph": {
+    "n20": {
+      "4": {
+        "seed13": {
+          "Our Rank-2 Algorithm": 40,
+          "Our Rank-3 Algorithm": 40,
+          "Goemans-Williamson": 30,
+          "Our Rank-1 Algorithm": 35,
+          "Coloring": 39
+        },
+        "seed2": {
+          "Our Rank-2 Algorithm": 39,
+          "Our Rank-3 Algorithm": 40,
+          "Goemans-Williamson": 34,
+          "Our Rank-1 Algorithm": 38,
+          "Coloring": 40
+        },
+        "seed3": {
+          "Our Rank-2 Algorithm": 39,
+          "Our Rank-3 Algorithm": 40,
+          "Goemans-Williamson": 30,
+          "Our Rank-1 Algorithm": 36,
+          "Coloring": 39
+        },
+        "seed12": {
+          "Our Rank-2 Algorithm": 40,
+          "Our Rank-3 Algorithm": 40,
+          "Goemans-Williamson": 26,
+          "Our Rank-1 Algorithm": 36,
+          "Coloring": 40
+        },
+        "seed19": {
+          "Our Rank-2 Algorithm": 40,
+          "Our Rank-3 Algorithm": 40,
+          "Goemans-Williamson": 30,
+          "Our Rank-1 Algorithm": 35,
+          "Coloring": 40
+        },
+        "seed1": {
+          "Our Rank-2 Algorithm": 39,
+          "Our Rank-3 Algorithm": 39,
+          "Goemans-Williamson": 32,
+          "Our Rank-1 Algorithm": 37,
+          "Coloring": 39
+        },
+        "seed10": {
+          "Our Rank-2 Algorithm": 40,
+          "Our Rank-3 Algorithm": 40,
+          "Goemans-Williamson": 32,
+          "Our Rank-1 Algorithm": 37,
+          "Coloring": 40
+        },
+        "seed8": {
+          "Our Rank-2 Algorithm": 39,
+          "Our Rank-3 Algorithm": 40,
+          "Goemans-Williamson": 32,
+          "Our Rank-1 Algorithm": 35,
+          "Coloring": 40
+        },
+        "seed9": {
+          "Our Rank-2 Algorithm": 38,
+          "Our Rank-3 Algorithm": 40,
+          "Goemans-Williamson": 28,
+          "Our Rank-1 Algorithm": 36,
+          "Coloring": 39
+        },
+        "seed11": {
+          "Our Rank-2 Algorithm": 40,
+          "Our Rank-3 Algorithm": 40,
+          "Goemans-Williamson": 32,
+          "Our Rank-1 Algorithm": 37,
+          "Coloring": 40
+        },
+        "seed0": {
+          "Our Rank-2 Algorithm": 40,
+          "Our Rank-3 Algorithm": 40,
+          "Goemans-Williamson": 32,
+          "Our Rank-1 Algorithm": 35,
+          "Coloring": 40
+        },
+        "seed18": {
+          "Our Rank-2 Algorithm": 38,
+          "Our Rank-3 Algorithm": 40,
+          "Goemans-Williamson": 34,
+          "Our Rank-1 Algorithm": 38,
+          "Coloring": 39
+        },
+        "seed5": {
+          "Our Rank-2 Algorithm": 38,
+          "Our Rank-3 Algorithm": 40,
+          "Goemans-Williamson": 28,
+          "Our Rank-1 Algorithm": 32,
+          "Coloring": 40
+        },
+        "seed14": {
+          "Our Rank-2 Algorithm": 40,
+          "Our Rank-3 Algorithm": 40,
+          "Goemans-Williamson": 30,
+          "Our Rank-1 Algorithm": 37,
+          "Coloring": 40
+        },
+        "seed15": {
+          "Our Rank-2 Algorithm": 39,
+          "Our Rank-3 Algorithm": 40,
+          "Goemans-Williamson": 30,
+          "Our Rank-1 Algorithm": 34,
+          "Coloring": 39
+        },
+        "seed4": {
+          "Our Rank-2 Algorithm": 39,
+          "Our Rank-3 Algorithm": 40,
+          "Goemans-Williamson": 30,
+          "Our Rank-1 Algorithm": 32,
+          "Coloring": 40
+        },
+        "seed17": {
+          "Our Rank-2 Algorithm": 40,
+          "Our Rank-3 Algorithm": 40,
+          "Goemans-Williamson": 34,
+          "Our Rank-1 Algorithm": 35,
+          "Coloring": 39
+        },
+        "seed6": {
+          "Our Rank-2 Algorithm": 40,
+          "Our Rank-3 Algorithm": 40,
+          "Goemans-Williamson": 36,
+          "Our Rank-1 Algorithm": 38,
+          "Coloring": 39
+        },
+        "seed7": {
+          "Our Rank-2 Algorithm": 38,
+          "Our Rank-3 Algorithm": 40,
+          "Goemans-Williamson": 30,
+          "Our Rank-1 Algorithm": 33,
+          "Coloring": 40
+        },
+        "seed16": {
+          "Our Rank-2 Algorithm": 38,
+          "Our Rank-3 Algorithm": 40,
+          "Goemans-Williamson": 30,
+          "Our Rank-1 Algorithm": 34,
+          "Coloring": 39
+        }
+      },
+      "3": {
+        "seed5": {
+          "Our Rank-2 Algorithm": 30,
+          "Our Rank-3 Algorithm": 30,
+          "Goemans-Williamson": 24,
+          "Our Rank-1 Algorithm": 28,
+          "Coloring": 30
+        },
+        "seed4": {
+          "Our Rank-2 Algorithm": 30,
+          "Our Rank-3 Algorithm": 30,
+          "Goemans-Williamson": 26,
+          "Our Rank-1 Algorithm": 26,
+          "Coloring": 30
+        },
+        "seed11": {
+          "Our Rank-2 Algorithm": 30,
+          "Our Rank-3 Algorithm": 30,
+          "Goemans-Williamson": 26,
+          "Our Rank-1 Algorithm": 27,
+          "Coloring": 30
+        },
+        "seed10": {
+          "Our Rank-2 Algorithm": 30,
+          "Our Rank-3 Algorithm": 30,
+          "Goemans-Williamson": 26,
+          "Our Rank-1 Algorithm": 28,
+          "Coloring": 30
+        },
+        "seed16": {
+          "Our Rank-2 Algorithm": 30,
+          "Our Rank-3 Algorithm": 30,
+          "Goemans-Williamson": 25,
+          "Our Rank-1 Algorithm": 28,
+          "Coloring": 30
+        },
+        "seed17": {
+          "Our Rank-2 Algorithm": 30,
+          "Our Rank-3 Algorithm": 30,
+          "Goemans-Williamson": 26,
+          "Our Rank-1 Algorithm": 30,
+          "Coloring": 30
+        },
+        "seed8": {
+          "Our Rank-2 Algorithm": 30,
+          "Our Rank-3 Algorithm": 30,
+          "Goemans-Williamson": 25,
+          "Our Rank-1 Algorithm": 28,
+          "Coloring": 30
+        },
+        "seed9": {
+          "Our Rank-2 Algorithm": 30,
+          "Our Rank-3 Algorithm": 30,
+          "Goemans-Williamson": 24,
+          "Our Rank-1 Algorithm": 27,
+          "Coloring": 30
+        },
+        "seed2": {
+          "Our Rank-2 Algorithm": 29,
+          "Our Rank-3 Algorithm": 30,
+          "Goemans-Williamson": 24,
+          "Our Rank-1 Algorithm": 28,
+          "Coloring": 30
+        },
+        "seed3": {
+          "Our Rank-2 Algorithm": 30,
+          "Our Rank-3 Algorithm": 30,
+          "Goemans-Williamson": 25,
+          "Our Rank-1 Algorithm": 28,
+          "Coloring": 30
+        },
+        "seed18": {
+          "Our Rank-2 Algorithm": 30,
+          "Our Rank-3 Algorithm": 30,
+          "Goemans-Williamson": 23,
+          "Our Rank-1 Algorithm": 28,
+          "Coloring": 30
+        },
+        "seed19": {
+          "Our Rank-2 Algorithm": 30,
+          "Our Rank-3 Algorithm": 30,
+          "Goemans-Williamson": 23,
+          "Our Rank-1 Algorithm": 28,
+          "Coloring": 30
+        },
+        "seed12": {
+          "Our Rank-2 Algorithm": 30,
+          "Our Rank-3 Algorithm": 30,
+          "Goemans-Williamson": 25,
+          "Our Rank-1 Algorithm": 28,
+          "Coloring": 30
+        },
+        "seed13": {
+          "Our Rank-2 Algorithm": 30,
+          "Our Rank-3 Algorithm": 30,
+          "Goemans-Williamson": 26,
+          "Our Rank-1 Algorithm": 29,
+          "Coloring": 30
+        },
+        "seed6": {
+          "Our Rank-2 Algorithm": 30,
+          "Our Rank-3 Algorithm": 30,
+          "Goemans-Williamson": 27,
+          "Our Rank-1 Algorithm": 28,
+          "Coloring": 30
+        },
+        "seed7": {
+          "Our Rank-2 Algorithm": 30,
+          "Our Rank-3 Algorithm": 30,
+          "Goemans-Williamson": 25,
+          "Our Rank-1 Algorithm": 29,
+          "Coloring": 30
+        },
+        "seed1": {
+          "Our Rank-2 Algorithm": 30,
+          "Our Rank-3 Algorithm": 30,
+          "Goemans-Williamson": 24,
+          "Our Rank-1 Algorithm": 28,
+          "Coloring": 30
+        },
+        "seed0": {
+          "Our Rank-2 Algorithm": 29,
+          "Our Rank-3 Algorithm": 30,
+          "Goemans-Williamson": 25,
+          "Our Rank-1 Algorithm": 28,
+          "Coloring": 30
+        },
+        "seed15": {
+          "Our Rank-2 Algorithm": 30,
+          "Our Rank-3 Algorithm": 30,
+          "Goemans-Williamson": 24,
+          "Our Rank-1 Algorithm": 29,
+          "Coloring": 30
+        },
+        "seed14": {
+          "Our Rank-2 Algorithm": 30,
+          "Our Rank-3 Algorithm": 30,
+          "Goemans-Williamson": 26,
+          "Our Rank-1 Algorithm": 27,
+          "Coloring": 30
+        }
+      },
+      "5": {
+        "seed5": {
+          "Our Rank-2 Algorithm": 47,
+          "Our Rank-3 Algorithm": 48,
+          "Goemans-Williamson": 36,
+          "Our Rank-1 Algorithm": 43,
+          "Coloring": 46
+        },
+        "seed4": {
+          "Our Rank-2 Algorithm": 49,
+          "Our Rank-3 Algorithm": 49,
+          "Goemans-Williamson": 38,
+          "Our Rank-1 Algorithm": 45,
+          "Coloring": 49
+        },
+        "seed11": {
+          "Our Rank-2 Algorithm": 48,
+          "Our Rank-3 Algorithm": 49,
+          "Goemans-Williamson": 41,
+          "Our Rank-1 Algorithm": 44,
+          "Coloring": 49
+        },
+        "seed10": {
+          "Our Rank-2 Algorithm": 49,
+          "Our Rank-3 Algorithm": 49,
+          "Goemans-Williamson": 42,
+          "Our Rank-1 Algorithm": 46,
+          "Coloring": 49
+        },
+        "seed16": {
+          "Our Rank-2 Algorithm": 48,
+          "Our Rank-3 Algorithm": 48,
+          "Goemans-Williamson": 38,
+          "Our Rank-1 Algorithm": 46,
+          "Coloring": 48
+        },
+        "seed17": {
+          "Our Rank-2 Algorithm": 47,
+          "Our Rank-3 Algorithm": 48,
+          "Goemans-Williamson": 35,
+          "Our Rank-1 Algorithm": 43,
+          "Coloring": 48
+        },
+        "seed8": {
+          "Our Rank-2 Algorithm": 48,
+          "Our Rank-3 Algorithm": 49,
+          "Goemans-Williamson": 37,
+          "Our Rank-1 Algorithm": 45,
+          "Coloring": 49
+        },
+        "seed9": {
+          "Our Rank-2 Algorithm": 49,
+          "Our Rank-3 Algorithm": 49,
+          "Goemans-Williamson": 40,
+          "Our Rank-1 Algorithm": 42,
+          "Coloring": 49
+        },
+        "seed2": {
+          "Our Rank-2 Algorithm": 48,
+          "Our Rank-3 Algorithm": 48,
+          "Goemans-Williamson": 37,
+          "Our Rank-1 Algorithm": 44,
+          "Coloring": 48
+        },
+        "seed3": {
+          "Our Rank-2 Algorithm": 47,
+          "Our Rank-3 Algorithm": 48,
+          "Goemans-Williamson": 38,
+          "Our Rank-1 Algorithm": 44,
+          "Coloring": 48
+        },
+        "seed18": {
+          "Our Rank-2 Algorithm": 46,
+          "Our Rank-3 Algorithm": 48,
+          "Goemans-Williamson": 39,
+          "Our Rank-1 Algorithm": 45,
+          "Coloring": 48
+        },
+        "seed19": {
+          "Our Rank-2 Algorithm": 48,
+          "Our Rank-3 Algorithm": 49,
+          "Goemans-Williamson": 36,
+          "Our Rank-1 Algorithm": 43,
+          "Coloring": 48
+        },
+        "seed12": {
+          "Our Rank-2 Algorithm": 48,
+          "Our Rank-3 Algorithm": 49,
+          "Goemans-Williamson": 33,
+          "Our Rank-1 Algorithm": 44,
+          "Coloring": 48
+        },
+        "seed13": {
+          "Our Rank-2 Algorithm": 49,
+          "Our Rank-3 Algorithm": 49,
+          "Goemans-Williamson": 40,
+          "Our Rank-1 Algorithm": 46,
+          "Coloring": 48
+        },
+        "seed6": {
+          "Our Rank-2 Algorithm": 48,
+          "Our Rank-3 Algorithm": 49,
+          "Goemans-Williamson": 39,
+          "Our Rank-1 Algorithm": 44,
+          "Coloring": 48
+        },
+        "seed7": {
+          "Our Rank-2 Algorithm": 47,
+          "Our Rank-3 Algorithm": 48,
+          "Goemans-Williamson": 38,
+          "Our Rank-1 Algorithm": 44,
+          "Coloring": 48
+        },
+        "seed1": {
+          "Our Rank-2 Algorithm": 48,
+          "Our Rank-3 Algorithm": 49,
+          "Goemans-Williamson": 36,
+          "Our Rank-1 Algorithm": 43,
+          "Coloring": 49
+        },
+        "seed0": {
+          "Our Rank-2 Algorithm": 49,
+          "Our Rank-3 Algorithm": 49,
+          "Goemans-Williamson": 40,
+          "Our Rank-1 Algorithm": 45,
+          "Coloring": 49
+        },
+        "seed15": {
+          "Our Rank-2 Algorithm": 49,
+          "Our Rank-3 Algorithm": 49,
+          "Goemans-Williamson": 37,
+          "Our Rank-1 Algorithm": 42,
+          "Coloring": 48
+        },
+        "seed14": {
+          "Our Rank-2 Algorithm": 49,
+          "Our Rank-3 Algorithm": 50,
+          "Goemans-Williamson": 38,
+          "Our Rank-1 Algorithm": 42,
+          "Coloring": 48
+        }
+      }
+    },
+    "n100": {
+      "4": {
+        "seed1": {
+          "Our Rank-2 Algorithm": 196,
+          "Goemans-Williamson": 162,
+          "Our Rank-1 Algorithm": 178,
+          "Coloring": 200
+        },
+        "seed0": {
+          "Our Rank-2 Algorithm": 196,
+          "Goemans-Williamson": 158,
+          "Our Rank-1 Algorithm": 181,
+          "Coloring": 199
+        },
+        "seed14": {
+          "Our Rank-2 Algorithm": 193,
+          "Goemans-Williamson": 166,
+          "Our Rank-1 Algorithm": 175,
+          "Coloring": 200
+        },
+        "seed11": {
+          "Our Rank-2 Algorithm": 195,
+          "Goemans-Williamson": 162,
+          "Our Rank-1 Algorithm": 179,
+          "Coloring": 200
+        },
+        "seed10": {
+          "Our Rank-2 Algorithm": 198,
+          "Goemans-Williamson": 164,
+          "Our Rank-1 Algorithm": 176,
+          "Coloring": 199
+        },
+        "seed12": {
+          "Our Rank-2 Algorithm": 199,
+          "Goemans-Williamson": 162,
+          "Our Rank-1 Algorithm": 182,
+          "Coloring": 200
+        },
+        "seed13": {
+          "Our Rank-2 Algorithm": 195,
+          "Goemans-Williamson": 166,
+          "Our Rank-1 Algorithm": 182,
+          "Coloring": 198
+        },
+        "seed17": {
+          "Goemans-Williamson": 164,
+          "Our Rank-1 Algorithm": 175,
+          "Coloring": 200
+        },
+        "seed6": {
+          "Goemans-Williamson": 164,
+          "Our Rank-1 Algorithm": 173,
+          "Coloring": 200
+        },
+        "seed7": {
+          "Goemans-Williamson": 168,
+          "Our Rank-1 Algorithm": 178,
+          "Coloring": 200
+        },
+        "seed16": {
+          "Goemans-Williamson": 166,
+          "Our Rank-1 Algorithm": 176,
+          "Coloring": 197
+        },
+        "seed8": {
+          "Goemans-Williamson": 156,
+          "Our Rank-1 Algorithm": 174,
+          "Coloring": 197
+        },
+        "seed19": {
+          "Goemans-Williamson": 162,
+          "Our Rank-1 Algorithm": 177,
+          "Coloring": 200
+        },
+        "seed4": {
+          "Goemans-Williamson": 162,
+          "Our Rank-1 Algorithm": 178,
+          "Coloring": 200
+        },
+        "seed15": {
+          "Goemans-Williamson": 156,
+          "Our Rank-1 Algorithm": 172,
+          "Coloring": 200
+        },
+        "seed5": {
+          "Goemans-Williamson": 170,
+          "Our Rank-1 Algorithm": 178,
+          "Coloring": 199
+        },
+        "seed18": {
+          "Goemans-Williamson": 168,
+          "Our Rank-1 Algorithm": 179,
+          "Coloring": 200
+        },
+        "seed9": {
+          "Goemans-Williamson": 164,
+          "Our Rank-1 Algorithm": 178,
+          "Coloring": 199
+        },
+        "seed2": {
+          "Goemans-Williamson": 162,
+          "Our Rank-1 Algorithm": 175,
+          "Coloring": 200
+        },
+        "seed3": {
+          "Goemans-Williamson": 166,
+          "Our Rank-1 Algorithm": 178,
+          "Coloring": 200
+        }
+      },
+      "3": {
+        "seed5": {
+          "Our Rank-2 Algorithm": 150,
+          "Goemans-Williamson": 132,
+          "Our Rank-1 Algorithm": 142,
+          "Coloring": 150
+        },
+        "seed4": {
+          "Our Rank-2 Algorithm": 150,
+          "Goemans-Williamson": 132,
+          "Our Rank-1 Algorithm": 137,
+          "Coloring": 150
+        },
+        "seed11": {
+          "Our Rank-2 Algorithm": 150,
+          "Goemans-Williamson": 129,
+          "Our Rank-1 Algorithm": 140,
+          "Coloring": 150
+        },
+        "seed10": {
+          "Our Rank-2 Algorithm": 149,
+          "Goemans-Williamson": 132,
+          "Our Rank-1 Algorithm": 140,
+          "Coloring": 150
+        },
+        "seed16": {
+          "Our Rank-2 Algorithm": 150,
+          "Goemans-Williamson": 132,
+          "Our Rank-1 Algorithm": 141,
+          "Coloring": 150
+        },
+        "seed17": {
+          "Our Rank-2 Algorithm": 150,
+          "Goemans-Williamson": 135,
+          "Our Rank-1 Algorithm": 138,
+          "Coloring": 150
+        },
+        "seed8": {
+          "Our Rank-2 Algorithm": 150,
+          "Goemans-Williamson": 136,
+          "Our Rank-1 Algorithm": 143,
+          "Coloring": 150
+        },
+        "seed9": {
+          "Our Rank-2 Algorithm": 148,
+          "Goemans-Williamson": 128,
+          "Our Rank-1 Algorithm": 139,
+          "Coloring": 150
+        },
+        "seed2": {
+          "Our Rank-2 Algorithm": 149,
+          "Goemans-Williamson": 130,
+          "Our Rank-1 Algorithm": 140,
+          "Coloring": 150
+        },
+        "seed3": {
+          "Our Rank-2 Algorithm": 150,
+          "Goemans-Williamson": 124,
+          "Our Rank-1 Algorithm": 144,
+          "Coloring": 150
+        },
+        "seed18": {
+          "Our Rank-2 Algorithm": 148,
+          "Goemans-Williamson": 134,
+          "Our Rank-1 Algorithm": 142,
+          "Coloring": 149
+        },
+        "seed19": {
+          "Our Rank-2 Algorithm": 150,
+          "Goemans-Williamson": 128,
+          "Our Rank-1 Algorithm": 133,
+          "Coloring": 150
+        },
+        "seed12": {
+          "Our Rank-2 Algorithm": 147,
+          "Goemans-Williamson": 130,
+          "Our Rank-1 Algorithm": 138,
+          "Coloring": 150
+        },
+        "seed13": {
+          "Our Rank-2 Algorithm": 149,
+          "Goemans-Williamson": 128,
+          "Our Rank-1 Algorithm": 139,
+          "Coloring": 150
+        },
+        "seed6": {
+          "Our Rank-2 Algorithm": 150,
+          "Goemans-Williamson": 133,
+          "Our Rank-1 Algorithm": 141,
+          "Coloring": 150
+        },
+        "seed7": {
+          "Our Rank-2 Algorithm": 149,
+          "Goemans-Williamson": 133,
+          "Our Rank-1 Algorithm": 143,
+          "Coloring": 150
+        },
+        "seed1": {
+          "Our Rank-2 Algorithm": 150,
+          "Goemans-Williamson": 137,
+          "Our Rank-1 Algorithm": 143,
+          "Coloring": 150
+        },
+        "seed0": {
+          "Our Rank-2 Algorithm": 149,
+          "Goemans-Williamson": 130,
+          "Our Rank-1 Algorithm": 137,
+          "Coloring": 150
+        },
+        "seed15": {
+          "Our Rank-2 Algorithm": 149,
+          "Goemans-Williamson": 127,
+          "Our Rank-1 Algorithm": 138,
+          "Coloring": 150
+        },
+        "seed14": {
+          "Our Rank-2 Algorithm": 148,
+          "Goemans-Williamson": 128,
+          "Our Rank-1 Algorithm": 136,
+          "Coloring": 150
+        }
+      },
+      "5": {
+        "seed5": {
+          "Our Rank-2 Algorithm": 240,
+          "Goemans-Williamson": 193,
+          "Our Rank-1 Algorithm": 214,
+          "Coloring": 244
+        },
+        "seed4": {
+          "Our Rank-2 Algorithm": 238,
+          "Goemans-Williamson": 196,
+          "Our Rank-1 Algorithm": 217,
+          "Coloring": 243
+        },
+        "seed11": {
+          "Our Rank-2 Algorithm": 234,
+          "Goemans-Williamson": 185,
+          "Our Rank-1 Algorithm": 212,
+          "Coloring": 242
+        },
+        "seed10": {
+          "Our Rank-2 Algorithm": 236,
+          "Goemans-Williamson": 187,
+          "Our Rank-1 Algorithm": 212,
+          "Coloring": 240
+        },
+        "seed16": {
+          "Our Rank-2 Algorithm": 237,
+          "Goemans-Williamson": 192,
+          "Our Rank-1 Algorithm": 210,
+          "Coloring": 243
+        },
+        "seed17": {
+          "Our Rank-2 Algorithm": 239,
+          "Goemans-Williamson": 199,
+          "Our Rank-1 Algorithm": 212,
+          "Coloring": 243
+        },
+        "seed8": {
+          "Our Rank-2 Algorithm": 240,
+          "Goemans-Williamson": 190,
+          "Our Rank-1 Algorithm": 217,
+          "Coloring": 244
+        },
+        "seed9": {
+          "Our Rank-2 Algorithm": 242,
+          "Goemans-Williamson": 200,
+          "Our Rank-1 Algorithm": 223,
+          "Coloring": 242
+        },
+        "seed2": {
+          "Our Rank-2 Algorithm": 238,
+          "Goemans-Williamson": 191,
+          "Our Rank-1 Algorithm": 218,
+          "Coloring": 241
+        },
+        "seed3": {
+          "Our Rank-2 Algorithm": 235,
+          "Goemans-Williamson": 196,
+          "Our Rank-1 Algorithm": 216,
+          "Coloring": 245
+        },
+        "seed18": {
+          "Our Rank-2 Algorithm": 240,
+          "Goemans-Williamson": 196,
+          "Our Rank-1 Algorithm": 220,
+          "Coloring": 240
+        },
+        "seed19": {
+          "Our Rank-2 Algorithm": 241,
+          "Goemans-Williamson": 188,
+          "Our Rank-1 Algorithm": 220,
+          "Coloring": 247
+        },
+        "seed12": {
+          "Our Rank-2 Algorithm": 240,
+          "Goemans-Williamson": 197,
+          "Our Rank-1 Algorithm": 215,
+          "Coloring": 244
+        },
+        "seed13": {
+          "Our Rank-2 Algorithm": 237,
+          "Goemans-Williamson": 192,
+          "Our Rank-1 Algorithm": 215,
+          "Coloring": 242
+        },
+        "seed6": {
+          "Our Rank-2 Algorithm": 237,
+          "Goemans-Williamson": 188,
+          "Our Rank-1 Algorithm": 211,
+          "Coloring": 243
+        },
+        "seed7": {
+          "Our Rank-2 Algorithm": 241,
+          "Goemans-Williamson": 198,
+          "Our Rank-1 Algorithm": 218,
+          "Coloring": 246
+        },
+        "seed1": {
+          "Our Rank-2 Algorithm": 238,
+          "Goemans-Williamson": 200,
+          "Our Rank-1 Algorithm": 220,
+          "Coloring": 244
+        },
+        "seed0": {
+          "Our Rank-2 Algorithm": 234,
+          "Goemans-Williamson": 189,
+          "Our Rank-1 Algorithm": 217,
+          "Coloring": 245
+        },
+        "seed15": {
+          "Our Rank-2 Algorithm": 240,
+          "Goemans-Williamson": 199,
+          "Our Rank-1 Algorithm": 219,
+          "Coloring": 245
+        },
+        "seed14": {
+          "Our Rank-2 Algorithm": 235,
+          "Goemans-Williamson": 197,
+          "Our Rank-1 Algorithm": 210,
+          "Coloring": 247
+        }
+      }
+    },
+    "n50": {
+      "4": {
+        "seed3": {
+          "Our Rank-2 Algorithm": 96,
+          "Our Rank-3 Algorithm": 99,
+          "Goemans-Williamson": 82,
+          "Our Rank-1 Algorithm": 87,
+          "Coloring": 99
+        },
+        "seed16": {
+          "Our Rank-2 Algorithm": 99,
+          "Our Rank-3 Algorithm": 100,
+          "Goemans-Williamson": 74,
+          "Our Rank-1 Algorithm": 91,
+          "Coloring": 100
+        },
+        "seed2": {
+          "Our Rank-2 Algorithm": 96,
+          "Our Rank-3 Algorithm": 99,
+          "Goemans-Williamson": 80,
+          "Our Rank-1 Algorithm": 87,
+          "Coloring": 100
+        },
+        "seed17": {
+          "Our Rank-2 Algorithm": 98,
+          "Our Rank-3 Algorithm": 100,
+          "Goemans-Williamson": 80,
+          "Our Rank-1 Algorithm": 89,
+          "Coloring": 99
+        },
+        "seed0": {
+          "Our Rank-2 Algorithm": 94,
+          "Our Rank-3 Algorithm": 100,
+          "Goemans-Williamson": 80,
+          "Our Rank-1 Algorithm": 88,
+          "Coloring": 99
+        },
+        "seed15": {
+          "Our Rank-2 Algorithm": 97,
+          "Our Rank-3 Algorithm": 100,
+          "Goemans-Williamson": 78,
+          "Our Rank-1 Algorithm": 91,
+          "Coloring": 100
+        },
+        "seed9": {
+          "Our Rank-2 Algorithm": 99,
+          "Our Rank-3 Algorithm": 100,
+          "Goemans-Williamson": 80,
+          "Our Rank-1 Algorithm": 89,
+          "Coloring": 100
+        },
+        "seed8": {
+          "Our Rank-2 Algorithm": 99,
+          "Our Rank-3 Algorithm": 100,
+          "Goemans-Williamson": 82,
+          "Our Rank-1 Algorithm": 86,
+          "Coloring": 100
+        },
+        "seed1": {
+          "Our Rank-2 Algorithm": 98,
+          "Our Rank-3 Algorithm": 100,
+          "Goemans-Williamson": 86,
+          "Our Rank-1 Algorithm": 91,
+          "Coloring": 99
+        },
+        "seed14": {
+          "Our Rank-2 Algorithm": 97,
+          "Our Rank-3 Algorithm": 100,
+          "Goemans-Williamson": 82,
+          "Our Rank-1 Algorithm": 91,
+          "Coloring": 100
+        },
+        "seed11": {
+          "Our Rank-2 Algorithm": 98,
+          "Our Rank-3 Algorithm": 100,
+          "Goemans-Williamson": 86,
+          "Our Rank-1 Algorithm": 93,
+          "Coloring": 100
+        },
+        "seed4": {
+          "Our Rank-2 Algorithm": 99,
+          "Our Rank-3 Algorithm": 100,
+          "Goemans-Williamson": 76,
+          "Our Rank-1 Algorithm": 86,
+          "Coloring": 99
+        },
+        "seed18": {
+          "Our Rank-2 Algorithm": 99,
+          "Our Rank-3 Algorithm": 100,
+          "Goemans-Williamson": 82,
+          "Our Rank-1 Algorithm": 89,
+          "Coloring": 99
+        },
+        "seed19": {
+          "Our Rank-2 Algorithm": 100,
+          "Our Rank-3 Algorithm": 100,
+          "Goemans-Williamson": 82,
+          "Our Rank-1 Algorithm": 93,
+          "Coloring": 100
+        },
+        "seed10": {
+          "Our Rank-2 Algorithm": 98,
+          "Our Rank-3 Algorithm": 100,
+          "Goemans-Williamson": 76,
+          "Our Rank-1 Algorithm": 90,
+          "Coloring": 100
+        },
+        "seed5": {
+          "Our Rank-2 Algorithm": 97,
+          "Our Rank-3 Algorithm": 99,
+          "Goemans-Williamson": 78,
+          "Our Rank-1 Algorithm": 90,
+          "Coloring": 100
+        },
+        "seed12": {
+          "Our Rank-2 Algorithm": 98,
+          "Our Rank-3 Algorithm": 100,
+          "Goemans-Williamson": 78,
+          "Our Rank-1 Algorithm": 84,
+          "Coloring": 100
+        },
+        "seed7": {
+          "Our Rank-2 Algorithm": 98,
+          "Our Rank-3 Algorithm": 100,
+          "Goemans-Williamson": 78,
+          "Our Rank-1 Algorithm": 88,
+          "Coloring": 100
+        },
+        "seed13": {
+          "Our Rank-2 Algorithm": 98,
+          "Our Rank-3 Algorithm": 100,
+          "Goemans-Williamson": 78,
+          "Our Rank-1 Algorithm": 94,
+          "Coloring": 100
+        },
+        "seed6": {
+          "Our Rank-2 Algorithm": 99,
+          "Our Rank-3 Algorithm": 100,
+          "Goemans-Williamson": 86,
+          "Our Rank-1 Algorithm": 93,
+          "Coloring": 100
+        }
+      },
+      "3": {
+        "seed5": {
+          "Our Rank-2 Algorithm": 75,
+          "Our Rank-3 Algorithm": 75,
+          "Goemans-Williamson": 66,
+          "Our Rank-1 Algorithm": 71,
+          "Coloring": 75
+        },
+        "seed4": {
+          "Our Rank-2 Algorithm": 75,
+          "Our Rank-3 Algorithm": 75,
+          "Goemans-Williamson": 68,
+          "Our Rank-1 Algorithm": 72,
+          "Coloring": 75
+        },
+        "seed11": {
+          "Our Rank-2 Algorithm": 75,
+          "Our Rank-3 Algorithm": 75,
+          "Goemans-Williamson": 65,
+          "Our Rank-1 Algorithm": 68,
+          "Coloring": 75
+        },
+        "seed10": {
+          "Our Rank-2 Algorithm": 75,
+          "Our Rank-3 Algorithm": 75,
+          "Goemans-Williamson": 64,
+          "Our Rank-1 Algorithm": 69,
+          "Coloring": 75
+        },
+        "seed16": {
+          "Our Rank-2 Algorithm": 73,
+          "Our Rank-3 Algorithm": 75,
+          "Goemans-Williamson": 62,
+          "Our Rank-1 Algorithm": 67,
+          "Coloring": 75
+        },
+        "seed17": {
+          "Our Rank-2 Algorithm": 75,
+          "Our Rank-3 Algorithm": 75,
+          "Goemans-Williamson": 61,
+          "Our Rank-1 Algorithm": 72,
+          "Coloring": 75
+        },
+        "seed8": {
+          "Our Rank-2 Algorithm": 75,
+          "Our Rank-3 Algorithm": 75,
+          "Goemans-Williamson": 69,
+          "Our Rank-1 Algorithm": 71,
+          "Coloring": 75
+        },
+        "seed9": {
+          "Our Rank-2 Algorithm": 75,
+          "Our Rank-3 Algorithm": 75,
+          "Goemans-Williamson": 65,
+          "Our Rank-1 Algorithm": 72,
+          "Coloring": 75
+        },
+        "seed2": {
+          "Our Rank-2 Algorithm": 75,
+          "Our Rank-3 Algorithm": 75,
+          "Goemans-Williamson": 62,
+          "Our Rank-1 Algorithm": 71,
+          "Coloring": 75
+        },
+        "seed3": {
+          "Our Rank-2 Algorithm": 75,
+          "Our Rank-3 Algorithm": 75,
+          "Goemans-Williamson": 67,
+          "Our Rank-1 Algorithm": 70,
+          "Coloring": 75
+        },
+        "seed18": {
+          "Our Rank-2 Algorithm": 75,
+          "Our Rank-3 Algorithm": 75,
+          "Goemans-Williamson": 66,
+          "Our Rank-1 Algorithm": 71,
+          "Coloring": 75
+        },
+        "seed19": {
+          "Our Rank-2 Algorithm": 75,
+          "Our Rank-3 Algorithm": 75,
+          "Goemans-Williamson": 62,
+          "Our Rank-1 Algorithm": 71,
+          "Coloring": 75
+        },
+        "seed12": {
+          "Our Rank-2 Algorithm": 75,
+          "Our Rank-3 Algorithm": 75,
+          "Goemans-Williamson": 65,
+          "Our Rank-1 Algorithm": 70,
+          "Coloring": 75
+        },
+        "seed13": {
+          "Our Rank-2 Algorithm": 75,
+          "Our Rank-3 Algorithm": 75,
+          "Goemans-Williamson": 65,
+          "Our Rank-1 Algorithm": 68,
+          "Coloring": 75
+        },
+        "seed6": {
+          "Our Rank-2 Algorithm": 74,
+          "Our Rank-3 Algorithm": 75,
+          "Goemans-Williamson": 62,
+          "Our Rank-1 Algorithm": 70,
+          "Coloring": 75
+        },
+        "seed7": {
+          "Our Rank-2 Algorithm": 74,
+          "Our Rank-3 Algorithm": 75,
+          "Goemans-Williamson": 63,
+          "Our Rank-1 Algorithm": 67,
+          "Coloring": 75
+        },
+        "seed1": {
+          "Our Rank-2 Algorithm": 75,
+          "Our Rank-3 Algorithm": 75,
+          "Goemans-Williamson": 66,
+          "Our Rank-1 Algorithm": 70,
+          "Coloring": 75
+        },
+        "seed0": {
+          "Our Rank-2 Algorithm": 75,
+          "Our Rank-3 Algorithm": 75,
+          "Goemans-Williamson": 61,
+          "Our Rank-1 Algorithm": 67,
+          "Coloring": 75
+        },
+        "seed15": {
+          "Our Rank-2 Algorithm": 75,
+          "Our Rank-3 Algorithm": 75,
+          "Goemans-Williamson": 65,
+          "Our Rank-1 Algorithm": 73,
+          "Coloring": 75
+        },
+        "seed14": {
+          "Our Rank-2 Algorithm": 74,
+          "Our Rank-3 Algorithm": 75,
+          "Goemans-Williamson": 64,
+          "Our Rank-1 Algorithm": 71,
+          "Coloring": 75
+        }
+      },
+      "5": {
+        "seed5": {
+          "Our Rank-2 Algorithm": 120,
+          "Our Rank-3 Algorithm": 122,
+          "Goemans-Williamson": 94,
+          "Our Rank-1 Algorithm": 109,
+          "Coloring": 123
+        },
+        "seed4": {
+          "Our Rank-2 Algorithm": 121,
+          "Our Rank-3 Algorithm": 123,
+          "Goemans-Williamson": 101,
+          "Our Rank-1 Algorithm": 109,
+          "Coloring": 121
+        },
+        "seed11": {
+          "Our Rank-2 Algorithm": 118,
+          "Our Rank-3 Algorithm": 121,
+          "Goemans-Williamson": 98,
+          "Our Rank-1 Algorithm": 103,
+          "Coloring": 117
+        },
+        "seed10": {
+          "Our Rank-2 Algorithm": 118,
+          "Our Rank-3 Algorithm": 121,
+          "Goemans-Williamson": 90,
+          "Our Rank-1 Algorithm": 106,
+          "Coloring": 123
+        },
+        "seed16": {
+          "Our Rank-2 Algorithm": 120,
+          "Our Rank-3 Algorithm": 122,
+          "Goemans-Williamson": 91,
+          "Our Rank-1 Algorithm": 107,
+          "Coloring": 120
+        },
+        "seed17": {
+          "Our Rank-2 Algorithm": 119,
+          "Our Rank-3 Algorithm": 122,
+          "Goemans-Williamson": 95,
+          "Our Rank-1 Algorithm": 107,
+          "Coloring": 122
+        },
+        "seed8": {
+          "Our Rank-2 Algorithm": 119,
+          "Our Rank-3 Algorithm": 123,
+          "Goemans-Williamson": 93,
+          "Our Rank-1 Algorithm": 109,
+          "Coloring": 120
+        },
+        "seed9": {
+          "Our Rank-2 Algorithm": 119,
+          "Our Rank-3 Algorithm": 122,
+          "Goemans-Williamson": 98,
+          "Our Rank-1 Algorithm": 109,
+          "Coloring": 121
+        },
+        "seed2": {
+          "Our Rank-2 Algorithm": 120,
+          "Our Rank-3 Algorithm": 122,
+          "Goemans-Williamson": 102,
+          "Our Rank-1 Algorithm": 105,
+          "Coloring": 121
+        },
+        "seed3": {
+          "Our Rank-2 Algorithm": 120,
+          "Our Rank-3 Algorithm": 123,
+          "Goemans-Williamson": 96,
+          "Our Rank-1 Algorithm": 105,
+          "Coloring": 122
+        },
+        "seed18": {
+          "Our Rank-2 Algorithm": 119,
+          "Our Rank-3 Algorithm": 121,
+          "Goemans-Williamson": 102,
+          "Our Rank-1 Algorithm": 112,
+          "Coloring": 121
+        },
+        "seed19": {
+          "Our Rank-2 Algorithm": 121,
+          "Our Rank-3 Algorithm": 123,
+          "Goemans-Williamson": 95,
+          "Our Rank-1 Algorithm": 114,
+          "Coloring": 122
+        },
+        "seed12": {
+          "Our Rank-2 Algorithm": 120,
+          "Our Rank-3 Algorithm": 122,
+          "Goemans-Williamson": 100,
+          "Our Rank-1 Algorithm": 108,
+          "Coloring": 121
+        },
+        "seed13": {
+          "Our Rank-2 Algorithm": 121,
+          "Our Rank-3 Algorithm": 121,
+          "Goemans-Williamson": 98,
+          "Our Rank-1 Algorithm": 109,
+          "Coloring": 122
+        },
+        "seed6": {
+          "Our Rank-2 Algorithm": 119,
+          "Our Rank-3 Algorithm": 122,
+          "Goemans-Williamson": 95,
+          "Our Rank-1 Algorithm": 111,
+          "Coloring": 121
+        },
+        "seed7": {
+          "Our Rank-2 Algorithm": 118,
+          "Our Rank-3 Algorithm": 121,
+          "Goemans-Williamson": 95,
+          "Our Rank-1 Algorithm": 107,
+          "Coloring": 121
+        },
+        "seed1": {
+          "Our Rank-2 Algorithm": 120,
+          "Our Rank-3 Algorithm": 122,
+          "Goemans-Williamson": 98,
+          "Our Rank-1 Algorithm": 108,
+          "Coloring": 124
+        },
+        "seed0": {
+          "Our Rank-2 Algorithm": 119,
+          "Our Rank-3 Algorithm": 121,
+          "Goemans-Williamson": 96,
+          "Our Rank-1 Algorithm": 106,
+          "Coloring": 120
+        },
+        "seed15": {
+          "Our Rank-2 Algorithm": 121,
+          "Our Rank-3 Algorithm": 123,
+          "Goemans-Williamson": 95,
+          "Our Rank-1 Algorithm": 112,
+          "Coloring": 122
+        },
+        "seed14": {
+          "Our Rank-2 Algorithm": 120,
+          "Our Rank-3 Algorithm": 122,
+          "Goemans-Williamson": 96,
+          "Our Rank-1 Algorithm": 105,
+          "Coloring": 122
+        }
+      }
+    }
+  },
+  "erdos_renyi": {
+    "n20": {
+      "p075": {
+        "seed5": {
+          "Our Rank-2 Algorithm": 105,
+          "Our Rank-3 Algorithm": 105,
+          "Goemans-Williamson": 80,
+          "Our Rank-1 Algorithm": 104,
+          "Coloring": 106
+        },
+        "seed4": {
+          "Our Rank-2 Algorithm": 109,
+          "Our Rank-3 Algorithm": 110,
+          "Goemans-Williamson": 82,
+          "Our Rank-1 Algorithm": 102,
+          "Coloring": 108
+        },
+        "seed11": {
+          "Our Rank-2 Algorithm": 112,
+          "Our Rank-3 Algorithm": 113,
+          "Goemans-Williamson": 82,
+          "Our Rank-1 Algorithm": 103,
+          "Coloring": 113
+        },
+        "seed10": {
+          "Our Rank-2 Algorithm": 118,
+          "Our Rank-3 Algorithm": 118,
+          "Goemans-Williamson": 87,
+          "Our Rank-1 Algorithm": 111,
+          "Coloring": 116
+        },
+        "seed16": {
+          "Our Rank-2 Algorithm": 116,
+          "Our Rank-3 Algorithm": 118,
+          "Goemans-Williamson": 89,
+          "Our Rank-1 Algorithm": 86,
+          "Coloring": 118
+        },
+        "seed17": {
+          "Our Rank-2 Algorithm": 106,
+          "Our Rank-3 Algorithm": 108,
+          "Goemans-Williamson": 80,
+          "Our Rank-1 Algorithm": 92,
+          "Coloring": 107
+        },
+        "seed8": {
+          "Our Rank-2 Algorithm": 115,
+          "Our Rank-3 Algorithm": 116,
+          "Goemans-Williamson": 82,
+          "Our Rank-1 Algorithm": 107,
+          "Coloring": 116
+        },
+        "seed9": {
+          "Our Rank-2 Algorithm": 117,
+          "Our Rank-3 Algorithm": 118,
+          "Goemans-Williamson": 88,
+          "Our Rank-1 Algorithm": 113,
+          "Coloring": 115
+        },
+        "seed2": {
+          "Our Rank-2 Algorithm": 114,
+          "Our Rank-3 Algorithm": 115,
+          "Goemans-Williamson": 86,
+          "Our Rank-1 Algorithm": 106,
+          "Coloring": 114
+        },
+        "seed3": {
+          "Our Rank-2 Algorithm": 108,
+          "Our Rank-3 Algorithm": 113,
+          "Goemans-Williamson": 81,
+          "Our Rank-1 Algorithm": 101,
+          "Coloring": 110
+        },
+        "seed18": {
+          "Our Rank-2 Algorithm": 112,
+          "Our Rank-3 Algorithm": 115,
+          "Goemans-Williamson": 86,
+          "Our Rank-1 Algorithm": 103,
+          "Coloring": 113
+        },
+        "seed19": {
+          "Our Rank-2 Algorithm": 122,
+          "Our Rank-3 Algorithm": 123,
+          "Goemans-Williamson": 94,
+          "Our Rank-1 Algorithm": 117,
+          "Coloring": 122
+        },
+        "seed12": {
+          "Our Rank-2 Algorithm": 118,
+          "Our Rank-3 Algorithm": 118,
+          "Goemans-Williamson": 85,
+          "Our Rank-1 Algorithm": 104,
+          "Coloring": 116
+        },
+        "seed13": {
+          "Our Rank-2 Algorithm": 115,
+          "Our Rank-3 Algorithm": 117,
+          "Goemans-Williamson": 85,
+          "Our Rank-1 Algorithm": 107,
+          "Coloring": 116
+        },
+        "seed6": {
+          "Our Rank-2 Algorithm": 103,
+          "Our Rank-3 Algorithm": 110,
+          "Goemans-Williamson": 84,
+          "Our Rank-1 Algorithm": 90,
+          "Coloring": 110
+        },
+        "seed7": {
+          "Our Rank-2 Algorithm": 116,
+          "Our Rank-3 Algorithm": 116,
+          "Goemans-Williamson": 87,
+          "Our Rank-1 Algorithm": 107,
+          "Coloring": 114
+        },
+        "seed1": {
+          "Our Rank-2 Algorithm": 114,
+          "Our Rank-3 Algorithm": 115,
+          "Goemans-Williamson": 86,
+          "Our Rank-1 Algorithm": 104,
+          "Coloring": 114
+        },
+        "seed0": {
+          "Our Rank-2 Algorithm": 108,
+          "Our Rank-3 Algorithm": 113,
+          "Goemans-Williamson": 81,
+          "Our Rank-1 Algorithm": 100,
+          "Coloring": 112
+        },
+        "seed15": {
+          "Our Rank-2 Algorithm": 108,
+          "Our Rank-3 Algorithm": 112,
+          "Goemans-Williamson": 84,
+          "Our Rank-1 Algorithm": 103,
+          "Coloring": 111
+        },
+        "seed14": {
+          "Our Rank-2 Algorithm": 113,
+          "Our Rank-3 Algorithm": 116,
+          "Goemans-Williamson": 85,
+          "Our Rank-1 Algorithm": 104,
+          "Coloring": 114
+        }
+      },
+      "p05": {
+        "seed5": {
+          "Our Rank-2 Algorithm": 76,
+          "Our Rank-3 Algorithm": 79,
+          "Goemans-Williamson": 60,
+          "Our Rank-1 Algorithm": 73,
+          "Coloring": 75
+        },
+        "seed4": {
+          "Our Rank-2 Algorithm": 85,
+          "Our Rank-3 Algorithm": 85,
+          "Goemans-Williamson": 64,
+          "Our Rank-1 Algorithm": 74,
+          "Coloring": 85
+        },
+        "seed11": {
+          "Our Rank-2 Algorithm": 81,
+          "Our Rank-3 Algorithm": 82,
+          "Goemans-Williamson": 60,
+          "Our Rank-1 Algorithm": 78,
+          "Coloring": 81
+        },
+        "seed10": {
+          "Our Rank-2 Algorithm": 81,
+          "Our Rank-3 Algorithm": 83,
+          "Goemans-Williamson": 65,
+          "Our Rank-1 Algorithm": 78,
+          "Coloring": 82
+        },
+        "seed16": {
+          "Our Rank-2 Algorithm": 85,
+          "Our Rank-3 Algorithm": 87,
+          "Goemans-Williamson": 63,
+          "Our Rank-1 Algorithm": 82,
+          "Coloring": 85
+        },
+        "seed17": {
+          "Our Rank-2 Algorithm": 74,
+          "Our Rank-3 Algorithm": 76,
+          "Goemans-Williamson": 61,
+          "Our Rank-1 Algorithm": 68,
+          "Coloring": 76
+        },
+        "seed8": {
+          "Our Rank-2 Algorithm": 84,
+          "Our Rank-3 Algorithm": 84,
+          "Goemans-Williamson": 66,
+          "Our Rank-1 Algorithm": 77,
+          "Coloring": 84
+        },
+        "seed9": {
+          "Our Rank-2 Algorithm": 83,
+          "Our Rank-3 Algorithm": 85,
+          "Goemans-Williamson": 66,
+          "Our Rank-1 Algorithm": 76,
+          "Coloring": 85
+        },
+        "seed2": {
+          "Our Rank-2 Algorithm": 78,
+          "Our Rank-3 Algorithm": 81,
+          "Goemans-Williamson": 60,
+          "Our Rank-1 Algorithm": 76,
+          "Coloring": 79
+        },
+        "seed3": {
+          "Our Rank-2 Algorithm": 79,
+          "Our Rank-3 Algorithm": 80,
+          "Goemans-Williamson": 60,
+          "Our Rank-1 Algorithm": 75,
+          "Coloring": 80
+        },
+        "seed18": {
+          "Our Rank-2 Algorithm": 77,
+          "Our Rank-3 Algorithm": 77,
+          "Goemans-Williamson": 58,
+          "Our Rank-1 Algorithm": 68,
+          "Coloring": 76
+        },
+        "seed19": {
+          "Our Rank-2 Algorithm": 87,
+          "Our Rank-3 Algorithm": 87,
+          "Goemans-Williamson": 63,
+          "Our Rank-1 Algorithm": 75,
+          "Coloring": 86
+        },
+        "seed12": {
+          "Our Rank-2 Algorithm": 82,
+          "Our Rank-3 Algorithm": 83,
+          "Goemans-Williamson": 62,
+          "Our Rank-1 Algorithm": 71,
+          "Coloring": 83
+        },
+        "seed13": {
+          "Our Rank-2 Algorithm": 89,
+          "Our Rank-3 Algorithm": 89,
+          "Goemans-Williamson": 65,
+          "Our Rank-1 Algorithm": 79,
+          "Coloring": 87
+        },
+        "seed6": {
+          "Our Rank-2 Algorithm": 82,
+          "Our Rank-3 Algorithm": 83,
+          "Goemans-Williamson": 63,
+          "Our Rank-1 Algorithm": 78,
+          "Coloring": 83
+        },
+        "seed7": {
+          "Our Rank-2 Algorithm": 91,
+          "Our Rank-3 Algorithm": 91,
+          "Goemans-Williamson": 68,
+          "Our Rank-1 Algorithm": 79,
+          "Coloring": 91
+        },
+        "seed1": {
+          "Our Rank-2 Algorithm": 73,
+          "Our Rank-3 Algorithm": 80,
+          "Goemans-Williamson": 59,
+          "Our Rank-1 Algorithm": 69,
+          "Coloring": 79
+        },
+        "seed0": {
+          "Our Rank-2 Algorithm": 74,
+          "Our Rank-3 Algorithm": 79,
+          "Goemans-Williamson": 56,
+          "Our Rank-1 Algorithm": 65,
+          "Coloring": 79
+        },
+        "seed15": {
+          "Our Rank-2 Algorithm": 79,
+          "Our Rank-3 Algorithm": 81,
+          "Goemans-Williamson": 59,
+          "Our Rank-1 Algorithm": 70,
+          "Coloring": 79
+        },
+        "seed14": {
+          "Our Rank-2 Algorithm": 83,
+          "Our Rank-3 Algorithm": 85,
+          "Goemans-Williamson": 60,
+          "Our Rank-1 Algorithm": 77,
+          "Coloring": 85
+        }
+      },
+      "p025": {
+        "seed5": {
+          "Our Rank-2 Algorithm": 41,
+          "Our Rank-3 Algorithm": 42,
+          "Goemans-Williamson": 30,
+          "Our Rank-1 Algorithm": 40,
+          "Coloring": 42
+        },
+        "seed4": {
+          "Our Rank-2 Algorithm": 54,
+          "Our Rank-3 Algorithm": 55,
+          "Goemans-Williamson": 42,
+          "Our Rank-1 Algorithm": 47,
+          "Coloring": 55
+        },
+        "seed11": {
+          "Our Rank-2 Algorithm": 52,
+          "Our Rank-3 Algorithm": 52,
+          "Goemans-Williamson": 39,
+          "Our Rank-1 Algorithm": 46,
+          "Coloring": 52
+        },
+        "seed10": {
+          "Our Rank-2 Algorithm": 41,
+          "Our Rank-3 Algorithm": 41,
+          "Goemans-Williamson": 33,
+          "Our Rank-1 Algorithm": 37,
+          "Coloring": 41
+        },
+        "seed16": {
+          "Our Rank-2 Algorithm": 50,
+          "Our Rank-3 Algorithm": 51,
+          "Goemans-Williamson": 40,
+          "Our Rank-1 Algorithm": 43,
+          "Coloring": 50
+        },
+        "seed17": {
+          "Our Rank-2 Algorithm": 37,
+          "Our Rank-3 Algorithm": 37,
+          "Goemans-Williamson": 29,
+          "Our Rank-1 Algorithm": 32,
+          "Coloring": 36
+        },
+        "seed8": {
+          "Our Rank-2 Algorithm": 47,
+          "Our Rank-3 Algorithm": 49,
+          "Goemans-Williamson": 37,
+          "Our Rank-1 Algorithm": 47,
+          "Coloring": 48
+        },
+        "seed9": {
+          "Our Rank-2 Algorithm": 54,
+          "Our Rank-3 Algorithm": 55,
+          "Goemans-Williamson": 42,
+          "Our Rank-1 Algorithm": 50,
+          "Coloring": 54
+        },
+        "seed2": {
+          "Our Rank-2 Algorithm": 50,
+          "Our Rank-3 Algorithm": 50,
+          "Goemans-Williamson": 39,
+          "Our Rank-1 Algorithm": 44,
+          "Coloring": 48
+        },
+        "seed3": {
+          "Our Rank-2 Algorithm": 41,
+          "Our Rank-3 Algorithm": 41,
+          "Goemans-Williamson": 31,
+          "Our Rank-1 Algorithm": 37,
+          "Coloring": 41
+        },
+        "seed18": {
+          "Our Rank-2 Algorithm": 45,
+          "Our Rank-3 Algorithm": 46,
+          "Goemans-Williamson": 37,
+          "Our Rank-1 Algorithm": 39,
+          "Coloring": 45
+        },
+        "seed19": {
+          "Our Rank-2 Algorithm": 41,
+          "Our Rank-3 Algorithm": 43,
+          "Goemans-Williamson": 33,
+          "Our Rank-1 Algorithm": 37,
+          "Coloring": 42
+        },
+        "seed12": {
+          "Our Rank-2 Algorithm": 44,
+          "Our Rank-3 Algorithm": 44,
+          "Goemans-Williamson": 35,
+          "Our Rank-1 Algorithm": 39,
+          "Coloring": 44
+        },
+        "seed13": {
+          "Our Rank-2 Algorithm": 52,
+          "Our Rank-3 Algorithm": 52,
+          "Goemans-Williamson": 37,
+          "Our Rank-1 Algorithm": 43,
+          "Coloring": 52
+        },
+        "seed6": {
+          "Our Rank-2 Algorithm": 38,
+          "Our Rank-3 Algorithm": 39,
+          "Goemans-Williamson": 34,
+          "Our Rank-1 Algorithm": 37,
+          "Coloring": 39
+        },
+        "seed7": {
+          "Our Rank-2 Algorithm": 51,
+          "Our Rank-3 Algorithm": 53,
+          "Goemans-Williamson": 40,
+          "Our Rank-1 Algorithm": 44,
+          "Coloring": 53
+        },
+        "seed1": {
+          "Our Rank-2 Algorithm": 48,
+          "Our Rank-3 Algorithm": 48,
+          "Goemans-Williamson": 38,
+          "Our Rank-1 Algorithm": 44,
+          "Coloring": 48
+        },
+        "seed0": {
+          "Our Rank-2 Algorithm": 39,
+          "Our Rank-3 Algorithm": 39,
+          "Goemans-Williamson": 32,
+          "Our Rank-1 Algorithm": 36,
+          "Coloring": 39
+        },
+        "seed15": {
+          "Our Rank-2 Algorithm": 43,
+          "Our Rank-3 Algorithm": 44,
+          "Goemans-Williamson": 33,
+          "Our Rank-1 Algorithm": 39,
+          "Coloring": 44
+        },
+        "seed14": {
+          "Our Rank-2 Algorithm": 45,
+          "Our Rank-3 Algorithm": 46,
+          "Goemans-Williamson": 35,
+          "Our Rank-1 Algorithm": 37,
+          "Coloring": 45
+        }
+      },
+      "p01": {
+        "seed5": {
+          "Our Rank-2 Algorithm": 18,
+          "Our Rank-3 Algorithm": 18,
+          "Goemans-Williamson": 18,
+          "Our Rank-1 Algorithm": 18,
+          "Coloring": 18
+        },
+        "seed4": {
+          "Our Rank-2 Algorithm": 23,
+          "Our Rank-3 Algorithm": 23,
+          "Goemans-Williamson": 20,
+          "Our Rank-1 Algorithm": 23,
+          "Coloring": 23
+        },
+        "seed11": {
+          "Our Rank-2 Algorithm": 22,
+          "Our Rank-3 Algorithm": 22,
+          "Goemans-Williamson": 19,
+          "Our Rank-1 Algorithm": 22,
+          "Coloring": 22
+        },
+        "seed10": {
+          "Our Rank-2 Algorithm": 19,
+          "Our Rank-3 Algorithm": 19,
+          "Goemans-Williamson": 18,
+          "Our Rank-1 Algorithm": 19,
+          "Coloring": 19
+        },
+        "seed16": {
+          "Our Rank-2 Algorithm": 19,
+          "Our Rank-3 Algorithm": 19,
+          "Goemans-Williamson": 18,
+          "Our Rank-1 Algorithm": 19,
+          "Coloring": 19
+        },
+        "seed17": {
+          "Our Rank-2 Algorithm": 19,
+          "Our Rank-3 Algorithm": 19,
+          "Goemans-Williamson": 18,
+          "Our Rank-1 Algorithm": 18,
+          "Coloring": 19
+        },
+        "seed8": {
+          "Our Rank-2 Algorithm": 19,
+          "Our Rank-3 Algorithm": 19,
+          "Goemans-Williamson": 17,
+          "Our Rank-1 Algorithm": 18,
+          "Coloring": 19
+        },
+        "seed9": {
+          "Our Rank-2 Algorithm": 29,
+          "Our Rank-3 Algorithm": 29,
+          "Goemans-Williamson": 24,
+          "Our Rank-1 Algorithm": 26,
+          "Coloring": 29
+        },
+        "seed2": {
+          "Our Rank-2 Algorithm": 21,
+          "Our Rank-3 Algorithm": 21,
+          "Goemans-Williamson": 18,
+          "Our Rank-1 Algorithm": 20,
+          "Coloring": 21
+        },
+        "seed3": {
+          "Our Rank-2 Algorithm": 19,
+          "Our Rank-3 Algorithm": 19,
+          "Goemans-Williamson": 19,
+          "Our Rank-1 Algorithm": 19,
+          "Coloring": 19
+        },
+        "seed18": {
+          "Our Rank-2 Algorithm": 14,
+          "Our Rank-3 Algorithm": 14,
+          "Goemans-Williamson": 14,
+          "Our Rank-1 Algorithm": 14,
+          "Coloring": 14
+        },
+        "seed19": {
+          "Our Rank-2 Algorithm": 17,
+          "Our Rank-3 Algorithm": 17,
+          "Goemans-Williamson": 16,
+          "Our Rank-1 Algorithm": 17,
+          "Coloring": 17
+        },
+        "seed12": {
+          "Our Rank-2 Algorithm": 20,
+          "Our Rank-3 Algorithm": 20,
+          "Goemans-Williamson": 18,
+          "Our Rank-1 Algorithm": 19,
+          "Coloring": 20
+        },
+        "seed13": {
+          "Our Rank-2 Algorithm": 15,
+          "Our Rank-3 Algorithm": 15,
+          "Goemans-Williamson": 14,
+          "Our Rank-1 Algorithm": 15,
+          "Coloring": 16
+        },
+        "seed6": {
+          "Our Rank-2 Algorithm": 20,
+          "Our Rank-3 Algorithm": 20,
+          "Goemans-Williamson": 19,
+          "Our Rank-1 Algorithm": 20,
+          "Coloring": 20
+        },
+        "seed7": {
+          "Our Rank-2 Algorithm": 25,
+          "Our Rank-3 Algorithm": 25,
+          "Goemans-Williamson": 21,
+          "Our Rank-1 Algorithm": 21,
+          "Coloring": 25
+        },
+        "seed1": {
+          "Our Rank-2 Algorithm": 23,
+          "Our Rank-3 Algorithm": 23,
+          "Goemans-Williamson": 20,
+          "Our Rank-1 Algorithm": 21,
+          "Coloring": 23
+        },
+        "seed0": {
+          "Our Rank-2 Algorithm": 15,
+          "Our Rank-3 Algorithm": 15,
+          "Goemans-Williamson": 15,
+          "Our Rank-1 Algorithm": 15,
+          "Coloring": 15
+        },
+        "seed15": {
+          "Our Rank-2 Algorithm": 19,
+          "Our Rank-3 Algorithm": 19,
+          "Goemans-Williamson": 16,
+          "Our Rank-1 Algorithm": 18,
+          "Coloring": 19
+        },
+        "seed14": {
+          "Our Rank-2 Algorithm": 15,
+          "Our Rank-3 Algorithm": 15,
+          "Goemans-Williamson": 14,
+          "Our Rank-1 Algorithm": 14,
+          "Coloring": 16
+        }
+      },
+      "p09": {
+        "seed13": {
+          "Our Rank-2 Algorithm": 132,
+          "Our Rank-3 Algorithm": 133,
+          "Our Rank-1 Algorithm": 130,
+          "Coloring": 132
+        },
+        "seed2": {
+          "Our Rank-2 Algorithm": 122,
+          "Our Rank-3 Algorithm": 128,
+          "Our Rank-1 Algorithm": 106,
+          "Coloring": 127
+        },
+        "seed3": {
+          "Our Rank-2 Algorithm": 110,
+          "Our Rank-3 Algorithm": 118,
+          "Our Rank-1 Algorithm": 110,
+          "Coloring": 129
+        },
+        "seed12": {
+          "Our Rank-2 Algorithm": 105,
+          "Our Rank-3 Algorithm": 127,
+          "Our Rank-1 Algorithm": 96,
+          "Coloring": 126
+        },
+        "seed19": {
+          "Our Rank-2 Algorithm": 133,
+          "Our Rank-3 Algorithm": 133,
+          "Our Rank-1 Algorithm": 123,
+          "Coloring": 132
+        },
+        "seed1": {
+          "Our Rank-2 Algorithm": 131,
+          "Our Rank-3 Algorithm": 131,
+          "Our Rank-1 Algorithm": 118,
+          "Coloring": 130
+        },
+        "seed10": {
+          "Our Rank-2 Algorithm": 119,
+          "Our Rank-3 Algorithm": 121,
+          "Our Rank-1 Algorithm": 118,
+          "Coloring": 128
+        },
+        "seed8": {
+          "Our Rank-2 Algorithm": 126,
+          "Our Rank-3 Algorithm": 127,
+          "Our Rank-1 Algorithm": 110,
+          "Coloring": 127
+        },
+        "seed9": {
+          "Our Rank-2 Algorithm": 100,
+          "Our Rank-3 Algorithm": 116,
+          "Our Rank-1 Algorithm": 116,
+          "Coloring": 129
+        },
+        "seed11": {
+          "Our Rank-2 Algorithm": 126,
+          "Our Rank-3 Algorithm": 129,
+          "Our Rank-1 Algorithm": 97,
+          "Coloring": 128
+        },
+        "seed0": {
+          "Our Rank-2 Algorithm": 127,
+          "Our Rank-3 Algorithm": 128,
+          "Our Rank-1 Algorithm": 95,
+          "Coloring": 128
+        },
+        "seed18": {
+          "Our Rank-2 Algorithm": 115,
+          "Our Rank-3 Algorithm": 125,
+          "Our Rank-1 Algorithm": 104,
+          "Coloring": 128
+        },
+        "seed5": {
+          "Our Rank-2 Algorithm": 124,
+          "Our Rank-3 Algorithm": 125,
+          "Our Rank-1 Algorithm": 97,
+          "Coloring": 125
+        },
+        "seed14": {
+          "Our Rank-2 Algorithm": 107,
+          "Our Rank-3 Algorithm": 126,
+          "Our Rank-1 Algorithm": 107,
+          "Coloring": 126
+        },
+        "seed15": {
+          "Our Rank-2 Algorithm": 109,
+          "Our Rank-3 Algorithm": 130,
+          "Our Rank-1 Algorithm": 109,
+          "Coloring": 128
+        },
+        "seed4": {
+          "Our Rank-2 Algorithm": 104,
+          "Our Rank-3 Algorithm": 126,
+          "Our Rank-1 Algorithm": 104,
+          "Coloring": 123
+        },
+        "seed17": {
+          "Our Rank-2 Algorithm": 124,
+          "Our Rank-3 Algorithm": 127,
+          "Our Rank-1 Algorithm": 95,
+          "Coloring": 127
+        },
+        "seed6": {
+          "Our Rank-2 Algorithm": 100,
+          "Our Rank-3 Algorithm": 108,
+          "Our Rank-1 Algorithm": 100,
+          "Coloring": 127
+        },
+        "seed7": {
+          "Our Rank-2 Algorithm": 122,
+          "Our Rank-3 Algorithm": 126,
+          "Our Rank-1 Algorithm": 122,
+          "Coloring": 130
+        },
+        "seed16": {
+          "Our Rank-2 Algorithm": 107,
+          "Our Rank-3 Algorithm": 130,
+          "Our Rank-1 Algorithm": 101,
+          "Coloring": 128
+        }
+      }
+    },
+    "n100": {
+      "p075": {
+        "seed5": {
+          "Our Rank-2 Algorithm": 2657,
+          "Goemans-Williamson": 2023,
+          "Our Rank-1 Algorithm": 2559,
+          "Coloring": 2685
+        },
+        "seed4": {
+          "Our Rank-2 Algorithm": 2622,
+          "Goemans-Williamson": 1979,
+          "Our Rank-1 Algorithm": 2381,
+          "Coloring": 2660
+        },
+        "seed11": {
+          "Our Rank-2 Algorithm": 2657,
+          "Goemans-Williamson": 2036,
+          "Our Rank-1 Algorithm": 2567,
+          "Coloring": 2684
+        },
+        "seed10": {
+          "Our Rank-2 Algorithm": 2644,
+          "Goemans-Williamson": 2018,
+          "Our Rank-1 Algorithm": 2536,
+          "Coloring": 2692
+        },
+        "seed16": {
+          "Our Rank-2 Algorithm": 2585,
+          "Goemans-Williamson": 1948,
+          "Our Rank-1 Algorithm": 2488,
+          "Coloring": 2633
+        },
+        "seed17": {
+          "Our Rank-2 Algorithm": 2656,
+          "Goemans-Williamson": 2009,
+          "Our Rank-1 Algorithm": 2571,
+          "Coloring": 2677
+        },
+        "seed8": {
+          "Our Rank-2 Algorithm": 2604,
+          "Goemans-Williamson": 2010,
+          "Our Rank-1 Algorithm": 2267,
+          "Coloring": 2687
+        },
+        "seed9": {
+          "Our Rank-2 Algorithm": 2612,
+          "Goemans-Williamson": 1993,
+          "Our Rank-1 Algorithm": 2551,
+          "Coloring": 2648
+        },
+        "seed2": {
+          "Our Rank-2 Algorithm": 2617,
+          "Goemans-Williamson": 1998,
+          "Our Rank-1 Algorithm": 2469,
+          "Coloring": 2672
+        },
+        "seed3": {
+          "Our Rank-2 Algorithm": 2627,
+          "Goemans-Williamson": 1985,
+          "Our Rank-1 Algorithm": 2549,
+          "Coloring": 2642
+        },
+        "seed18": {
+          "Our Rank-2 Algorithm": 2628,
+          "Goemans-Williamson": 2003,
+          "Our Rank-1 Algorithm": 2575,
+          "Coloring": 2663
+        },
+        "seed19": {
+          "Our Rank-2 Algorithm": 2643,
+          "Goemans-Williamson": 2030,
+          "Our Rank-1 Algorithm": 2573,
+          "Coloring": 2692
+        },
+        "seed12": {
+          "Our Rank-2 Algorithm": 2586,
+          "Goemans-Williamson": 1981,
+          "Our Rank-1 Algorithm": 2436,
+          "Coloring": 2630
+        },
+        "seed13": {
+          "Our Rank-2 Algorithm": 2658,
+          "Goemans-Williamson": 1970,
+          "Our Rank-1 Algorithm": 2539,
+          "Coloring": 2688
+        },
+        "seed6": {
+          "Our Rank-2 Algorithm": 2600,
+          "Goemans-Williamson": 1996,
+          "Our Rank-1 Algorithm": 2524,
+          "Coloring": 2637
+        },
+        "seed7": {
+          "Our Rank-2 Algorithm": 2611,
+          "Goemans-Williamson": 1997,
+          "Our Rank-1 Algorithm": 2527,
+          "Coloring": 2656
+        },
+        "seed1": {
+          "Our Rank-2 Algorithm": 2594,
+          "Goemans-Williamson": 2006,
+          "Our Rank-1 Algorithm": 2475,
+          "Coloring": 2667
+        },
+        "seed0": {
+          "Our Rank-2 Algorithm": 2618,
+          "Goemans-Williamson": 2003,
+          "Our Rank-1 Algorithm": 2459,
+          "Coloring": 2655
+        },
+        "seed15": {
+          "Our Rank-2 Algorithm": 2586,
+          "Goemans-Williamson": 1984,
+          "Our Rank-1 Algorithm": 2521,
+          "Coloring": 2628
+        },
+        "seed14": {
+          "Our Rank-2 Algorithm": 2603,
+          "Goemans-Williamson": 1971,
+          "Our Rank-1 Algorithm": 2546,
+          "Coloring": 2641
+        }
+      },
+      "p05": {
+        "seed5": {
+          "Our Rank-2 Algorithm": 1807,
+          "Goemans-Williamson": 1412,
+          "Our Rank-1 Algorithm": 1713,
+          "Coloring": 1865
+        },
+        "seed4": {
+          "Our Rank-2 Algorithm": 1824,
+          "Goemans-Williamson": 1402,
+          "Our Rank-1 Algorithm": 1712,
+          "Coloring": 1871
+        },
+        "seed11": {
+          "Our Rank-2 Algorithm": 1815,
+          "Goemans-Williamson": 1410,
+          "Our Rank-1 Algorithm": 1748,
+          "Coloring": 1866
+        },
+        "seed10": {
+          "Our Rank-2 Algorithm": 1802,
+          "Goemans-Williamson": 1392,
+          "Our Rank-1 Algorithm": 1671,
+          "Coloring": 1860
+        },
+        "seed16": {
+          "Our Rank-2 Algorithm": 1809,
+          "Goemans-Williamson": 1374,
+          "Our Rank-1 Algorithm": 1651,
+          "Coloring": 1836
+        },
+        "seed17": {
+          "Our Rank-2 Algorithm": 1810,
+          "Goemans-Williamson": 1382,
+          "Our Rank-1 Algorithm": 1686,
+          "Coloring": 1846
+        },
+        "seed8": {
+          "Our Rank-2 Algorithm": 1784,
+          "Goemans-Williamson": 1402,
+          "Our Rank-1 Algorithm": 1677,
+          "Coloring": 1856
+        },
+        "seed9": {
+          "Our Rank-2 Algorithm": 1790,
+          "Goemans-Williamson": 1387,
+          "Our Rank-1 Algorithm": 1682,
+          "Coloring": 1846
+        },
+        "seed2": {
+          "Our Rank-2 Algorithm": 1779,
+          "Goemans-Williamson": 1397,
+          "Our Rank-1 Algorithm": 1650,
+          "Coloring": 1835
+        },
+        "seed3": {
+          "Our Rank-2 Algorithm": 1812,
+          "Goemans-Williamson": 1421,
+          "Our Rank-1 Algorithm": 1680,
+          "Coloring": 1888
+        },
+        "seed18": {
+          "Our Rank-2 Algorithm": 1821,
+          "Goemans-Williamson": 1411,
+          "Our Rank-1 Algorithm": 1703,
+          "Coloring": 1860
+        },
+        "seed19": {
+          "Our Rank-2 Algorithm": 1816,
+          "Goemans-Williamson": 1431,
+          "Our Rank-1 Algorithm": 1716,
+          "Coloring": 1871
+        },
+        "seed12": {
+          "Our Rank-2 Algorithm": 1777,
+          "Goemans-Williamson": 1364,
+          "Our Rank-1 Algorithm": 1723,
+          "Coloring": 1821
+        },
+        "seed13": {
+          "Our Rank-2 Algorithm": 1810,
+          "Goemans-Williamson": 1425,
+          "Our Rank-1 Algorithm": 1713,
+          "Coloring": 1873
+        },
+        "seed6": {
+          "Our Rank-2 Algorithm": 1759,
+          "Goemans-Williamson": 1371,
+          "Our Rank-1 Algorithm": 1677,
+          "Coloring": 1829
+        },
+        "seed7": {
+          "Our Rank-2 Algorithm": 1840,
+          "Goemans-Williamson": 1409,
+          "Our Rank-1 Algorithm": 1730,
+          "Coloring": 1888
+        },
+        "seed1": {
+          "Our Rank-2 Algorithm": 1844,
+          "Goemans-Williamson": 1400,
+          "Our Rank-1 Algorithm": 1664,
+          "Coloring": 1851
+        },
+        "seed0": {
+          "Our Rank-2 Algorithm": 1759,
+          "Goemans-Williamson": 1382,
+          "Our Rank-1 Algorithm": 1678,
+          "Coloring": 1840
+        },
+        "seed15": {
+          "Our Rank-2 Algorithm": 1763,
+          "Goemans-Williamson": 1416,
+          "Our Rank-1 Algorithm": 1713,
+          "Coloring": 1832
+        },
+        "seed14": {
+          "Our Rank-2 Algorithm": 1824,
+          "Goemans-Williamson": 1422,
+          "Our Rank-1 Algorithm": 1727,
+          "Coloring": 1871
+        }
+      },
+      "p025": {
+        "seed5": {
+          "Our Rank-2 Algorithm": 927,
+          "Goemans-Williamson": 748,
+          "Our Rank-1 Algorithm": 842,
+          "Coloring": 988
+        },
+        "seed4": {
+          "Our Rank-2 Algorithm": 931,
+          "Goemans-Williamson": 737,
+          "Our Rank-1 Algorithm": 877,
+          "Coloring": 971
+        },
+        "seed11": {
+          "Our Rank-2 Algorithm": 943,
+          "Goemans-Williamson": 769,
+          "Our Rank-1 Algorithm": 865,
+          "Coloring": 1003
+        },
+        "seed10": {
+          "Our Rank-2 Algorithm": 904,
+          "Goemans-Williamson": 715,
+          "Our Rank-1 Algorithm": 833,
+          "Coloring": 948
+        },
+        "seed16": {
+          "Our Rank-2 Algorithm": 960,
+          "Goemans-Williamson": 733,
+          "Our Rank-1 Algorithm": 865,
+          "Coloring": 992
+        },
+        "seed17": {
+          "Our Rank-2 Algorithm": 922,
+          "Goemans-Williamson": 737,
+          "Our Rank-1 Algorithm": 841,
+          "Coloring": 970
+        },
+        "seed8": {
+          "Our Rank-2 Algorithm": 955,
+          "Goemans-Williamson": 756,
+          "Our Rank-1 Algorithm": 848,
+          "Coloring": 992
+        },
+        "seed9": {
+          "Our Rank-2 Algorithm": 939,
+          "Goemans-Williamson": 767,
+          "Our Rank-1 Algorithm": 893,
+          "Coloring": 1000
+        },
+        "seed2": {
+          "Our Rank-2 Algorithm": 926,
+          "Goemans-Williamson": 748,
+          "Our Rank-1 Algorithm": 820,
+          "Coloring": 975
+        },
+        "seed3": {
+          "Our Rank-2 Algorithm": 909,
+          "Goemans-Williamson": 743,
+          "Our Rank-1 Algorithm": 819,
+          "Coloring": 975
+        },
+        "seed18": {
+          "Our Rank-2 Algorithm": 937,
+          "Goemans-Williamson": 743,
+          "Our Rank-1 Algorithm": 827,
+          "Coloring": 983
+        },
+        "seed19": {
+          "Our Rank-2 Algorithm": 942,
+          "Goemans-Williamson": 754,
+          "Our Rank-1 Algorithm": 894,
+          "Coloring": 992
+        },
+        "seed12": {
+          "Our Rank-2 Algorithm": 905,
+          "Goemans-Williamson": 734,
+          "Our Rank-1 Algorithm": 822,
+          "Coloring": 958
+        },
+        "seed13": {
+          "Our Rank-2 Algorithm": 975,
+          "Goemans-Williamson": 784,
+          "Our Rank-1 Algorithm": 907,
+          "Coloring": 1024
+        },
+        "seed6": {
+          "Our Rank-2 Algorithm": 959,
+          "Goemans-Williamson": 747,
+          "Our Rank-1 Algorithm": 871,
+          "Coloring": 995
+        },
+        "seed7": {
+          "Our Rank-2 Algorithm": 1002,
+          "Goemans-Williamson": 791,
+          "Our Rank-1 Algorithm": 896,
+          "Coloring": 1036
+        },
+        "seed1": {
+          "Our Rank-2 Algorithm": 965,
+          "Goemans-Williamson": 748,
+          "Our Rank-1 Algorithm": 856,
+          "Coloring": 997
+        },
+        "seed0": {
+          "Our Rank-2 Algorithm": 912,
+          "Goemans-Williamson": 731,
+          "Our Rank-1 Algorithm": 831,
+          "Coloring": 967
+        },
+        "seed15": {
+          "Our Rank-2 Algorithm": 923,
+          "Goemans-Williamson": 716,
+          "Our Rank-1 Algorithm": 836,
+          "Coloring": 968
+        },
+        "seed14": {
+          "Our Rank-2 Algorithm": 951,
+          "Goemans-Williamson": 750,
+          "Our Rank-1 Algorithm": 860,
+          "Coloring": 993
+        }
+      },
+      "p01": {
+        "seed5": {
+          "Our Rank-2 Algorithm": 405,
+          "Goemans-Williamson": 320,
+          "Our Rank-1 Algorithm": 359,
+          "Coloring": 424
+        },
+        "seed4": {
+          "Our Rank-2 Algorithm": 424,
+          "Goemans-Williamson": 334,
+          "Our Rank-1 Algorithm": 389,
+          "Coloring": 441
+        },
+        "seed11": {
+          "Our Rank-2 Algorithm": 426,
+          "Goemans-Williamson": 351,
+          "Our Rank-1 Algorithm": 391,
+          "Coloring": 460
+        },
+        "seed10": {
+          "Our Rank-2 Algorithm": 391,
+          "Goemans-Williamson": 301,
+          "Our Rank-1 Algorithm": 362,
+          "Coloring": 412
+        },
+        "seed16": {
+          "Our Rank-2 Algorithm": 391,
+          "Goemans-Williamson": 328,
+          "Our Rank-1 Algorithm": 366,
+          "Coloring": 411
+        },
+        "seed17": {
+          "Our Rank-2 Algorithm": 388,
+          "Goemans-Williamson": 309,
+          "Our Rank-1 Algorithm": 337,
+          "Coloring": 392
+        },
+        "seed8": {
+          "Our Rank-2 Algorithm": 408,
+          "Goemans-Williamson": 336,
+          "Our Rank-1 Algorithm": 369,
+          "Coloring": 431
+        },
+        "seed9": {
+          "Our Rank-2 Algorithm": 449,
+          "Goemans-Williamson": 369,
+          "Our Rank-1 Algorithm": 391,
+          "Coloring": 466
+        },
+        "seed2": {
+          "Our Rank-2 Algorithm": 402,
+          "Goemans-Williamson": 347,
+          "Our Rank-1 Algorithm": 353,
+          "Coloring": 427
+        },
+        "seed3": {
+          "Our Rank-2 Algorithm": 414,
+          "Goemans-Williamson": 347,
+          "Our Rank-1 Algorithm": 358,
+          "Coloring": 438
+        },
+        "seed18": {
+          "Our Rank-2 Algorithm": 406,
+          "Goemans-Williamson": 344,
+          "Our Rank-1 Algorithm": 367,
+          "Coloring": 429
+        },
+        "seed19": {
+          "Our Rank-2 Algorithm": 393,
+          "Goemans-Williamson": 331,
+          "Our Rank-1 Algorithm": 356,
+          "Coloring": 423
+        },
+        "seed12": {
+          "Our Rank-2 Algorithm": 384,
+          "Goemans-Williamson": 313,
+          "Our Rank-1 Algorithm": 348,
+          "Coloring": 414
+        },
+        "seed13": {
+          "Our Rank-2 Algorithm": 431,
+          "Goemans-Williamson": 343,
+          "Our Rank-1 Algorithm": 369,
+          "Coloring": 439
+        },
+        "seed6": {
+          "Our Rank-2 Algorithm": 442,
+          "Goemans-Williamson": 344,
+          "Our Rank-1 Algorithm": 410,
+          "Coloring": 455
+        },
+        "seed7": {
+          "Our Rank-2 Algorithm": 420,
+          "Goemans-Williamson": 351,
+          "Our Rank-1 Algorithm": 381,
+          "Coloring": 434
+        },
+        "seed1": {
+          "Our Rank-2 Algorithm": 416,
+          "Goemans-Williamson": 349,
+          "Our Rank-1 Algorithm": 383,
+          "Coloring": 441
+        },
+        "seed0": {
+          "Our Rank-2 Algorithm": 431,
+          "Goemans-Williamson": 345,
+          "Our Rank-1 Algorithm": 386,
+          "Coloring": 456
+        },
+        "seed15": {
+          "Our Rank-2 Algorithm": 409,
+          "Goemans-Williamson": 328,
+          "Our Rank-1 Algorithm": 360,
+          "Coloring": 434
+        },
+        "seed14": {
+          "Our Rank-2 Algorithm": 406,
+          "Goemans-Williamson": 330,
+          "Our Rank-1 Algorithm": 372,
+          "Coloring": 427
+        }
+      },
+      "p09": {
+        "seed1": {
+          "Our Rank-2 Algorithm": 3072,
+          "Goemans-Williamson": 2320,
+          "Coloring": 3108
+        },
+        "seed8": {
+          "Our Rank-2 Algorithm": 3080,
+          "Goemans-Williamson": 2336,
+          "Our Rank-1 Algorithm": 2727,
+          "Coloring": 3094
+        },
+        "seed16": {
+          "Our Rank-2 Algorithm": 3059,
+          "Goemans-Williamson": 2312,
+          "Our Rank-1 Algorithm": 2824,
+          "Coloring": 3083
+        },
+        "seed9": {
+          "Our Rank-2 Algorithm": 3095,
+          "Goemans-Williamson": 2342,
+          "Our Rank-1 Algorithm": 3036,
+          "Coloring": 3112
+        },
+        "seed17": {
+          "Our Rank-2 Algorithm": 3095,
+          "Goemans-Williamson": 2348,
+          "Our Rank-1 Algorithm": 2817,
+          "Coloring": 3118
+        },
+        "seed0": {
+          "Our Rank-2 Algorithm": 3086,
+          "Goemans-Williamson": 2332,
+          "Our Rank-1 Algorithm": 3007,
+          "Coloring": 3108
+        },
+        "seed15": {
+          "Our Rank-2 Algorithm": 3083,
+          "Goemans-Williamson": 2331,
+          "Our Rank-1 Algorithm": 3013,
+          "Coloring": 3097
+        },
+        "seed2": {
+          "Our Rank-2 Algorithm": 3101,
+          "Goemans-Williamson": 2316,
+          "Our Rank-1 Algorithm": 2913,
+          "Coloring": 3115
+        },
+        "seed3": {
+          "Our Rank-2 Algorithm": 3113,
+          "Goemans-Williamson": 2347,
+          "Our Rank-1 Algorithm": 3059,
+          "Coloring": 3120
+        },
+        "seed14": {
+          "Our Rank-2 Algorithm": 3076,
+          "Goemans-Williamson": 2338,
+          "Our Rank-1 Algorithm": 2770,
+          "Coloring": 3110
+        },
+        "seed11": {
+          "Our Rank-2 Algorithm": 3083,
+          "Goemans-Williamson": 2331,
+          "Our Rank-1 Algorithm": 2958,
+          "Coloring": 3114
+        },
+        "seed18": {
+          "Our Rank-2 Algorithm": 3072,
+          "Goemans-Williamson": 2338,
+          "Our Rank-1 Algorithm": 2608,
+          "Coloring": 3105
+        },
+        "seed6": {
+          "Our Rank-2 Algorithm": 3075,
+          "Goemans-Williamson": 2329,
+          "Our Rank-1 Algorithm": 3025,
+          "Coloring": 3102
+        },
+        "seed19": {
+          "Our Rank-2 Algorithm": 3108,
+          "Goemans-Williamson": 2314,
+          "Our Rank-1 Algorithm": 3044,
+          "Coloring": 3096
+        },
+        "seed7": {
+          "Our Rank-2 Algorithm": 3109,
+          "Goemans-Williamson": 2337,
+          "Our Rank-1 Algorithm": 3035,
+          "Coloring": 3106
+        },
+        "seed10": {
+          "Our Rank-2 Algorithm": 3112,
+          "Goemans-Williamson": 2318,
+          "Our Rank-1 Algorithm": 3025,
+          "Coloring": 3116
+        },
+        "seed5": {
+          "Our Rank-2 Algorithm": 3082,
+          "Goemans-Williamson": 2326,
+          "Our Rank-1 Algorithm": 2813,
+          "Coloring": 3105
+        },
+        "seed12": {
+          "Our Rank-2 Algorithm": 3050,
+          "Goemans-Williamson": 2332,
+          "Our Rank-1 Algorithm": 2772,
+          "Coloring": 3089
+        },
+        "seed13": {
+          "Our Rank-2 Algorithm": 3081,
+          "Goemans-Williamson": 2360,
+          "Our Rank-1 Algorithm": 2777,
+          "Coloring": 3121
+        },
+        "seed4": {
+          "Our Rank-2 Algorithm": 3104,
+          "Goemans-Williamson": 2349,
+          "Our Rank-1 Algorithm": 3050,
+          "Coloring": 3125
+        }
+      }
+    },
+    "n50": {
+      "p075": {
+        "seed5": {
+          "Our Rank-2 Algorithm": 685,
+          "Goemans-Williamson": 511,
+          "Our Rank-1 Algorithm": 659,
+          "Coloring": 686
+        },
+        "seed4": {
+          "Our Rank-2 Algorithm": 656,
+          "Goemans-Williamson": 509,
+          "Our Rank-1 Algorithm": 628,
+          "Coloring": 666
+        },
+        "seed11": {
+          "Our Rank-2 Algorithm": 671,
+          "Goemans-Williamson": 490,
+          "Our Rank-1 Algorithm": 656,
+          "Coloring": 682
+        },
+        "seed10": {
+          "Our Rank-2 Algorithm": 677,
+          "Goemans-Williamson": 515,
+          "Our Rank-1 Algorithm": 626,
+          "Coloring": 684
+        },
+        "seed16": {
+          "Our Rank-2 Algorithm": 672,
+          "Goemans-Williamson": 506,
+          "Our Rank-1 Algorithm": 640,
+          "Coloring": 677
+        },
+        "seed17": {
+          "Our Rank-2 Algorithm": 655,
+          "Goemans-Williamson": 497,
+          "Our Rank-1 Algorithm": 624,
+          "Coloring": 665
+        },
+        "seed8": {
+          "Our Rank-2 Algorithm": 686,
+          "Goemans-Williamson": 528,
+          "Our Rank-1 Algorithm": 621,
+          "Coloring": 694
+        },
+        "seed9": {
+          "Our Rank-2 Algorithm": 674,
+          "Goemans-Williamson": 508,
+          "Our Rank-1 Algorithm": 644,
+          "Coloring": 690
+        },
+        "seed2": {
+          "Our Rank-2 Algorithm": 682,
+          "Goemans-Williamson": 502,
+          "Our Rank-1 Algorithm": 650,
+          "Coloring": 685
+        },
+        "seed3": {
+          "Our Rank-2 Algorithm": 673,
+          "Goemans-Williamson": 509,
+          "Our Rank-1 Algorithm": 655,
+          "Coloring": 683
+        },
+        "seed18": {
+          "Our Rank-2 Algorithm": 673,
+          "Goemans-Williamson": 513,
+          "Our Rank-1 Algorithm": 616,
+          "Coloring": 690
+        },
+        "seed19": {
+          "Our Rank-2 Algorithm": 696,
+          "Goemans-Williamson": 522,
+          "Our Rank-1 Algorithm": 666,
+          "Coloring": 703
+        },
+        "seed12": {
+          "Our Rank-2 Algorithm": 672,
+          "Goemans-Williamson": 514,
+          "Our Rank-1 Algorithm": 636,
+          "Coloring": 682
+        },
+        "seed13": {
+          "Our Rank-2 Algorithm": 688,
+          "Goemans-Williamson": 519,
+          "Our Rank-1 Algorithm": 646,
+          "Coloring": 689
+        },
+        "seed6": {
+          "Our Rank-2 Algorithm": 663,
+          "Goemans-Williamson": 519,
+          "Our Rank-1 Algorithm": 639,
+          "Coloring": 678
+        },
+        "seed7": {
+          "Our Rank-2 Algorithm": 671,
+          "Goemans-Williamson": 510,
+          "Our Rank-1 Algorithm": 655,
+          "Coloring": 684
+        },
+        "seed1": {
+          "Our Rank-2 Algorithm": 675,
+          "Goemans-Williamson": 492,
+          "Our Rank-1 Algorithm": 647,
+          "Coloring": 682
+        },
+        "seed0": {
+          "Our Rank-2 Algorithm": 684,
+          "Goemans-Williamson": 514,
+          "Our Rank-1 Algorithm": 627,
+          "Coloring": 679
+        },
+        "seed15": {
+          "Our Rank-2 Algorithm": 658,
+          "Goemans-Williamson": 506,
+          "Our Rank-1 Algorithm": 632,
+          "Coloring": 669
+        },
+        "seed14": {
+          "Our Rank-2 Algorithm": 675,
+          "Goemans-Williamson": 506,
+          "Our Rank-1 Algorithm": 632,
+          "Coloring": 678
+        }
+      },
+      "p05": {
+        "seed5": {
+          "Our Rank-2 Algorithm": 489,
+          "Goemans-Williamson": 374,
+          "Our Rank-1 Algorithm": 448,
+          "Coloring": 492
+        },
+        "seed4": {
+          "Our Rank-2 Algorithm": 453,
+          "Goemans-Williamson": 362,
+          "Our Rank-1 Algorithm": 404,
+          "Coloring": 478
+        },
+        "seed11": {
+          "Our Rank-2 Algorithm": 460,
+          "Goemans-Williamson": 351,
+          "Our Rank-1 Algorithm": 413,
+          "Coloring": 474
+        },
+        "seed10": {
+          "Our Rank-2 Algorithm": 462,
+          "Goemans-Williamson": 355,
+          "Our Rank-1 Algorithm": 432,
+          "Coloring": 475
+        },
+        "seed16": {
+          "Our Rank-2 Algorithm": 468,
+          "Goemans-Williamson": 371,
+          "Our Rank-1 Algorithm": 439,
+          "Coloring": 481
+        },
+        "seed17": {
+          "Our Rank-2 Algorithm": 488,
+          "Goemans-Williamson": 360,
+          "Our Rank-1 Algorithm": 443,
+          "Coloring": 498
+        },
+        "seed8": {
+          "Our Rank-2 Algorithm": 466,
+          "Goemans-Williamson": 367,
+          "Our Rank-1 Algorithm": 436,
+          "Coloring": 478
+        },
+        "seed9": {
+          "Our Rank-2 Algorithm": 476,
+          "Goemans-Williamson": 358,
+          "Our Rank-1 Algorithm": 428,
+          "Coloring": 480
+        },
+        "seed2": {
+          "Our Rank-2 Algorithm": 465,
+          "Goemans-Williamson": 348,
+          "Our Rank-1 Algorithm": 430,
+          "Coloring": 477
+        },
+        "seed3": {
+          "Our Rank-2 Algorithm": 481,
+          "Goemans-Williamson": 379,
+          "Our Rank-1 Algorithm": 444,
+          "Coloring": 483
+        },
+        "seed18": {
+          "Our Rank-2 Algorithm": 471,
+          "Goemans-Williamson": 365,
+          "Our Rank-1 Algorithm": 428,
+          "Coloring": 479
+        },
+        "seed19": {
+          "Our Rank-2 Algorithm": 495,
+          "Goemans-Williamson": 369,
+          "Our Rank-1 Algorithm": 444,
+          "Coloring": 492
+        },
+        "seed12": {
+          "Our Rank-2 Algorithm": 462,
+          "Goemans-Williamson": 361,
+          "Our Rank-1 Algorithm": 429,
+          "Coloring": 479
+        },
+        "seed13": {
+          "Our Rank-2 Algorithm": 473,
+          "Goemans-Williamson": 369,
+          "Our Rank-1 Algorithm": 437,
+          "Coloring": 495
+        },
+        "seed6": {
+          "Our Rank-2 Algorithm": 474,
+          "Goemans-Williamson": 370,
+          "Our Rank-1 Algorithm": 434,
+          "Coloring": 480
+        },
+        "seed7": {
+          "Our Rank-2 Algorithm": 499,
+          "Goemans-Williamson": 385,
+          "Our Rank-1 Algorithm": 457,
+          "Coloring": 520
+        },
+        "seed1": {
+          "Our Rank-2 Algorithm": 443,
+          "Goemans-Williamson": 355,
+          "Our Rank-1 Algorithm": 410,
+          "Coloring": 460
+        },
+        "seed0": {
+          "Our Rank-2 Algorithm": 479,
+          "Goemans-Williamson": 377,
+          "Our Rank-1 Algorithm": 431,
+          "Coloring": 490
+        },
+        "seed15": {
+          "Our Rank-2 Algorithm": 466,
+          "Goemans-Williamson": 375,
+          "Our Rank-1 Algorithm": 428,
+          "Coloring": 482
+        },
+        "seed14": {
+          "Our Rank-2 Algorithm": 482,
+          "Goemans-Williamson": 374,
+          "Our Rank-1 Algorithm": 450,
+          "Coloring": 493
+        }
+      },
+      "p025": {
+        "seed5": {
+          "Our Rank-2 Algorithm": 259,
+          "Goemans-Williamson": 203,
+          "Our Rank-1 Algorithm": 240,
+          "Coloring": 268
+        },
+        "seed4": {
+          "Our Rank-2 Algorithm": 247,
+          "Goemans-Williamson": 204,
+          "Our Rank-1 Algorithm": 220,
+          "Coloring": 266
+        },
+        "seed11": {
+          "Our Rank-2 Algorithm": 271,
+          "Our Rank-3 Algorithm": 275,
+          "Goemans-Williamson": 203,
+          "Our Rank-1 Algorithm": 244,
+          "Coloring": 268
+        },
+        "seed10": {
+          "Our Rank-2 Algorithm": 248,
+          "Our Rank-3 Algorithm": 251,
+          "Goemans-Williamson": 194,
+          "Our Rank-1 Algorithm": 208,
+          "Coloring": 251
+        },
+        "seed16": {
+          "Our Rank-2 Algorithm": 266,
+          "Goemans-Williamson": 209,
+          "Our Rank-1 Algorithm": 226,
+          "Coloring": 269
+        },
+        "seed17": {
+          "Our Rank-2 Algorithm": 247,
+          "Goemans-Williamson": 196,
+          "Our Rank-1 Algorithm": 219,
+          "Coloring": 258
+        },
+        "seed8": {
+          "Our Rank-2 Algorithm": 239,
+          "Goemans-Williamson": 197,
+          "Our Rank-1 Algorithm": 215,
+          "Coloring": 250
+        },
+        "seed9": {
+          "Our Rank-2 Algorithm": 280,
+          "Goemans-Williamson": 211,
+          "Our Rank-1 Algorithm": 247,
+          "Coloring": 281
+        },
+        "seed2": {
+          "Our Rank-2 Algorithm": 247,
+          "Goemans-Williamson": 188,
+          "Our Rank-1 Algorithm": 200,
+          "Coloring": 262
+        },
+        "seed3": {
+          "Our Rank-2 Algorithm": 251,
+          "Goemans-Williamson": 210,
+          "Our Rank-1 Algorithm": 205,
+          "Coloring": 264
+        },
+        "seed18": {
+          "Our Rank-2 Algorithm": 233,
+          "Goemans-Williamson": 188,
+          "Our Rank-1 Algorithm": 206,
+          "Coloring": 242
+        },
+        "seed19": {
+          "Our Rank-2 Algorithm": 246,
+          "Goemans-Williamson": 198,
+          "Our Rank-1 Algorithm": 235,
+          "Coloring": 256
+        },
+        "seed12": {
+          "Our Rank-2 Algorithm": 246,
+          "Our Rank-3 Algorithm": 250,
+          "Goemans-Williamson": 196,
+          "Our Rank-1 Algorithm": 216,
+          "Coloring": 256
+        },
+        "seed13": {
+          "Our Rank-2 Algorithm": 265,
+          "Our Rank-3 Algorithm": 268,
+          "Goemans-Williamson": 210,
+          "Our Rank-1 Algorithm": 244,
+          "Coloring": 267
+        },
+        "seed6": {
+          "Our Rank-2 Algorithm": 266,
+          "Goemans-Williamson": 198,
+          "Our Rank-1 Algorithm": 245,
+          "Coloring": 279
+        },
+        "seed7": {
+          "Our Rank-2 Algorithm": 285,
+          "Goemans-Williamson": 220,
+          "Our Rank-1 Algorithm": 242,
+          "Coloring": 289
+        },
+        "seed1": {
+          "Our Rank-2 Algorithm": 230,
+          "Our Rank-3 Algorithm": 246,
+          "Goemans-Williamson": 186,
+          "Our Rank-1 Algorithm": 201,
+          "Coloring": 242
+        },
+        "seed0": {
+          "Our Rank-2 Algorithm": 253,
+          "Our Rank-3 Algorithm": 260,
+          "Goemans-Williamson": 194,
+          "Our Rank-1 Algorithm": 231,
+          "Coloring": 259
+        },
+        "seed15": {
+          "Our Rank-2 Algorithm": 244,
+          "Goemans-Williamson": 192,
+          "Our Rank-1 Algorithm": 219,
+          "Coloring": 256
+        },
+        "seed14": {
+          "Our Rank-2 Algorithm": 264,
+          "Our Rank-3 Algorithm": 271,
+          "Goemans-Williamson": 204,
+          "Our Rank-1 Algorithm": 244,
+          "Coloring": 271
+        }
+      },
+      "p01": {
+        "seed5": {
+          "Our Rank-2 Algorithm": 124,
+          "Goemans-Williamson": 102,
+          "Our Rank-1 Algorithm": 110,
+          "Coloring": 127
+        },
+        "seed4": {
+          "Our Rank-2 Algorithm": 115,
+          "Goemans-Williamson": 93,
+          "Our Rank-1 Algorithm": 107,
+          "Coloring": 121
+        },
+        "seed11": {
+          "Our Rank-2 Algorithm": 115,
+          "Goemans-Williamson": 94,
+          "Our Rank-1 Algorithm": 103,
+          "Coloring": 120
+        },
+        "seed10": {
+          "Our Rank-2 Algorithm": 117,
+          "Goemans-Williamson": 98,
+          "Our Rank-1 Algorithm": 100,
+          "Coloring": 124
+        },
+        "seed16": {
+          "Our Rank-2 Algorithm": 122,
+          "Goemans-Williamson": 100,
+          "Our Rank-1 Algorithm": 106,
+          "Coloring": 124
+        },
+        "seed17": {
+          "Our Rank-2 Algorithm": 104,
+          "Goemans-Williamson": 91,
+          "Our Rank-1 Algorithm": 94,
+          "Coloring": 108
+        },
+        "seed8": {
+          "Our Rank-2 Algorithm": 100,
+          "Goemans-Williamson": 82,
+          "Our Rank-1 Algorithm": 91,
+          "Coloring": 105
+        },
+        "seed9": {
+          "Our Rank-2 Algorithm": 139,
+          "Goemans-Williamson": 117,
+          "Our Rank-1 Algorithm": 118,
+          "Coloring": 141
+        },
+        "seed2": {
+          "Our Rank-2 Algorithm": 107,
+          "Goemans-Williamson": 89,
+          "Our Rank-1 Algorithm": 91,
+          "Coloring": 110
+        },
+        "seed3": {
+          "Our Rank-2 Algorithm": 114,
+          "Goemans-Williamson": 92,
+          "Our Rank-1 Algorithm": 98,
+          "Coloring": 119
+        },
+        "seed18": {
+          "Our Rank-2 Algorithm": 106,
+          "Goemans-Williamson": 82,
+          "Our Rank-1 Algorithm": 99,
+          "Coloring": 111
+        },
+        "seed19": {
+          "Our Rank-2 Algorithm": 100,
+          "Goemans-Williamson": 88,
+          "Our Rank-1 Algorithm": 93,
+          "Coloring": 107
+        },
+        "seed12": {
+          "Our Rank-2 Algorithm": 100,
+          "Goemans-Williamson": 88,
+          "Our Rank-1 Algorithm": 97,
+          "Coloring": 108
+        },
+        "seed13": {
+          "Our Rank-2 Algorithm": 108,
+          "Goemans-Williamson": 90,
+          "Our Rank-1 Algorithm": 94,
+          "Coloring": 114
+        },
+        "seed6": {
+          "Our Rank-2 Algorithm": 119,
+          "Goemans-Williamson": 99,
+          "Our Rank-1 Algorithm": 106,
+          "Coloring": 129
+        },
+        "seed7": {
+          "Our Rank-2 Algorithm": 121,
+          "Goemans-Williamson": 99,
+          "Our Rank-1 Algorithm": 98,
+          "Coloring": 126
+        },
+        "seed1": {
+          "Our Rank-2 Algorithm": 108,
+          "Goemans-Williamson": 92,
+          "Our Rank-1 Algorithm": 94,
+          "Coloring": 114
+        },
+        "seed0": {
+          "Our Rank-2 Algorithm": 133,
+          "Goemans-Williamson": 112,
+          "Our Rank-1 Algorithm": 114,
+          "Coloring": 139
+        },
+        "seed15": {
+          "Our Rank-2 Algorithm": 106,
+          "Goemans-Williamson": 84,
+          "Our Rank-1 Algorithm": 94,
+          "Coloring": 109
+        },
+        "seed14": {
+          "Our Rank-2 Algorithm": 111,
+          "Goemans-Williamson": 95,
+          "Our Rank-1 Algorithm": 103,
+          "Coloring": 118
+        }
+      },
+      "p09": {
+        "seed3": {
+          "Our Rank-2 Algorithm": 797,
+          "Our Rank-3 Algorithm": 798,
+          "Goemans-Williamson": 594,
+          "Our Rank-1 Algorithm": 770,
+          "Coloring": 793
+        },
+        "seed16": {
+          "Our Rank-2 Algorithm": 771,
+          "Our Rank-3 Algorithm": 788,
+          "Goemans-Williamson": 586,
+          "Our Rank-1 Algorithm": 608,
+          "Coloring": 776
+        },
+        "seed2": {
+          "Our Rank-2 Algorithm": 780,
+          "Our Rank-3 Algorithm": 788,
+          "Goemans-Williamson": 586,
+          "Our Rank-1 Algorithm": 721,
+          "Coloring": 780
+        },
+        "seed17": {
+          "Our Rank-2 Algorithm": 770,
+          "Our Rank-3 Algorithm": 778,
+          "Goemans-Williamson": 562,
+          "Our Rank-1 Algorithm": 722,
+          "Coloring": 776
+        },
+        "seed0": {
+          "Our Rank-2 Algorithm": 772,
+          "Our Rank-3 Algorithm": 785,
+          "Goemans-Williamson": 583,
+          "Our Rank-1 Algorithm": 680,
+          "Coloring": 790
+        },
+        "seed15": {
+          "Our Rank-2 Algorithm": 780,
+          "Our Rank-3 Algorithm": 788,
+          "Goemans-Williamson": 569,
+          "Our Rank-1 Algorithm": 722,
+          "Coloring": 782
+        },
+        "seed9": {
+          "Our Rank-2 Algorithm": 783,
+          "Our Rank-3 Algorithm": 794,
+          "Goemans-Williamson": 591,
+          "Our Rank-1 Algorithm": 730,
+          "Coloring": 786
+        },
+        "seed8": {
+          "Our Rank-2 Algorithm": 592,
+          "Our Rank-3 Algorithm": 780,
+          "Goemans-Williamson": 591,
+          "Our Rank-1 Algorithm": 592,
+          "Coloring": 784
+        },
+        "seed1": {
+          "Our Rank-2 Algorithm": 588,
+          "Our Rank-3 Algorithm": 791,
+          "Goemans-Williamson": 598,
+          "Our Rank-1 Algorithm": 588,
+          "Coloring": 785
+        },
+        "seed14": {
+          "Our Rank-2 Algorithm": 781,
+          "Our Rank-3 Algorithm": 783,
+          "Goemans-Williamson": 585,
+          "Our Rank-1 Algorithm": 752,
+          "Coloring": 780
+        },
+        "seed11": {
+          "Our Rank-2 Algorithm": 781,
+          "Our Rank-3 Algorithm": 786,
+          "Goemans-Williamson": 589,
+          "Our Rank-1 Algorithm": 755,
+          "Coloring": 780
+        },
+        "seed4": {
+          "Our Rank-2 Algorithm": 775,
+          "Our Rank-3 Algorithm": 786,
+          "Goemans-Williamson": 583,
+          "Our Rank-1 Algorithm": 659,
+          "Coloring": 780
+        },
+        "seed18": {
+          "Our Rank-2 Algorithm": 784,
+          "Our Rank-3 Algorithm": 794,
+          "Goemans-Williamson": 580,
+          "Our Rank-1 Algorithm": 750,
+          "Coloring": 782
+        },
+        "seed19": {
+          "Our Rank-2 Algorithm": 790,
+          "Our Rank-3 Algorithm": 798,
+          "Goemans-Williamson": 588,
+          "Our Rank-1 Algorithm": 753,
+          "Coloring": 795
+        },
+        "seed10": {
+          "Our Rank-2 Algorithm": 794,
+          "Our Rank-3 Algorithm": 798,
+          "Goemans-Williamson": 600,
+          "Our Rank-1 Algorithm": 762,
+          "Coloring": 796
+        },
+        "seed5": {
+          "Our Rank-2 Algorithm": 787,
+          "Our Rank-3 Algorithm": 791,
+          "Goemans-Williamson": 585,
+          "Our Rank-1 Algorithm": 750,
+          "Coloring": 778
+        },
+        "seed12": {
+          "Our Rank-2 Algorithm": 771,
+          "Our Rank-3 Algorithm": 783,
+          "Goemans-Williamson": 584,
+          "Our Rank-1 Algorithm": 572,
+          "Coloring": 781
+        },
+        "seed7": {
+          "Our Rank-2 Algorithm": 781,
+          "Our Rank-3 Algorithm": 787,
+          "Goemans-Williamson": 592,
+          "Our Rank-1 Algorithm": 749,
+          "Coloring": 780
+        },
+        "seed13": {
+          "Our Rank-2 Algorithm": 789,
+          "Our Rank-3 Algorithm": 794,
+          "Goemans-Williamson": 601,
+          "Our Rank-1 Algorithm": 590,
+          "Coloring": 792
+        },
+        "seed6": {
+          "Our Rank-2 Algorithm": 781,
+          "Our Rank-3 Algorithm": 787,
+          "Goemans-Williamson": 586,
+          "Our Rank-1 Algorithm": 735,
+          "Coloring": 782
+        }
+      }
+    }
+  }
+}
