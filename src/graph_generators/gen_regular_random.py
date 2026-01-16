@@ -14,7 +14,7 @@ def main():
         help="Number of nodes in the graph."
     )
     parser.add_argument(
-        "--d", type=float, default=3,
+        "--d", type=int, default=3,
         help="Degree of each node."
     )
     parser.add_argument(
