@@ -1,0 +1,5 @@
+2026-01-16 15:52:27 [INFO] [top_r_eigh] using scipy.linalg.eigh subset_by_index=[99999, 99999] (dtype=float32)
+2026-01-17 06:26:05 [INFO] [top_r_eigh] scipy eigh done in 52417.7831s
+2026-01-17 06:26:05 [INFO] [low_rank_V] top-1 eigenvalues: max=5.82873010635376, min=5.82873010635376
+2026-01-17 06:26:05 [INFO] [low_rank_V] V shape=(100000, 1), dtype=float32
+2026-01-17 06:26:05 [INFO] [low_rank_V] done in 0.0581s

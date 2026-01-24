@@ -1,0 +1,100 @@
+2026-01-15 23:43:14 [INFO] [top_r_eigh] using scipy.linalg.eigh subset_by_index=[7, 9]
+2026-01-15 23:43:14 [INFO] [top_r_eigh] scipy eigh done in 0.0552s
+2026-01-15 23:43:14 [INFO] [low_rank_V] top-3 eigenvalues: max=10.000000000000005, min=9.999999999999998
+2026-01-15 23:43:14 [INFO] [low_rank_V] V shape=(10, 3), dtype=float64
+2026-01-15 23:43:14 [INFO] [low_rank_V] done in 0.0001s
+2026-01-15 23:43:15 [INFO] [top_r_eigh] using scipy.linalg.eigh subset_by_index=[7, 9]
+2026-01-15 23:43:15 [INFO] [top_r_eigh] scipy eigh done in 0.0001s
+2026-01-15 23:43:15 [INFO] [low_rank_V] top-3 eigenvalues: max=10.000000000000009, min=10.000000000000002
+2026-01-15 23:43:15 [INFO] [low_rank_V] V shape=(10, 3), dtype=float64
+2026-01-15 23:43:15 [INFO] [low_rank_V] done in 0.0001s
+2026-01-15 23:43:15 [INFO] [top_r_eigh] using scipy.linalg.eigh subset_by_index=[7, 9]
+2026-01-15 23:43:15 [INFO] [top_r_eigh] scipy eigh done in 0.0001s
+2026-01-15 23:43:15 [INFO] [low_rank_V] top-3 eigenvalues: max=10.000000000000005, min=9.699628148275318
+2026-01-15 23:43:15 [INFO] [low_rank_V] V shape=(10, 3), dtype=float64
+2026-01-15 23:43:15 [INFO] [low_rank_V] done in 0.0001s
+2026-01-15 23:43:15 [INFO] [top_r_eigh] using scipy.linalg.eigh subset_by_index=[7, 9]
+2026-01-15 23:43:15 [INFO] [top_r_eigh] scipy eigh done in 0.0001s
+2026-01-15 23:43:15 [INFO] [low_rank_V] top-3 eigenvalues: max=10.000000000000002, min=9.999999999999998
+2026-01-15 23:43:15 [INFO] [low_rank_V] V shape=(10, 3), dtype=float64
+2026-01-15 23:43:15 [INFO] [low_rank_V] done in 0.0001s
+2026-01-15 23:43:15 [INFO] [top_r_eigh] using scipy.linalg.eigh subset_by_index=[7, 9]
+2026-01-15 23:43:15 [INFO] [top_r_eigh] scipy eigh done in 0.0001s
+2026-01-15 23:43:15 [INFO] [low_rank_V] top-3 eigenvalues: max=10.000000000000005, min=9.999999999999998
+2026-01-15 23:43:15 [INFO] [low_rank_V] V shape=(10, 3), dtype=float64
+2026-01-15 23:43:15 [INFO] [low_rank_V] done in 0.0001s
+2026-01-15 23:43:15 [INFO] [top_r_eigh] using scipy.linalg.eigh subset_by_index=[7, 9]
+2026-01-15 23:43:15 [INFO] [top_r_eigh] scipy eigh done in 0.0001s
+2026-01-15 23:43:15 [INFO] [low_rank_V] top-3 eigenvalues: max=9.999999999999998, min=9.356383078504825
+2026-01-15 23:43:15 [INFO] [low_rank_V] V shape=(10, 3), dtype=float64
+2026-01-15 23:43:15 [INFO] [low_rank_V] done in 0.0001s
+2026-01-15 23:43:15 [INFO] [top_r_eigh] using scipy.linalg.eigh subset_by_index=[7, 9]
+2026-01-15 23:43:15 [INFO] [top_r_eigh] scipy eigh done in 0.0001s
+2026-01-15 23:43:15 [INFO] [low_rank_V] top-3 eigenvalues: max=10.000000000000002, min=9.999999999999998
+2026-01-15 23:43:15 [INFO] [low_rank_V] V shape=(10, 3), dtype=float64
+2026-01-15 23:43:15 [INFO] [low_rank_V] done in 0.0001s
+2026-01-15 23:43:15 [INFO] [top_r_eigh] using scipy.linalg.eigh subset_by_index=[7, 9]
+2026-01-15 23:43:15 [INFO] [top_r_eigh] scipy eigh done in 0.0001s
+2026-01-15 23:43:15 [INFO] [low_rank_V] top-3 eigenvalues: max=10.000000000000009, min=10.000000000000002
+2026-01-15 23:43:15 [INFO] [low_rank_V] V shape=(10, 3), dtype=float64
+2026-01-15 23:43:15 [INFO] [low_rank_V] done in 0.0001s
+2026-01-15 23:43:15 [INFO] [top_r_eigh] using scipy.linalg.eigh subset_by_index=[7, 9]
+2026-01-15 23:43:15 [INFO] [top_r_eigh] scipy eigh done in 0.0001s
+2026-01-15 23:43:15 [INFO] [low_rank_V] top-3 eigenvalues: max=10.0, min=9.999999999999995
+2026-01-15 23:43:15 [INFO] [low_rank_V] V shape=(10, 3), dtype=float64
+2026-01-15 23:43:15 [INFO] [low_rank_V] done in 0.0001s
+2026-01-15 23:43:15 [INFO] [top_r_eigh] using scipy.linalg.eigh subset_by_index=[7, 9]
+2026-01-15 23:43:15 [INFO] [top_r_eigh] scipy eigh done in 0.0001s
+2026-01-15 23:43:15 [INFO] [low_rank_V] top-3 eigenvalues: max=10.000000000000002, min=10.000000000000002
+2026-01-15 23:43:15 [INFO] [low_rank_V] V shape=(10, 3), dtype=float64
+2026-01-15 23:43:15 [INFO] [low_rank_V] done in 0.0001s
+2026-01-15 23:43:15 [INFO] [top_r_eigh] using scipy.linalg.eigh subset_by_index=[7, 9]
+2026-01-15 23:43:15 [INFO] [top_r_eigh] scipy eigh done in 0.0001s
+2026-01-15 23:43:15 [INFO] [low_rank_V] top-3 eigenvalues: max=10.000000000000009, min=10.000000000000002
+2026-01-15 23:43:15 [INFO] [low_rank_V] V shape=(10, 3), dtype=float64
+2026-01-15 23:43:15 [INFO] [low_rank_V] done in 0.0001s
+2026-01-15 23:43:15 [INFO] [top_r_eigh] using scipy.linalg.eigh subset_by_index=[7, 9]
+2026-01-15 23:43:15 [INFO] [top_r_eigh] scipy eigh done in 0.0001s
+2026-01-15 23:43:15 [INFO] [low_rank_V] top-3 eigenvalues: max=10.000000000000005, min=9.999999999999998
+2026-01-15 23:43:15 [INFO] [low_rank_V] V shape=(10, 3), dtype=float64
+2026-01-15 23:43:15 [INFO] [low_rank_V] done in 0.0001s
+2026-01-15 23:43:15 [INFO] [top_r_eigh] using scipy.linalg.eigh subset_by_index=[7, 9]
+2026-01-15 23:43:15 [INFO] [top_r_eigh] scipy eigh done in 0.0001s
+2026-01-15 23:43:15 [INFO] [low_rank_V] top-3 eigenvalues: max=10.000000000000012, min=10.0
+2026-01-15 23:43:15 [INFO] [low_rank_V] V shape=(10, 3), dtype=float64
+2026-01-15 23:43:15 [INFO] [low_rank_V] done in 0.0001s
+2026-01-15 23:43:15 [INFO] [top_r_eigh] using scipy.linalg.eigh subset_by_index=[7, 9]
+2026-01-15 23:43:15 [INFO] [top_r_eigh] scipy eigh done in 0.0001s
+2026-01-15 23:43:15 [INFO] [low_rank_V] top-3 eigenvalues: max=10.000000000000009, min=10.000000000000002
+2026-01-15 23:43:15 [INFO] [low_rank_V] V shape=(10, 3), dtype=float64
+2026-01-15 23:43:15 [INFO] [low_rank_V] done in 0.0001s
+2026-01-15 23:43:15 [INFO] [top_r_eigh] using scipy.linalg.eigh subset_by_index=[7, 9]
+2026-01-15 23:43:15 [INFO] [top_r_eigh] scipy eigh done in 0.0001s
+2026-01-15 23:43:15 [INFO] [low_rank_V] top-3 eigenvalues: max=10.000000000000004, min=9.999999999999998
+2026-01-15 23:43:15 [INFO] [low_rank_V] V shape=(10, 3), dtype=float64
+2026-01-15 23:43:15 [INFO] [low_rank_V] done in 0.0001s
+2026-01-15 23:43:15 [INFO] [top_r_eigh] using scipy.linalg.eigh subset_by_index=[7, 9]
+2026-01-15 23:43:15 [INFO] [top_r_eigh] scipy eigh done in 0.0001s
+2026-01-15 23:43:15 [INFO] [low_rank_V] top-3 eigenvalues: max=10.000000000000005, min=9.302775637731996
+2026-01-15 23:43:15 [INFO] [low_rank_V] V shape=(10, 3), dtype=float64
+2026-01-15 23:43:15 [INFO] [low_rank_V] done in 0.0001s
+2026-01-15 23:43:15 [INFO] [top_r_eigh] using scipy.linalg.eigh subset_by_index=[7, 9]
+2026-01-15 23:43:15 [INFO] [top_r_eigh] scipy eigh done in 0.0001s
+2026-01-15 23:43:15 [INFO] [low_rank_V] top-3 eigenvalues: max=10.000000000000016, min=10.000000000000004
+2026-01-15 23:43:15 [INFO] [low_rank_V] V shape=(10, 3), dtype=float64
+2026-01-15 23:43:15 [INFO] [low_rank_V] done in 0.0001s
+2026-01-15 23:43:15 [INFO] [top_r_eigh] using scipy.linalg.eigh subset_by_index=[7, 9]
+2026-01-15 23:43:15 [INFO] [top_r_eigh] scipy eigh done in 0.0001s
+2026-01-15 23:43:15 [INFO] [low_rank_V] top-3 eigenvalues: max=10.0, min=9.342923082777173
+2026-01-15 23:43:15 [INFO] [low_rank_V] V shape=(10, 3), dtype=float64
+2026-01-15 23:43:15 [INFO] [low_rank_V] done in 0.0001s
+2026-01-15 23:43:15 [INFO] [top_r_eigh] using scipy.linalg.eigh subset_by_index=[7, 9]
+2026-01-15 23:43:15 [INFO] [top_r_eigh] scipy eigh done in 0.0001s
+2026-01-15 23:43:15 [INFO] [low_rank_V] top-3 eigenvalues: max=10.000000000000005, min=10.0
+2026-01-15 23:43:15 [INFO] [low_rank_V] V shape=(10, 3), dtype=float64
+2026-01-15 23:43:15 [INFO] [low_rank_V] done in 0.0001s
+2026-01-15 23:43:15 [INFO] [top_r_eigh] using scipy.linalg.eigh subset_by_index=[7, 9]
+2026-01-15 23:43:15 [INFO] [top_r_eigh] scipy eigh done in 0.0001s
+2026-01-15 23:43:15 [INFO] [low_rank_V] top-3 eigenvalues: max=10.000000000000012, min=10.0
+2026-01-15 23:43:15 [INFO] [low_rank_V] V shape=(10, 3), dtype=float64
+2026-01-15 23:43:15 [INFO] [low_rank_V] done in 0.0001s
