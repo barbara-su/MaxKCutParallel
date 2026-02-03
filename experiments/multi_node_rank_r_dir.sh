@@ -4,13 +4,12 @@
 #SBATCH --output=logs/multi-nodes-rank-r-dir-%j.out
 #SBATCH --error=logs/multi-nodes-rank-r-dir-%j.err
 
-#SBATCH --nodes=4
+#SBATCH --nodes=5
 #SBATCH --tasks-per-node=1
 #SBATCH --partition=commons
 #SBATCH --cpus-per-task=80
-#SBATCH --mem=50G
+#SBATCH --mem=20G
 #SBATCH --time=23:00:00
-#SBATCH --exclude=bg3u16g1,bg5u24g1,bg5u16g1
 
 # One Ray cluster, many instances.
 # This calls src/parallel_rank_r_dir.py ONCE, which iterates the directory internally
@@ -27,6 +26,7 @@
 # Example:
 #   sbatch experiments/multi_node_rank_r_dir.sh graphs/erdos_renyi/rank_2/p01/n20 results/erdos_renyi/rank_2/p01/n20 2 32 1000 0
 
+rm -rf /tmp/ray/
 set -euo pipefail
 
 QV_DIR=${1:-graphs}

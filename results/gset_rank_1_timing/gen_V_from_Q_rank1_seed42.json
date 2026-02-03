@@ -1,0 +1,645 @@
+{
+  "created_at": "2026-01-24T22:49:29.163330Z",
+  "num_records": 71,
+  "records": [
+    {
+      "compute_eigenvectors_time_s": 0.30256954999640584,
+      "construct_V_time_s": 6.84160040691495e-05,
+      "disk_save_time_s": 0.3096967309829779,
+      "graph_id": 1,
+      "load_time_disk_s": 0.030903541948646307,
+      "load_time_laplacian_s": 0.017535769962705672,
+      "total_time_s": 0.6607740088948049
+    },
+    {
+      "compute_eigenvectors_time_s": 0.05526535998797044,
+      "construct_V_time_s": 5.977496039122343e-05,
+      "disk_save_time_s": 0.24628374201711267,
+      "graph_id": 2,
+      "load_time_disk_s": 0.023218713991809636,
+      "load_time_laplacian_s": 0.030411278014071286,
+      "total_time_s": 0.35523886897135526
+    },
+    {
+      "compute_eigenvectors_time_s": 0.025961395003832877,
+      "construct_V_time_s": 4.105904372408986e-05,
+      "disk_save_time_s": 0.2593215800006874,
+      "graph_id": 3,
+      "load_time_disk_s": 0.022655042994301766,
+      "load_time_laplacian_s": 0.015167598961852491,
+      "total_time_s": 0.3231466760043986
+    },
+    {
+      "compute_eigenvectors_time_s": 0.026328048028517514,
+      "construct_V_time_s": 4.7859037294983864e-05,
+      "disk_save_time_s": 0.276124476979021,
+      "graph_id": 4,
+      "load_time_disk_s": 0.035753018979448825,
+      "load_time_laplacian_s": 0.016428839997388422,
+      "total_time_s": 0.35468224302167073
+    },
+    {
+      "compute_eigenvectors_time_s": 0.02619952498935163,
+      "construct_V_time_s": 3.987201489508152e-05,
+      "disk_save_time_s": 0.2646493409993127,
+      "graph_id": 5,
+      "load_time_disk_s": 0.023051066033076495,
+      "load_time_laplacian_s": 0.031278126989491284,
+      "total_time_s": 0.3452179310261272
+    },
+    {
+      "compute_eigenvectors_time_s": 0.027407017012592405,
+      "construct_V_time_s": 5.055696237832308e-05,
+      "disk_save_time_s": 0.2532945800339803,
+      "graph_id": 6,
+      "load_time_disk_s": 0.025278910994529724,
+      "load_time_laplacian_s": 0.01695277204271406,
+      "total_time_s": 0.3229838370461948
+    },
+    {
+      "compute_eigenvectors_time_s": 0.026265413966029882,
+      "construct_V_time_s": 4.293100209906697e-05,
+      "disk_save_time_s": 0.26751642901217565,
+      "graph_id": 7,
+      "load_time_disk_s": 0.033048217999748886,
+      "load_time_laplacian_s": 0.03667841700371355,
+      "total_time_s": 0.36355140898376703
+    },
+    {
+      "compute_eigenvectors_time_s": 0.02604480995796621,
+      "construct_V_time_s": 4.549295408651233e-05,
+      "disk_save_time_s": 0.2878335749846883,
+      "graph_id": 8,
+      "load_time_disk_s": 0.020710063981823623,
+      "load_time_laplacian_s": 0.014332852035295218,
+      "total_time_s": 0.3489667939138599
+    },
+    {
+      "compute_eigenvectors_time_s": 0.02603252697736025,
+      "construct_V_time_s": 4.465901292860508e-05,
+      "disk_save_time_s": 0.2853541420190595,
+      "graph_id": 9,
+      "load_time_disk_s": 0.03458253503777087,
+      "load_time_laplacian_s": 0.014458087971433997,
+      "total_time_s": 0.3604719510185532
+    },
+    {
+      "compute_eigenvectors_time_s": 0.02630453900201246,
+      "construct_V_time_s": 4.3304054997861385e-05,
+      "disk_save_time_s": 0.26588611101033166,
+      "graph_id": 10,
+      "load_time_disk_s": 0.02212208096170798,
+      "load_time_laplacian_s": 0.03210892900824547,
+      "total_time_s": 0.34646496403729543
+    },
+    {
+      "compute_eigenvectors_time_s": 0.02589382597943768,
+      "construct_V_time_s": 3.685802221298218e-05,
+      "disk_save_time_s": 0.23958107904763892,
+      "graph_id": 11,
+      "load_time_disk_s": 0.002354766009375453,
+      "load_time_laplacian_s": 0.002251849975436926,
+      "total_time_s": 0.27011837903410196
+    },
+    {
+      "compute_eigenvectors_time_s": 0.025981131999287754,
+      "construct_V_time_s": 4.451198037713766e-05,
+      "disk_save_time_s": 0.3088191560236737,
+      "graph_id": 12,
+      "load_time_disk_s": 0.002347711008042097,
+      "load_time_laplacian_s": 0.0022174069890752435,
+      "total_time_s": 0.33940991800045595
+    },
+    {
+      "compute_eigenvectors_time_s": 0.02578651101794094,
+      "construct_V_time_s": 3.5694974940270185e-05,
+      "disk_save_time_s": 0.22731791296973825,
+      "graph_id": 13,
+      "load_time_disk_s": 0.002268031006678939,
+      "load_time_laplacian_s": 0.0021997030125930905,
+      "total_time_s": 0.2576078529818915
+    },
+    {
+      "compute_eigenvectors_time_s": 0.025939991988707334,
+      "construct_V_time_s": 6.178702460601926e-05,
+      "disk_save_time_s": 0.2708258099737577,
+      "graph_id": 14,
+      "load_time_disk_s": 0.005673084000591189,
+      "load_time_laplacian_s": 0.0046946569927968085,
+      "total_time_s": 0.30719532998045906
+    },
+    {
+      "compute_eigenvectors_time_s": 0.025694380979985,
+      "construct_V_time_s": 4.0387967601418495e-05,
+      "disk_save_time_s": 0.34363544604275376,
+      "graph_id": 15,
+      "load_time_disk_s": 0.005479161976836622,
+      "load_time_laplacian_s": 0.004305451991967857,
+      "total_time_s": 0.37915482895914465
+    },
+    {
+      "compute_eigenvectors_time_s": 0.02599196700612083,
+      "construct_V_time_s": 3.467703936621547e-05,
+      "disk_save_time_s": 0.2458613910130225,
+      "graph_id": 16,
+      "load_time_disk_s": 0.0053826720104552805,
+      "load_time_laplacian_s": 0.004367685003671795,
+      "total_time_s": 0.28163839207263663
+    },
+    {
+      "compute_eigenvectors_time_s": 0.025925142981577665,
+      "construct_V_time_s": 3.737700171768665e-05,
+      "disk_save_time_s": 0.2650224360404536,
+      "graph_id": 17,
+      "load_time_disk_s": 0.005459669046103954,
+      "load_time_laplacian_s": 0.004303287016227841,
+      "total_time_s": 0.30074791208608076
+    },
+    {
+      "compute_eigenvectors_time_s": 0.026383220974821597,
+      "construct_V_time_s": 4.265195457264781e-05,
+      "disk_save_time_s": 0.33152828802121803,
+      "graph_id": 18,
+      "load_time_disk_s": 0.005681551992893219,
+      "load_time_laplacian_s": 0.024436904001049697,
+      "total_time_s": 0.3880726169445552
+    },
+    {
+      "compute_eigenvectors_time_s": 0.026518593018408865,
+      "construct_V_time_s": 4.0113984141498804e-05,
+      "disk_save_time_s": 0.21417945600114763,
+      "graph_id": 19,
+      "load_time_disk_s": 0.00549329404020682,
+      "load_time_laplacian_s": 0.00475396600086242,
+      "total_time_s": 0.25098542304476723
+    },
+    {
+      "compute_eigenvectors_time_s": 0.025960795988794416,
+      "construct_V_time_s": 3.8320955354720354e-05,
+      "disk_save_time_s": 0.219295573013369,
+      "graph_id": 20,
+      "load_time_disk_s": 0.0055181210045702755,
+      "load_time_laplacian_s": 0.004308685020077974,
+      "total_time_s": 0.2551214959821664
+    },
+    {
+      "compute_eigenvectors_time_s": 0.025818612019065768,
+      "construct_V_time_s": 4.93300030939281e-05,
+      "disk_save_time_s": 0.287132641999051,
+      "graph_id": 21,
+      "load_time_disk_s": 0.005523139028809965,
+      "load_time_laplacian_s": 0.004337083024438471,
+      "total_time_s": 0.3228608060744591
+    },
+    {
+      "compute_eigenvectors_time_s": 0.17924338695593178,
+      "construct_V_time_s": 0.0002603230532258749,
+      "disk_save_time_s": 0.45807526202406734,
+      "graph_id": 22,
+      "load_time_disk_s": 0.02187791303731501,
+      "load_time_laplacian_s": 0.058733671030495316,
+      "total_time_s": 0.7181905561010353
+    },
+    {
+      "compute_eigenvectors_time_s": 0.19452480197651312,
+      "construct_V_time_s": 7.656600791960955e-05,
+      "disk_save_time_s": 0.4856945429928601,
+      "graph_id": 23,
+      "load_time_disk_s": 0.0220130710513331,
+      "load_time_laplacian_s": 0.02991228603059426,
+      "total_time_s": 0.7322212680592202
+    },
+    {
+      "compute_eigenvectors_time_s": 0.1517536910250783,
+      "construct_V_time_s": 8.199299918487668e-05,
+      "disk_save_time_s": 0.3379951989627443,
+      "graph_id": 24,
+      "load_time_disk_s": 0.023441996017936617,
+      "load_time_laplacian_s": 0.0382923879660666,
+      "total_time_s": 0.5515652669710107
+    },
+    {
+      "compute_eigenvectors_time_s": 0.15266918198904023,
+      "construct_V_time_s": 9.655597386881709e-05,
+      "disk_save_time_s": 0.5606290210271254,
+      "graph_id": 25,
+      "load_time_disk_s": 0.022024251986294985,
+      "load_time_laplacian_s": 0.03361799498088658,
+      "total_time_s": 0.769037005957216
+    },
+    {
+      "compute_eigenvectors_time_s": 0.1536460620118305,
+      "construct_V_time_s": 0.00013178196968510747,
+      "disk_save_time_s": 0.42698462802218273,
+      "graph_id": 26,
+      "load_time_disk_s": 0.02499070402700454,
+      "load_time_laplacian_s": 0.018708347983192652,
+      "total_time_s": 0.6244615240138955
+    },
+    {
+      "compute_eigenvectors_time_s": 0.17029628297314048,
+      "construct_V_time_s": 7.812300464138389e-05,
+      "disk_save_time_s": 0.46395726600894704,
+      "graph_id": 27,
+      "load_time_disk_s": 0.023274623963516206,
+      "load_time_laplacian_s": 0.05399622500408441,
+      "total_time_s": 0.7116025209543295
+    },
+    {
+      "compute_eigenvectors_time_s": 0.14519578602630645,
+      "construct_V_time_s": 8.269399404525757e-05,
+      "disk_save_time_s": 0.4045823260094039,
+      "graph_id": 28,
+      "load_time_disk_s": 0.022600204043556005,
+      "load_time_laplacian_s": 0.017669141001533717,
+      "total_time_s": 0.5901301510748453
+    },
+    {
+      "compute_eigenvectors_time_s": 0.14947051100898534,
+      "construct_V_time_s": 7.657601963728666e-05,
+      "disk_save_time_s": 0.34874796302756295,
+      "graph_id": 29,
+      "load_time_disk_s": 0.0388723710202612,
+      "load_time_laplacian_s": 0.017568297043908387,
+      "total_time_s": 0.5547357181203552
+    },
+    {
+      "compute_eigenvectors_time_s": 0.1620235769660212,
+      "construct_V_time_s": 7.526000263169408e-05,
+      "disk_save_time_s": 0.3720530080026947,
+      "graph_id": 30,
+      "load_time_disk_s": 0.022232845018152148,
+      "load_time_laplacian_s": 0.038764441036619246,
+      "total_time_s": 0.595149131026119
+    },
+    {
+      "compute_eigenvectors_time_s": 0.14244980999501422,
+      "construct_V_time_s": 7.876200834289193e-05,
+      "disk_save_time_s": 0.5765570169896819,
+      "graph_id": 31,
+      "load_time_disk_s": 0.02268667402677238,
+      "load_time_laplacian_s": 0.018175458011683077,
+      "total_time_s": 0.7599477210314944
+    },
+    {
+      "compute_eigenvectors_time_s": 0.1452771460171789,
+      "construct_V_time_s": 7.427501259371638e-05,
+      "disk_save_time_s": 0.4889679879997857,
+      "graph_id": 32,
+      "load_time_disk_s": 0.005160551983863115,
+      "load_time_laplacian_s": 0.00639245001366362,
+      "total_time_s": 0.645872411027085
+    },
+    {
+      "compute_eigenvectors_time_s": 0.14481388102285564,
+      "construct_V_time_s": 8.077203528955579e-05,
+      "disk_save_time_s": 0.4760572560480796,
+      "graph_id": 33,
+      "load_time_disk_s": 0.027603225025814027,
+      "load_time_laplacian_s": 0.006019130989443511,
+      "total_time_s": 0.6545742651214823
+    },
+    {
+      "compute_eigenvectors_time_s": 0.144838111998979,
+      "construct_V_time_s": 7.441203342750669e-05,
+      "disk_save_time_s": 0.405189374985639,
+      "graph_id": 34,
+      "load_time_disk_s": 0.005204239976592362,
+      "load_time_laplacian_s": 0.0064446619944646955,
+      "total_time_s": 0.5617508009891026
+    },
+    {
+      "compute_eigenvectors_time_s": 0.14848544099368155,
+      "construct_V_time_s": 7.415399886667728e-05,
+      "disk_save_time_s": 0.4138643040205352,
+      "graph_id": 35,
+      "load_time_disk_s": 0.013278824044391513,
+      "load_time_laplacian_s": 0.012306887016166002,
+      "total_time_s": 0.5880096100736409
+    },
+    {
+      "compute_eigenvectors_time_s": 0.14585739298490807,
+      "construct_V_time_s": 7.879000622779131e-05,
+      "disk_save_time_s": 0.39664288598578423,
+      "graph_id": 36,
+      "load_time_disk_s": 0.013199987006373703,
+      "load_time_laplacian_s": 0.02700521401129663,
+      "total_time_s": 0.5827842699945904
+    },
+    {
+      "compute_eigenvectors_time_s": 0.1432662059669383,
+      "construct_V_time_s": 7.308903150260448e-05,
+      "disk_save_time_s": 0.4758387580513954,
+      "graph_id": 37,
+      "load_time_disk_s": 0.01342577300965786,
+      "load_time_laplacian_s": 0.012502818019129336,
+      "total_time_s": 0.6451066440786235
+    },
+    {
+      "compute_eigenvectors_time_s": 0.1425489749526605,
+      "construct_V_time_s": 7.258797995746136e-05,
+      "disk_save_time_s": 0.4730961660388857,
+      "graph_id": 38,
+      "load_time_disk_s": 0.013161213020794094,
+      "load_time_laplacian_s": 0.011578253994230181,
+      "total_time_s": 0.640457195986528
+    },
+    {
+      "compute_eigenvectors_time_s": 0.14362681098282337,
+      "construct_V_time_s": 7.264898158609867e-05,
+      "disk_save_time_s": 0.48300377203850076,
+      "graph_id": 39,
+      "load_time_disk_s": 0.030743637995328754,
+      "load_time_laplacian_s": 0.011664973048027605,
+      "total_time_s": 0.6691118430462666
+    },
+    {
+      "compute_eigenvectors_time_s": 0.15765458199894056,
+      "construct_V_time_s": 0.00011110398918390274,
+      "disk_save_time_s": 0.49280259798979387,
+      "graph_id": 40,
+      "load_time_disk_s": 0.013885926979128271,
+      "load_time_laplacian_s": 0.011980695999227464,
+      "total_time_s": 0.6764349069562741
+    },
+    {
+      "compute_eigenvectors_time_s": 0.14688717504031956,
+      "construct_V_time_s": 7.43200071156025e-05,
+      "disk_save_time_s": 0.48642758501227945,
+      "graph_id": 41,
+      "load_time_disk_s": 0.014389274001587182,
+      "load_time_laplacian_s": 0.03205701900878921,
+      "total_time_s": 0.679835373070091
+    },
+    {
+      "compute_eigenvectors_time_s": 0.15829100098926574,
+      "construct_V_time_s": 7.287703920155764e-05,
+      "disk_save_time_s": 0.404284380027093,
+      "graph_id": 42,
+      "load_time_disk_s": 0.013695825997274369,
+      "load_time_laplacian_s": 0.011685403995215893,
+      "total_time_s": 0.5880294880480506
+    },
+    {
+      "compute_eigenvectors_time_s": 0.041751477983780205,
+      "construct_V_time_s": 9.738700464367867e-05,
+      "disk_save_time_s": 0.30403840402141213,
+      "graph_id": 43,
+      "load_time_disk_s": 0.01128648204030469,
+      "load_time_laplacian_s": 0.008231968036852777,
+      "total_time_s": 0.3654057190869935
+    },
+    {
+      "compute_eigenvectors_time_s": 0.04041542700724676,
+      "construct_V_time_s": 8.502398850396276e-05,
+      "disk_save_time_s": 0.31344605900812894,
+      "graph_id": 44,
+      "load_time_disk_s": 0.010797324997838587,
+      "load_time_laplacian_s": 0.025596358987968415,
+      "total_time_s": 0.39034019398968667
+    },
+    {
+      "compute_eigenvectors_time_s": 0.03854503104230389,
+      "construct_V_time_s": 4.424399230629206e-05,
+      "disk_save_time_s": 0.3095242760027759,
+      "graph_id": 45,
+      "load_time_disk_s": 0.01791091199265793,
+      "load_time_laplacian_s": 0.010438612953294069,
+      "total_time_s": 0.37646307598333806
+    },
+    {
+      "compute_eigenvectors_time_s": 0.039519760000985116,
+      "construct_V_time_s": 6.872997619211674e-05,
+      "disk_save_time_s": 0.24194581201300025,
+      "graph_id": 46,
+      "load_time_disk_s": 0.011155957006849349,
+      "load_time_laplacian_s": 0.008407706976868212,
+      "total_time_s": 0.30109796597389504
+    },
+    {
+      "compute_eigenvectors_time_s": 0.04064848297275603,
+      "construct_V_time_s": 5.914102075621486e-05,
+      "disk_save_time_s": 0.25442567898426205,
+      "graph_id": 47,
+      "load_time_disk_s": 0.011009377019945532,
+      "load_time_laplacian_s": 0.024401655013207346,
+      "total_time_s": 0.33054433501092717
+    },
+    {
+      "compute_eigenvectors_time_s": 0.38753806898603216,
+      "construct_V_time_s": 7.916003232821822e-05,
+      "disk_save_time_s": 0.5842533599934541,
+      "graph_id": 48,
+      "load_time_disk_s": 0.007238327991217375,
+      "load_time_laplacian_s": 0.012029296020045877,
+      "total_time_s": 0.9911382130230777
+    },
+    {
+      "compute_eigenvectors_time_s": 0.37884161400143057,
+      "construct_V_time_s": 0.000142551027238369,
+      "disk_save_time_s": 0.6177632350008935,
+      "graph_id": 49,
+      "load_time_disk_s": 0.011956707981880754,
+      "load_time_laplacian_s": 0.012059879023581743,
+      "total_time_s": 1.020763987035025
+    },
+    {
+      "compute_eigenvectors_time_s": 0.35231316497083753,
+      "construct_V_time_s": 8.588400669395924e-05,
+      "disk_save_time_s": 0.6032691500149667,
+      "graph_id": 50,
+      "load_time_disk_s": 0.007063742959871888,
+      "load_time_laplacian_s": 0.013610891008283943,
+      "total_time_s": 0.976342832960654
+    },
+    {
+      "compute_eigenvectors_time_s": 0.03869084396865219,
+      "construct_V_time_s": 5.236698780208826e-05,
+      "disk_save_time_s": 0.29251657699933276,
+      "graph_id": 51,
+      "load_time_disk_s": 0.0068702970165759325,
+      "load_time_laplacian_s": 0.00583307899069041,
+      "total_time_s": 0.3439631639630534
+    },
+    {
+      "compute_eigenvectors_time_s": 0.03868918202351779,
+      "construct_V_time_s": 4.815997090190649e-05,
+      "disk_save_time_s": 0.24685529101407155,
+      "graph_id": 52,
+      "load_time_disk_s": 0.022420049004722387,
+      "load_time_laplacian_s": 0.005398689012508839,
+      "total_time_s": 0.3134113710257225
+    },
+    {
+      "compute_eigenvectors_time_s": 0.03825140401022509,
+      "construct_V_time_s": 4.716997500509024e-05,
+      "disk_save_time_s": 0.30069013201864436,
+      "graph_id": 53,
+      "load_time_disk_s": 0.006793500971980393,
+      "load_time_laplacian_s": 0.00572911201743409,
+      "total_time_s": 0.351511318993289
+    },
+    {
+      "compute_eigenvectors_time_s": 0.038561432040296495,
+      "construct_V_time_s": 4.703603917732835e-05,
+      "disk_save_time_s": 0.3442581069539301,
+      "graph_id": 54,
+      "load_time_disk_s": 0.006898186984471977,
+      "load_time_laplacian_s": 0.005640059011057019,
+      "total_time_s": 0.39540482102893293
+    },
+    {
+      "compute_eigenvectors_time_s": 1.1531489950139076,
+      "construct_V_time_s": 8.55320249684155e-05,
+      "disk_save_time_s": 1.357857808994595,
+      "graph_id": 55,
+      "load_time_disk_s": 0.015670203021727502,
+      "load_time_laplacian_s": 0.05064067500643432,
+      "total_time_s": 2.5774032140616328
+    },
+    {
+      "compute_eigenvectors_time_s": 1.2553120020311326,
+      "construct_V_time_s": 8.79740109667182e-05,
+      "disk_save_time_s": 1.430192180967424,
+      "graph_id": 56,
+      "load_time_disk_s": 0.03263062797486782,
+      "load_time_laplacian_s": 0.054354445019271225,
+      "total_time_s": 2.7725772300036624
+    },
+    {
+      "compute_eigenvectors_time_s": 1.3116290780017152,
+      "construct_V_time_s": 8.697499288246036e-05,
+      "disk_save_time_s": 1.2690434899996035,
+      "graph_id": 57,
+      "load_time_disk_s": 0.012877730012405664,
+      "load_time_laplacian_s": 0.023668501002248377,
+      "total_time_s": 2.6173057740088552
+    },
+    {
+      "compute_eigenvectors_time_s": 1.4614971280097961,
+      "construct_V_time_s": 0.00013374403351917863,
+      "disk_save_time_s": 2.0414669049787335,
+      "graph_id": 58,
+      "load_time_disk_s": 0.06831171701196581,
+      "load_time_laplacian_s": 0.07985259999986738,
+      "total_time_s": 3.651262094033882
+    },
+    {
+      "compute_eigenvectors_time_s": 1.1519862349960022,
+      "construct_V_time_s": 8.318305481225252e-05,
+      "disk_save_time_s": 1.7116736139869317,
+      "graph_id": 59,
+      "load_time_disk_s": 0.04908431204967201,
+      "load_time_laplacian_s": 0.08502210100414231,
+      "total_time_s": 2.9978494450915605
+    },
+    {
+      "compute_eigenvectors_time_s": 3.949659387988504,
+      "construct_V_time_s": 8.795299800112844e-05,
+      "disk_save_time_s": 2.4918411149992608,
+      "graph_id": 60,
+      "load_time_disk_s": 0.02184004499576986,
+      "load_time_laplacian_s": 0.08051385299768299,
+      "total_time_s": 6.543942353979219
+    },
+    {
+      "compute_eigenvectors_time_s": 4.423218103998806,
+      "construct_V_time_s": 8.595397230237722e-05,
+      "disk_save_time_s": 2.332200101984199,
+      "graph_id": 61,
+      "load_time_disk_s": 0.04484658600995317,
+      "load_time_laplacian_s": 0.08154447702690959,
+      "total_time_s": 6.881895222992171
+    },
+    {
+      "compute_eigenvectors_time_s": 3.7591973529779352,
+      "construct_V_time_s": 9.154900908470154e-05,
+      "disk_save_time_s": 2.6951445679878816,
+      "graph_id": 62,
+      "load_time_disk_s": 0.016418558021541685,
+      "load_time_laplacian_s": 0.03194848698331043,
+      "total_time_s": 6.502800514979754
+    },
+    {
+      "compute_eigenvectors_time_s": 4.507362553966232,
+      "construct_V_time_s": 9.423599112778902e-05,
+      "disk_save_time_s": 2.3696915010223165,
+      "graph_id": 63,
+      "load_time_disk_s": 0.09745373798068613,
+      "load_time_laplacian_s": 0.14492435299325734,
+      "total_time_s": 7.119526381953619
+    },
+    {
+      "compute_eigenvectors_time_s": 3.729767429002095,
+      "construct_V_time_s": 9.621598292142153e-05,
+      "disk_save_time_s": 2.2219158789957874,
+      "graph_id": 64,
+      "load_time_disk_s": 0.04888363799545914,
+      "load_time_laplacian_s": 0.14221998798893765,
+      "total_time_s": 6.142883149965201
+    },
+    {
+      "compute_eigenvectors_time_s": 6.990977159002796,
+      "construct_V_time_s": 9.974901331588626e-05,
+      "disk_save_time_s": 3.174020034028217,
+      "graph_id": 65,
+      "load_time_disk_s": 0.035630811005830765,
+      "load_time_laplacian_s": 0.04079271398950368,
+      "total_time_s": 10.241520467039663
+    },
+    {
+      "compute_eigenvectors_time_s": 12.071161186962854,
+      "construct_V_time_s": 9.92750283330679e-05,
+      "disk_save_time_s": 4.19635186396772,
+      "graph_id": 66,
+      "load_time_disk_s": 0.02079951501218602,
+      "load_time_laplacian_s": 0.05908738699508831,
+      "total_time_s": 16.347499227966182
+    },
+    {
+      "compute_eigenvectors_time_s": 13.809804743039422,
+      "construct_V_time_s": 7.960700895637274e-05,
+      "disk_save_time_s": 4.958422583993524,
+      "graph_id": 67,
+      "load_time_disk_s": 0.02416295895818621,
+      "load_time_laplacian_s": 0.05719787202542648,
+      "total_time_s": 18.849667765025515
+    },
+    {
+      "compute_eigenvectors_time_s": 13.383912866003811,
+      "construct_V_time_s": 7.78239918872714e-05,
+      "disk_save_time_s": 5.017491692036856,
+      "graph_id": 70,
+      "load_time_disk_s": 0.014332631952129304,
+      "load_time_laplacian_s": 0.048859858012292534,
+      "total_time_s": 18.464674871996976
+    },
+    {
+      "compute_eigenvectors_time_s": 35.288370897003915,
+      "construct_V_time_s": 7.623201236128807e-05,
+      "disk_save_time_s": 5.614182310993783,
+      "graph_id": 72,
+      "load_time_disk_s": 0.04353137098951265,
+      "load_time_laplacian_s": 0.06254594901110977,
+      "total_time_s": 41.00870676001068
+    },
+    {
+      "compute_eigenvectors_time_s": 39.11568471498322,
+      "construct_V_time_s": 0.00011278095189481974,
+      "disk_save_time_s": 9.734569200023543,
+      "graph_id": 77,
+      "load_time_disk_s": 0.03476067801238969,
+      "load_time_laplacian_s": 0.0690506580285728,
+      "total_time_s": 48.95417803199962
+    },
+    {
+      "compute_eigenvectors_time_s": 114.3043840819737,
+      "construct_V_time_s": 0.00016760698053985834,
+      "disk_save_time_s": 18.39682265999727,
+      "graph_id": 81,
+      "load_time_disk_s": 0.06406281504314393,
+      "load_time_laplacian_s": 0.09598519298015162,
+      "total_time_s": 132.8614223569748
+    }
+  ]
+}

@@ -7,8 +7,8 @@
 #SBATCH --nodes=5
 #SBATCH --tasks-per-node=1
 #SBATCH --partition=commons
-#SBATCH --cpus-per-task=70
-#SBATCH --mem=40G
+#SBATCH --cpus-per-task=80
+#SBATCH --mem=50G
 #SBATCH --time=23:00:00
 
 # One Ray cluster, many instances.

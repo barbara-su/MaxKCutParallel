@@ -1,0 +1,289 @@
+{
+  "num_records": 71,
+  "records": [
+    {
+      "graph_id": 1,
+      "total_time_seconds": 0.30338200501864776
+    },
+    {
+      "graph_id": 2,
+      "total_time_seconds": 0.32183839002391323
+    },
+    {
+      "graph_id": 3,
+      "total_time_seconds": 0.25626039900816977
+    },
+    {
+      "graph_id": 4,
+      "total_time_seconds": 0.26508790598018095
+    },
+    {
+      "graph_id": 5,
+      "total_time_seconds": 0.2643132890225388
+    },
+    {
+      "graph_id": 6,
+      "total_time_seconds": 0.25102473597507924
+    },
+    {
+      "graph_id": 7,
+      "total_time_seconds": 0.33012144902022555
+    },
+    {
+      "graph_id": 8,
+      "total_time_seconds": 0.29978026397293434
+    },
+    {
+      "graph_id": 9,
+      "total_time_seconds": 0.2705523860058747
+    },
+    {
+      "graph_id": 10,
+      "total_time_seconds": 0.2944555490394123
+    },
+    {
+      "graph_id": 11,
+      "total_time_seconds": 0.227571199007798
+    },
+    {
+      "graph_id": 12,
+      "total_time_seconds": 0.22563581599388272
+    },
+    {
+      "graph_id": 13,
+      "total_time_seconds": 0.1960716739995405
+    },
+    {
+      "graph_id": 14,
+      "total_time_seconds": 0.21635889797471464
+    },
+    {
+      "graph_id": 15,
+      "total_time_seconds": 0.25834931997815147
+    },
+    {
+      "graph_id": 16,
+      "total_time_seconds": 0.26582650805357844
+    },
+    {
+      "graph_id": 17,
+      "total_time_seconds": 0.242427704972215
+    },
+    {
+      "graph_id": 18,
+      "total_time_seconds": 0.30581752996658906
+    },
+    {
+      "graph_id": 19,
+      "total_time_seconds": 0.22796267498051748
+    },
+    {
+      "graph_id": 20,
+      "total_time_seconds": 0.240010657988023
+    },
+    {
+      "graph_id": 21,
+      "total_time_seconds": 0.23588280397234485
+    },
+    {
+      "graph_id": 22,
+      "total_time_seconds": 0.6396039800019935
+    },
+    {
+      "graph_id": 23,
+      "total_time_seconds": 0.6417943119886331
+    },
+    {
+      "graph_id": 24,
+      "total_time_seconds": 0.6920965629979037
+    },
+    {
+      "graph_id": 25,
+      "total_time_seconds": 0.7282852820353583
+    },
+    {
+      "graph_id": 26,
+      "total_time_seconds": 0.5994492049794644
+    },
+    {
+      "graph_id": 27,
+      "total_time_seconds": 0.6379761429852806
+    },
+    {
+      "graph_id": 28,
+      "total_time_seconds": 0.5403075020294636
+    },
+    {
+      "graph_id": 29,
+      "total_time_seconds": 0.5578228970407508
+    },
+    {
+      "graph_id": 30,
+      "total_time_seconds": 0.5427977090002969
+    },
+    {
+      "graph_id": 31,
+      "total_time_seconds": 0.5312458680127747
+    },
+    {
+      "graph_id": 32,
+      "total_time_seconds": 0.5821846339968033
+    },
+    {
+      "graph_id": 33,
+      "total_time_seconds": 0.6069832509965636
+    },
+    {
+      "graph_id": 34,
+      "total_time_seconds": 0.609778254001867
+    },
+    {
+      "graph_id": 35,
+      "total_time_seconds": 0.5375685970066115
+    },
+    {
+      "graph_id": 36,
+      "total_time_seconds": 0.5940166289801709
+    },
+    {
+      "graph_id": 37,
+      "total_time_seconds": 0.6115061589516699
+    },
+    {
+      "graph_id": 38,
+      "total_time_seconds": 0.6477012889808975
+    },
+    {
+      "graph_id": 39,
+      "total_time_seconds": 0.677717883954756
+    },
+    {
+      "graph_id": 40,
+      "total_time_seconds": 0.6593222109950148
+    },
+    {
+      "graph_id": 41,
+      "total_time_seconds": 0.665949271991849
+    },
+    {
+      "graph_id": 42,
+      "total_time_seconds": 0.5947225199779496
+    },
+    {
+      "graph_id": 43,
+      "total_time_seconds": 0.3893503920407966
+    },
+    {
+      "graph_id": 44,
+      "total_time_seconds": 0.324487759033218
+    },
+    {
+      "graph_id": 45,
+      "total_time_seconds": 0.3029922770219855
+    },
+    {
+      "graph_id": 46,
+      "total_time_seconds": 0.35722746700048447
+    },
+    {
+      "graph_id": 47,
+      "total_time_seconds": 0.3825824729865417
+    },
+    {
+      "graph_id": 48,
+      "total_time_seconds": 1.0334178049815819
+    },
+    {
+      "graph_id": 49,
+      "total_time_seconds": 1.0502658730256371
+    },
+    {
+      "graph_id": 50,
+      "total_time_seconds": 1.049757344997488
+    },
+    {
+      "graph_id": 51,
+      "total_time_seconds": 0.285476763965562
+    },
+    {
+      "graph_id": 52,
+      "total_time_seconds": 0.31846588099142537
+    },
+    {
+      "graph_id": 53,
+      "total_time_seconds": 0.29051727399928495
+    },
+    {
+      "graph_id": 54,
+      "total_time_seconds": 0.29642158397473395
+    },
+    {
+      "graph_id": 55,
+      "total_time_seconds": 2.5480845699785277
+    },
+    {
+      "graph_id": 56,
+      "total_time_seconds": 2.520224476000294
+    },
+    {
+      "graph_id": 57,
+      "total_time_seconds": 2.7978679059888236
+    },
+    {
+      "graph_id": 58,
+      "total_time_seconds": 2.6438415350276046
+    },
+    {
+      "graph_id": 59,
+      "total_time_seconds": 2.6579866060055792
+    },
+    {
+      "graph_id": 60,
+      "total_time_seconds": 5.718495919019915
+    },
+    {
+      "graph_id": 61,
+      "total_time_seconds": 7.038917217985727
+    },
+    {
+      "graph_id": 62,
+      "total_time_seconds": 6.177073543018196
+    },
+    {
+      "graph_id": 63,
+      "total_time_seconds": 6.589925628039055
+    },
+    {
+      "graph_id": 64,
+      "total_time_seconds": 6.61380268499488
+    },
+    {
+      "graph_id": 65,
+      "total_time_seconds": 9.892219715984538
+    },
+    {
+      "graph_id": 66,
+      "total_time_seconds": 13.464135637972504
+    },
+    {
+      "graph_id": 67,
+      "total_time_seconds": 16.482785668980796
+    },
+    {
+      "graph_id": 70,
+      "total_time_seconds": 15.419912679994013
+    },
+    {
+      "graph_id": 72,
+      "total_time_seconds": 17.370827317005023
+    },
+    {
+      "graph_id": 77,
+      "total_time_seconds": 44.57153175200801
+    },
+    {
+      "graph_id": 81,
+      "total_time_seconds": 118.07789471402066
+    }
+  ]
+}
