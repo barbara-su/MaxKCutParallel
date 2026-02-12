@@ -1,24 +1,3 @@
-#!/usr/bin/env python3
-"""
-parallel_rank_1_gpu.py
-
-GPU-accelerated rank-1 solver with Ray CPU orchestration.
-
-Same CLI shape as your original parallel_rank_1.py, plus:
-- --K
-- --gpus (optional cap; default uses all Ray-visible GPUs)
-
-Core idea:
-- CPU computes k0 and sorted_idx.
-- CPU Ray tasks build batched integer assignments k_batch for a list of prefix lengths l.
-- GPU actor(s) keep dense Q on device and score candidates in batch:
-    score(z) = Re(conj(z)^T Q z),  z_i = exp(2πj k_i / K).
-
-Design A (multi-GPU):
-- Spawn one Rank1GPUActor per GPU.
-- Round-robin batches across actors.
-"""
-
 import argparse
 import itertools
 import json
@@ -39,6 +18,7 @@ from utils import (
     low_rank_matrix,
     generate_debug_QV,
     opt_K_cut,
+    set_seed
 )
 
 warnings.filterwarnings("ignore", message="pkg_resources is deprecated as an API")
@@ -79,9 +59,8 @@ class Rank1GPUActor:
     """
 
     def __init__(self, K: int, precision: int):
-        if not torch.cuda.is_available():
-            raise RuntimeError("CUDA not available")
-
+        set_seed(42)
+        
         self.device = "cuda"
         self.K = int(K)
         self.precision = int(precision)
@@ -92,14 +71,13 @@ class Rank1GPUActor:
         kk = torch.arange(self.K, device=self.device, dtype=torch.float32)
         self.roots = torch.exp(2j * torch.pi * kk / self.K).to(self.cdtype)  # (K,)
 
-        self.Q = None  # (n,n) real float
+        self.Q = None
         self.n = None
 
     def set_instance(self, Q_np: np.ndarray):
         Q_t = torch.as_tensor(Q_np)
         if Q_t.dtype == torch.float16:
             Q_t = Q_t.to(torch.float32)
-        # Assume dense real Q (as in your code)
         self.Q = Q_t.to(device=self.device, dtype=self.rdtype).contiguous()
         self.n = int(self.Q.shape[0])
 
@@ -286,7 +264,6 @@ def process_rank_1_parallel_gpu(
 def parse_args():
     parser = argparse.ArgumentParser(description="Parallel MAX k CUT experiment (rank 1, GPU)")
     parser.add_argument("--n", type=int, default=10000, help="Problem size")
-    parser.add_argument("--seed", type=int, default=42, help="Random seed")
     parser.add_argument(
         "--precision",
         type=int,
@@ -313,19 +290,16 @@ def parse_args():
         "--gpus",
         type=int,
         default=0,
-        help="If >0, cap number of GPU actors to this many. Default uses all Ray-visible GPUs.",
+        help="If > 0, cap number of GPU actors to this many. Default uses all Ray-visible GPUs.",
     )
     return parser.parse_args()
 
-
 def main():
     args = parse_args()
+    set_seed(42)
 
     float_dtype, complex_dtype = set_numpy_precision(args.precision)
     log.info(f"Using precision={args.precision} -> float={float_dtype.__name__}, complex={complex_dtype.__name__}")
-
-    np.random.seed(args.seed)
-
     log.info("Starting MAX k CUT experiment (rank 1, GPU)")
     ray.init(address="auto", ignore_reinit_error=True)
     log.info("Ray initialized")

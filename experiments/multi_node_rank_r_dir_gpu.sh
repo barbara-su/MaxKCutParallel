@@ -77,7 +77,7 @@ export XALT_EXECUTABLE_TRACKING=0
 export XALT_RUNNABLE=0
 
 # Conda
-cd /home/bs82/max-k-cut-parallel/ || exit 1
+cd /scratch/bs82/max-k-cut-parallel/ || exit 1
 mkdir -p logs
 source ~/miniforge3/etc/profile.d/conda.sh
 conda activate ./rayenv

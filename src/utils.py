@@ -736,3 +736,87 @@ def set_numpy_precision(precision: int):
         complex_dtype = np.complex128
 
     return float_dtype, complex_dtype
+
+
+# utils.py
+from __future__ import annotations
+
+import os
+import random
+from typing import Optional
+
+import numpy as np
+
+try:
+    import torch
+except Exception:
+    torch = None
+
+
+def set_seed(
+    seed: int,
+    *,
+    deterministic: bool = False,
+    set_pythonhashseed: bool = True,
+    set_cublas_workspace: bool = True,
+    verbose: bool = False,
+) -> int:
+    """
+    Best-effort global seeding for reproducibility across:
+      - Python random
+      - NumPy
+      - PyTorch (CPU + all CUDA devices if available)
+      - cuDNN / cuBLAS determinism flags (optional)
+      - Python hash randomization (optional)
+
+    Notes:
+      - True bitwise determinism on GPU can reduce performance and is not always possible.
+      - Ray: each worker is a separate process; you still want to call set_seed()
+        inside any @ray.remote function/actor __init__ if you need per-worker determinism.
+    """
+    seed = int(seed)
+
+    # 1) Python hash seed (must be set before interpreter starts to fully take effect)
+    if set_pythonhashseed:
+        os.environ.setdefault("PYTHONHASHSEED", str(seed))
+
+    # 2) Python + NumPy
+    random.seed(seed)
+    np.random.seed(seed)
+
+    # 3) Torch
+    if torch is not None:
+        torch.manual_seed(seed)
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed(seed)
+            torch.cuda.manual_seed_all(seed)
+
+        # Optional determinism controls
+        if deterministic:
+            # cuDNN flags
+            torch.backends.cudnn.deterministic = True
+            torch.backends.cudnn.benchmark = False
+
+            # Force deterministic algorithms where possible
+            # (throws if an op has no deterministic implementation)
+            try:
+                torch.use_deterministic_algorithms(True)
+            except Exception:
+                pass
+
+            # cuBLAS workspace config (needed for deterministic GEMMs on some setups)
+            # Must be set before CUDA context creation to be fully reliable.
+            if set_cublas_workspace:
+                os.environ.setdefault("CUBLAS_WORKSPACE_CONFIG", ":4096:8")
+
+        else:
+            # If you want speed, allow autotuning
+            torch.backends.cudnn.benchmark = True
+
+    if verbose:
+        msg = f"[set_seed] seed={seed}, deterministic={deterministic}"
+        if torch is None:
+            msg += " (torch not available)"
+        print(msg)
+
+    return seed
