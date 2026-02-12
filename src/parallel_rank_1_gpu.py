@@ -147,8 +147,9 @@ def process_rank_1_batch_hybrid(
     - return best (score, l) within this task
     """
     B = int(len(l_values))
+    t_build_start = time.perf_counter()
     if B == 0:
-        return float("-inf"), None, int(batch_id)
+        return float("-inf"), None, int(batch_id), 0.0, 0.0
 
     # Build (B,n)
     k_batch = np.tile(k0[None, :], (B, 1)).astype(np.int64, copy=False)
@@ -159,11 +160,14 @@ def process_rank_1_batch_hybrid(
             idx = sorted_idx[:l_int]
             k_batch[b, idx] = (k_batch[b, idx] + 1) % int(K)
 
+    build_sec = time.perf_counter() - t_build_start
+    t_gpu_start = time.perf_counter()
     scores = ray.get(gpu_actor.score_k_batch.remote(k_batch))  # (B,)
+    gpu_score_sec = time.perf_counter() - t_gpu_start
     best_pos = int(np.argmax(scores))
     best_score = float(scores[best_pos])
     best_l = int(l_values[best_pos])
-    return best_score, best_l, int(batch_id)
+    return best_score, best_l, int(batch_id), float(build_sec), float(gpu_score_sec)
 
 
 def process_rank_1_parallel_gpu(
@@ -236,6 +240,8 @@ def process_rank_1_parallel_gpu(
 
     best_score = float("-inf")
     best_l = 0
+    total_build_sec = 0.0
+    total_gpu_score_sec = 0.0
 
     num_gpu = len(gpu_actors)
 
@@ -252,8 +258,10 @@ def process_rank_1_parallel_gpu(
 
         if len(in_flight) >= max_in_flight:
             done, in_flight = ray.wait(in_flight, num_returns=1)
-            batch_score, batch_best_l, b_id = ray.get(done[0])
+            batch_score, batch_best_l, b_id, build_sec, gpu_score_sec = ray.get(done[0])
             completed += 1
+            total_build_sec += float(build_sec)
+            total_gpu_score_sec += float(gpu_score_sec)
 
             log.info(f"Completed task {b_id}")
             if batch_best_l is not None and batch_score > best_score:
@@ -261,10 +269,20 @@ def process_rank_1_parallel_gpu(
                 best_l = int(batch_best_l)
                 log.info(f"New best from task {b_id}: score={best_score} (l={best_l})")
 
+            if completed % 200 == 0:
+                log.info(
+                    "Timing so far: avg_cpu_build=%.4fs, avg_gpu_score=%.4fs over %d tasks",
+                    total_build_sec / completed,
+                    total_gpu_score_sec / completed,
+                    completed,
+                )
+
     while in_flight:
         done, in_flight = ray.wait(in_flight, num_returns=1)
-        batch_score, batch_best_l, b_id = ray.get(done[0])
+        batch_score, batch_best_l, b_id, build_sec, gpu_score_sec = ray.get(done[0])
         completed += 1
+        total_build_sec += float(build_sec)
+        total_gpu_score_sec += float(gpu_score_sec)
 
         log.info(f"Completed task {b_id}")
         if batch_best_l is not None and batch_score > best_score:
@@ -272,10 +290,26 @@ def process_rank_1_parallel_gpu(
             best_l = int(batch_best_l)
             log.info(f"New best from task {b_id}: score={best_score} (l={best_l})")
 
+        if completed % 200 == 0:
+            log.info(
+                "Timing so far: avg_cpu_build=%.4fs, avg_gpu_score=%.4fs over %d tasks",
+                total_build_sec / completed,
+                total_gpu_score_sec / completed,
+                completed,
+            )
+
     elapsed = time.time() - start_time
     log.info(f"Rank 1 (hybrid GPU) search complete in {elapsed:.4f} seconds")
     log.info(f"Submitted={submitted}, completed={completed}, max_in_flight={max_in_flight}")
     log.info(f"Best prefix l = {best_l}")
+    if completed > 0:
+        log.info(
+            "Rank 1 timing summary: total_cpu_build=%.4fs, total_gpu_score=%.4fs, avg_cpu_build=%.4fs/task, avg_gpu_score=%.4fs/task",
+            total_build_sec,
+            total_gpu_score_sec,
+            total_build_sec / completed,
+            total_gpu_score_sec / completed,
+        )
 
     best_k = k0.copy()
     if best_l > 0:
@@ -348,6 +382,7 @@ def main():
     log.info(f"Spawned {len(gpu_actors)} Rank1GPUActor(s).")
 
     # Load Q and V (same behavior as your original)
+    t_load_start = time.perf_counter()
     if not args.debug:
         log.info("Loading Q and V...")
         if args.graph_dir is not None:
@@ -371,9 +406,12 @@ def main():
         Q, V = generate_debug_QV(n=args.n, rank=1, seed=args.seed)
         Q = np.asarray(Q, dtype=float_dtype)
         V = np.asarray(V, dtype=complex_dtype)
+    load_sec = time.perf_counter() - t_load_start
 
     # Broadcast Q to all GPU actors
+    t_broadcast_start = time.perf_counter()
     ray.get([a.set_instance.remote(Q) for a in gpu_actors])
+    broadcast_sec = time.perf_counter() - t_broadcast_start
 
     log.info("Executing parallel rank 1 algorithm (GPU scoring)")
     start = time.time()
@@ -389,6 +427,12 @@ def main():
     )
 
     elapsed = time.time() - start
+    log.info(
+        "Phase timing: load_qv=%.4fs, broadcast_to_gpu_actors=%.4fs, solve=%.4fs",
+        load_sec,
+        broadcast_sec,
+        elapsed,
+    )
 
     log.info(f"Rank 1 result: score = {best_score}")
     log.info(f"Execution time: {elapsed:.4f} seconds")

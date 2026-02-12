@@ -277,6 +277,7 @@ def process_combination_batch_hybrid(
     CPU: construct c and used-vertex overrides for each combo.
     GPU: quantize, apply overrides, score, select best in batch.
     """
+    t_build_start = time.perf_counter()
     n = V.shape[0]
     complex_dtype = V.dtype
     roots = _roots_numpy(K, complex_dtype)
@@ -342,12 +343,24 @@ def process_combination_batch_hybrid(
         except (ValueError, np.linalg.LinAlgError):
             continue
 
+    build_sec = time.perf_counter() - t_build_start
     if len(C_list) == 0:
-        return float("-inf"), None, None, int(batch_id)
+        return float("-inf"), None, None, int(batch_id), float(build_sec), 0.0, int(len(combinations_batch)), 0
 
     C_np = np.stack(C_list, axis=0)  # (B,r)
+    t_gpu_start = time.perf_counter()
     best_score, best_k, best_z = ray.get(gpu_actor.score_batch.remote(C_np, overrides))
-    return float(best_score), best_k, best_z, int(batch_id)
+    gpu_score_sec = time.perf_counter() - t_gpu_start
+    return (
+        float(best_score),
+        best_k,
+        best_z,
+        int(batch_id),
+        float(build_sec),
+        float(gpu_score_sec),
+        int(len(combinations_batch)),
+        int(len(C_list)),
+    )
 
 
 # -----------------------------
@@ -407,6 +420,10 @@ def process_rankr_single_hybrid_gpu(
     best_score = float("-inf")
     best_k = None
     best_z = None
+    total_build_sec = 0.0
+    total_gpu_score_sec = 0.0
+    total_combos_seen = 0
+    total_feasible = 0
 
     num_gpu_actors = len(gpu_actors)
     if num_gpu_actors < 1:
@@ -435,8 +452,21 @@ def process_rankr_single_hybrid_gpu(
 
         if len(in_flight) >= max_in_flight:
             done, in_flight = ray.wait(in_flight, num_returns=1)
-            batch_score, batch_k, batch_z, b_id = ray.get(done[0])
+            (
+                batch_score,
+                batch_k,
+                batch_z,
+                b_id,
+                build_sec,
+                gpu_score_sec,
+                combos_seen,
+                feasible_count,
+            ) = ray.get(done[0])
             completed += 1
+            total_build_sec += float(build_sec)
+            total_gpu_score_sec += float(gpu_score_sec)
+            total_combos_seen += int(combos_seen)
+            total_feasible += int(feasible_count)
 
             if batch_k is not None and batch_score > best_score:
                 best_score = float(batch_score)
@@ -444,13 +474,34 @@ def process_rankr_single_hybrid_gpu(
                 best_z = batch_z
                 log.info(f"New best score from batch {b_id}: {best_score}")
 
-            if completed % 1000 == 0:
-                log.info(f"Progress: submitted={submitted}, completed={completed}, in_flight={len(in_flight)}")
+            if completed % 500 == 0:
+                log.info(
+                    "Progress: submitted=%d, completed=%d, in_flight=%d, avg_cpu_build=%.4fs, avg_gpu_score=%.4fs, feasible_ratio=%.4f",
+                    submitted,
+                    completed,
+                    len(in_flight),
+                    total_build_sec / completed,
+                    total_gpu_score_sec / completed,
+                    (total_feasible / total_combos_seen) if total_combos_seen > 0 else 0.0,
+                )
 
     while in_flight:
         done, in_flight = ray.wait(in_flight, num_returns=1)
-        batch_score, batch_k, batch_z, b_id = ray.get(done[0])
+        (
+            batch_score,
+            batch_k,
+            batch_z,
+            b_id,
+            build_sec,
+            gpu_score_sec,
+            combos_seen,
+            feasible_count,
+        ) = ray.get(done[0])
         completed += 1
+        total_build_sec += float(build_sec)
+        total_gpu_score_sec += float(gpu_score_sec)
+        total_combos_seen += int(combos_seen)
+        total_feasible += int(feasible_count)
 
         if batch_k is not None and batch_score > best_score:
             best_score = float(batch_score)
@@ -458,11 +509,30 @@ def process_rankr_single_hybrid_gpu(
             best_z = batch_z
             log.info(f"New best score from batch {b_id}: {best_score}")
 
-        if completed % 1000 == 0:
-            log.info(f"Progress: submitted={submitted}, completed={completed}, in_flight={len(in_flight)}")
+        if completed % 500 == 0:
+            log.info(
+                "Progress: submitted=%d, completed=%d, in_flight=%d, avg_cpu_build=%.4fs, avg_gpu_score=%.4fs, feasible_ratio=%.4f",
+                submitted,
+                completed,
+                len(in_flight),
+                total_build_sec / completed,
+                total_gpu_score_sec / completed,
+                (total_feasible / total_combos_seen) if total_combos_seen > 0 else 0.0,
+            )
 
     elapsed = time.time() - start_time
     log.info(f"Hybrid GPU rank-r search complete in {elapsed:.4f}s; submitted={submitted}, completed={completed}")
+    if completed > 0:
+        log.info(
+            "Rank-r timing summary: total_cpu_build=%.4fs, total_gpu_score=%.4fs, avg_cpu_build=%.4fs/task, avg_gpu_score=%.4fs/task, feasible_ratio=%.4f (%d/%d)",
+            total_build_sec,
+            total_gpu_score_sec,
+            total_build_sec / completed,
+            total_gpu_score_sec / completed,
+            (total_feasible / total_combos_seen) if total_combos_seen > 0 else 0.0,
+            total_feasible,
+            total_combos_seen,
+        )
 
     if best_z is None:
         raise RuntimeError("Hybrid GPU rank-r algorithm found no feasible candidate")
@@ -584,6 +654,7 @@ def main():
             log.info("Skip: result file already exists.")
             continue
 
+        t_load_start = time.perf_counter()
         Q = np.asarray(np.load(q_path), dtype=float_dtype)
         V_full = np.asarray(np.load(v_path), dtype=complex_dtype)
         if V_full.ndim == 1:
@@ -593,9 +664,12 @@ def main():
             raise ValueError(f"V has {V_full.shape[1]} cols but rank={args.rank}")
 
         V = V_full[:, : args.rank]
+        load_sec = time.perf_counter() - t_load_start
 
         # Broadcast instance to all GPU actors (each keeps its own V and Q resident)
+        t_broadcast_start = time.perf_counter()
         ray.get([a.set_instance.remote(V, Q) for a in gpu_actors])
+        broadcast_sec = time.perf_counter() - t_broadcast_start
 
         t0 = time.time()
         if args.rank == 1:
@@ -618,6 +692,12 @@ def main():
         elapsed = time.time() - t0
 
         log.info(f"Done: score={best_score}, time={elapsed:.4f}s")
+        log.info(
+            "Phase timing: load_qv=%.4fs, broadcast_to_gpu_actors=%.4fs, solve=%.4fs",
+            load_sec,
+            broadcast_sec,
+            elapsed,
+        )
 
         output: Dict[str, object] = {
             "rank": int(args.rank),
