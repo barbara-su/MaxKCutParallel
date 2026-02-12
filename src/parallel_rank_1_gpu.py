@@ -10,7 +10,6 @@ from typing import List
 
 import numpy as np
 import ray
-import torch
 
 from utils import (
     set_numpy_precision,
@@ -18,7 +17,6 @@ from utils import (
     low_rank_matrix,
     generate_debug_QV,
     opt_K_cut,
-    set_seed
 )
 
 warnings.filterwarnings("ignore", message="pkg_resources is deprecated as an API")
@@ -31,7 +29,9 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 
-def _torch_real_dtype_from_precision(precision: int) -> torch.dtype:
+def _torch_real_dtype_from_precision(precision: int):
+    import torch
+
     if precision in (16, 32):
         return torch.float32
     if precision == 64:
@@ -39,7 +39,9 @@ def _torch_real_dtype_from_precision(precision: int) -> torch.dtype:
     raise ValueError("precision must be one of {16,32,64}")
 
 
-def _torch_complex_dtype_from_precision(precision: int) -> torch.dtype:
+def _torch_complex_dtype_from_precision(precision: int):
+    import torch
+
     if precision in (16, 32):
         return torch.complex64
     if precision == 64:
@@ -59,11 +61,15 @@ class Rank1GPUActor:
     """
 
     def __init__(self, K: int, precision: int):
-        set_seed(42)
-        
+        import torch
+
+        torch.backends.cuda.matmul.allow_tf32 = True
+        torch.backends.cudnn.allow_tf32 = True 
+        torch.set_float32_matmul_precision("high") 
+
         self.device = "cuda"
-        self.K = int(K)
-        self.precision = int(precision)
+        self.K = K
+        self.precision = precision
 
         self.rdtype = _torch_real_dtype_from_precision(self.precision)
         self.cdtype = _torch_complex_dtype_from_precision(self.precision)
@@ -75,34 +81,38 @@ class Rank1GPUActor:
         self.n = None
 
     def set_instance(self, Q_np: np.ndarray):
+        import torch
+
         Q_t = torch.as_tensor(Q_np)
         if Q_t.dtype == torch.float16:
             Q_t = Q_t.to(torch.float32)
         self.Q = Q_t.to(device=self.device, dtype=self.rdtype).contiguous()
         self.n = int(self.Q.shape[0])
 
-    @torch.inference_mode()
     def score_k_batch(self, k_batch_np: np.ndarray) -> np.ndarray:
-        if self.Q is None:
-            raise RuntimeError("Call set_instance(Q) before score_k_batch")
+        import torch
 
-        k = torch.as_tensor(k_batch_np, device=self.device, dtype=torch.int64)
-        if k.ndim != 2:
-            raise ValueError("k_batch must have shape (B,n)")
+        with torch.inference_mode():
+            if self.Q is None:
+                raise RuntimeError("Call set_instance(Q) before score_k_batch")
 
-        # z: (B,n) complex
-        z = self.roots[k]
+            k = torch.as_tensor(k_batch_np, device=self.device, dtype=torch.int64)
+            if k.ndim != 2:
+                raise ValueError("k_batch must have shape (B,n)")
 
-        # Q @ z^T via two real GEMMs (Q is real)
-        zT = z.T  # (n,B)
-        Qzr = torch.matmul(self.Q, zT.real)
-        Qzi = torch.matmul(self.Q, zT.imag)
-        Qz = Qzr + 1j * Qzi  # (n,B) complex
+            # z: (B,n) complex
+            z = self.roots[k]
 
-        # score_b = sum_i conj(z_i) * (Qz)_i
-        scores = torch.sum(torch.conj(zT) * Qz, dim=0).real  # (B,)
+            # Q @ z^T via two real GEMMs (Q is real)
+            zT = z.T  # (n,B)
+            Qzr = torch.matmul(self.Q, zT.real)
+            Qzi = torch.matmul(self.Q, zT.imag)
+            Qz = Qzr + 1j * Qzi  # (n,B) complex
 
-        return scores.to("cpu").numpy()
+            # score_b = sum_i conj(z_i) * (Qz)_i
+            scores = torch.sum(torch.conj(zT) * Qz, dim=0).real  # (B,)
+
+            return scores.to("cpu").numpy()
 
 
 @ray.remote
@@ -207,12 +217,11 @@ def process_rank_1_parallel_gpu(
     in_flight = []
     submitted = 0
     completed = 0
-
     best_score = float("-inf")
     best_l = 0
 
     num_gpu = len(gpu_actors)
-
+    
     batch_id = 0
     for batch in batched_l_values():
         actor = gpu_actors[batch_id % num_gpu]
@@ -296,7 +305,10 @@ def parse_args():
 
 def main():
     args = parse_args()
-    set_seed(42)
+    import torch
+    torch.backends.cuda.matmul.allow_tf32 = True
+    torch.backends.cudnn.allow_tf32 = True 
+    torch.set_float32_matmul_precision("high") 
 
     float_dtype, complex_dtype = set_numpy_precision(args.precision)
     log.info(f"Using precision={args.precision} -> float={float_dtype.__name__}, complex={complex_dtype.__name__}")

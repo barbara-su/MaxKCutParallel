@@ -4,13 +4,14 @@
 #SBATCH --output=logs/multi-nodes-rank-r-dir-gpu-%j.out
 #SBATCH --error=logs/multi-nodes-rank-r-dir-gpu-%j.err
 
-#SBATCH --nodes=5
+#SBATCH --nodes=1
 #SBATCH --tasks-per-node=1
 #SBATCH --partition=commons
 #SBATCH --cpus-per-task=80
-#SBATCH --gres=gpu:1
+#SBATCH --gres=gpu:2
 #SBATCH --mem=20G
 #SBATCH --time=23:00:00
+#SBATCH --nodelist=bg4u11g1
 
 # One Ray cluster, many instances (GPU).
 # This calls src/parallel_rank_r_dir_gpu.py ONCE, which iterates the directory internally

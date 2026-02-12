@@ -3,7 +3,6 @@ import itertools
 import json
 import logging
 import math
-import random
 import time
 import warnings
 from pathlib import Path
@@ -11,7 +10,6 @@ from typing import Dict, List, Tuple
 
 import numpy as np
 import ray
-import torch
 
 from utils import (
     set_numpy_precision,
@@ -22,7 +20,6 @@ from utils import (
     find_intersection_fixed_angle,
     convert_ctilde_to_complex,
     opt_K_cut,
-    set_seed
 )
 from parallel_rank_1_gpu import process_rank_1_parallel_gpu  # (best_score, best_k, best_z, best_l)
 
@@ -57,8 +54,9 @@ def result_already_exists(results_dir: Path, q_path: Path, rank: int) -> bool:
     out_path = results_dir / f"{stem}_r{rank}.json"
     return out_path.exists()
 
-# cast data type for torch
-def _torch_complex_dtype_from_precision(precision: int) -> torch.dtype:
+def _torch_complex_dtype_from_precision(precision: int):
+    import torch
+
     if precision in (16, 32):
         return torch.complex64
     if precision == 64:
@@ -81,8 +79,12 @@ class RankRGPUActor:
     """
 
     def __init__(self, K: int, precision: int):
-        set_seed(42)
-        
+        import torch
+
+        torch.backends.cuda.matmul.allow_tf32 = True
+        torch.backends.cudnn.allow_tf32 = True 
+        torch.set_float32_matmul_precision("high") 
+
         self.device = "cuda"
         self.K = K
         self.precision = precision
@@ -103,6 +105,8 @@ class RankRGPUActor:
         self.r = None
 
     def set_instance(self, V_np: np.ndarray, Q_np: np.ndarray):
+        import torch
+
         """
         Take input of numpy and store it, assume Q is real.
         """
@@ -122,49 +126,74 @@ class RankRGPUActor:
             Q_t = Q_t.to(torch.float32)
         self.Q = Q_t.to(dtype=self.qdtype, device=self.device).contiguous()
 
-    @torch.inference_mode()
     def score_batch(self, C_np: np.ndarray, overrides: List[Tuple[np.ndarray, np.ndarray]]):
+        import torch
+
         """
-        C_np: (B,r), batch of candidates
+        C_np: batch of candidates, shape [B, r]
         overrides: length B list of (idxs, root_ids):
           idxs: shape (t,) vertex indices to overwrite
           root_ids: shape (t,) in [0,K)
-
+          
         Returns: (best_score, best_k (n,), best_z (n,))
         """
-        if self.V is None or self.Q is None:
-            raise RuntimeError("Call set_instance(V, Q) before score_batch(...)")
+        with torch.inference_mode():
+            if self.V is None or self.Q is None:
+                raise RuntimeError("Call set_instance(V, Q) before score_batch(...)")
 
-        C = torch.as_tensor(C_np, device=self.device, dtype=self.cdtype)  # (B,r)
-        B = int(C.shape[0])
+            C = torch.as_tensor(C_np, device=self.device, dtype=self.cdtype)  # (B,r)
+            B = int(C.shape[0])
 
-        # Y = V @ C^T : (n,r) @ (r,B) -> (n,B)
-        Y = torch.matmul(self.V, C.T) # (n,B) complex
+            # Y = V @ C^T : (n,r) @ (r,B) -> (n,B)
+            Y = torch.matmul(self.V, C.T) # (n,B) complex
 
-        # quantize by phase rounding
-        theta = torch.angle(Y) # (n,B) float
-        k = torch.round(theta * (self.K / (2 * torch.pi))).to(torch.int64) % self.K  # (n,B)
+            # quantize by phase rounding
+            theta = torch.angle(Y) # (n,B) float
+            k = torch.round(theta * (self.K / (2 * torch.pi))).to(torch.int64) % self.K  # (n,B)
 
-        # apply overrides (handle used vertices)
-        for b in range(B):
-            idxs, root_ids = overrides[b]
-            if idxs is None or len(idxs) == 0:
-                continue
-            idxs_t = torch.as_tensor(idxs, device=self.device, dtype=torch.int64)
-            roots_t = torch.as_tensor(root_ids, device=self.device, dtype=torch.int64)
-            k[idxs_t, b] = roots_t
+            # apply overrides (handle used vertices)
+            for b in range(B):
+                idxs, root_ids = overrides[b]
+                if idxs is None or len(idxs) == 0:
+                    continue
+                idxs_t = torch.as_tensor(idxs, device=self.device, dtype=torch.int64)
+                roots_t = torch.as_tensor(root_ids, device=self.device, dtype=torch.int64)
+                k[idxs_t, b] = roots_t
 
-        z = self.roots[k] # (n,B)
+            z = self.roots[k] # (n,B)
 
-        # scoring
-        Qz = torch.matmul(self.Q, z.real) + 1j * torch.matmul(self.Q, z.imag)  # (n,B) complex
-        scores = torch.sum(torch.conj(z) * Qz, dim=0).real  # (B,)
+            # scoring
+            Qz = torch.matmul(self.Q, z.real) + 1j * torch.matmul(self.Q, z.imag)  # (n,B) complex
+            scores = torch.sum(torch.conj(z) * Qz, dim=0).real  # (B,)
 
-        best_b = torch.argmax(scores)
-        best_score = float(scores[best_b].item())
-        best_k = k[:, best_b].to("cpu").numpy()
-        best_z = z[:, best_b].to("cpu").numpy()
-        return best_score, best_k, best_z
+            best_b = torch.argmax(scores)
+            best_score = float(scores[best_b].item())
+            best_k = k[:, best_b].to("cpu").numpy()
+            best_z = z[:, best_b].to("cpu").numpy()
+            return best_score, best_k, best_z
+
+    def score_k_batch(self, k_batch_np: np.ndarray) -> np.ndarray:
+        import torch
+
+        with torch.inference_mode():
+            if self.Q is None:
+                raise RuntimeError("Call set_instance(V, Q) before score_k_batch(...)")
+
+            k = torch.as_tensor(k_batch_np, device=self.device, dtype=torch.int64)
+            if k.ndim != 2:
+                raise ValueError("k_batch must have shape (B,n)")
+
+            # z: (B,n) complex
+            z = self.roots[k]
+            zT = z.T  # (n,B)
+
+            # score_b = Re( conj(z_b)^T Q z_b )
+            Qzr = torch.matmul(self.Q, zT.real)
+            Qzi = torch.matmul(self.Q, zT.imag)
+            Qz = Qzr + 1j * Qzi
+
+            scores = torch.sum(torch.conj(zT) * Qz, dim=0).real
+            return scores.to("cpu").numpy()
 
 @ray.remote
 def process_combination_batch_hybrid(
@@ -207,14 +236,12 @@ def process_combination_batch_hybrid(
             v_row, _ = row_mapping[idx]
             v_used.add(v_row)
 
-        # Build overrides for used vertices using fixed-angle intersection,
-        # else fallback to base c.
+        # build candidates using batch_size = candidates_per_task
         idxs_out: List[int] = []
         roots_out: List[int] = []
 
         for v_idx in v_used:
             vtilde_rows_for_v = [idx for idx in inverse_mapping[v_idx] if idx in I]
-
             assigned = False
             for vtilde_idx in vtilde_rows_for_v:
                 pos = int(np.where(I == vtilde_idx)[0][0])
@@ -227,13 +254,11 @@ def process_combination_batch_hybrid(
                 roots_out.append(int(root_id))
                 assigned = True
                 break
-
             if not assigned:
                 v_c = V[v_idx] @ c
                 root_id = _nearest_root_id(v_c, roots)
                 idxs_out.append(int(v_idx))
                 roots_out.append(int(root_id))
-
         C_list.append(np.asarray(c, dtype=complex_dtype))
         overrides.append(
             (np.asarray(idxs_out, dtype=np.int64), np.asarray(roots_out, dtype=np.int64))
@@ -242,7 +267,7 @@ def process_combination_batch_hybrid(
     if len(C_list) == 0:
         return float("-inf"), None, None, int(batch_id)
 
-    C_np = np.stack(C_list, axis=0)  # (B,r)
+    C_np = np.stack(C_list, axis=0)  # stack the batch (B <= candidates_per_task)
     best_score, best_k, best_z = ray.get(gpu_actor.score_batch.remote(C_np, overrides))
     
     return float(best_score), best_k, best_z, int(batch_id)
@@ -305,7 +330,7 @@ def process_rankr_single_hybrid_gpu(
 
     num_gpu_actors = len(gpu_actors)
     
-    # this code must run with GPU...
+    # this code must run with gpu
     if num_gpu_actors < 1:
         raise RuntimeError("gpu_actors list is empty")
     
@@ -423,8 +448,12 @@ def parse_args():
 
 def main():
     args = parse_args()
-
-    set_seed(42)
+    import torch
+    
+    # supports tensor core computation
+    torch.backends.cuda.matmul.allow_tf32 = True
+    torch.backends.cudnn.allow_tf32 = True 
+    torch.set_float32_matmul_precision("high") 
 
     qv_dir = Path(args.qv_dir).expanduser().resolve()
     results_dir = Path(args.results_dir).expanduser().resolve()
