@@ -8,7 +8,7 @@
 #SBATCH --tasks-per-node=1
 #SBATCH --partition=commons
 #SBATCH --cpus-per-task=80
-#SBATCH --gres=gpu:2
+#SBATCH --gres=gpu:1
 #SBATCH --mem=20G
 #SBATCH --time=23:00:00
 
@@ -133,7 +133,7 @@ srun --nodes="$SLURM_JOB_NUM_NODES" --ntasks="$SLURM_JOB_NUM_NODES" \
       --K "$K" \
       --precision "$PRECISION" \
       --candidates_per_task "$CANDIDATES_PER_TASK" \
-      --skip_existing \
+    #   --skip_existing \
       $DEBUG_ARG
 
 echo "Job complete."

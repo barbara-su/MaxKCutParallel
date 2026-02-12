@@ -159,9 +159,6 @@ def symmetric_run(address, min_nodes, ray_args_and_entrypoint):
     if not entrypoint_on_head:
         raise click.ClickException("No entrypoint command provided.")
 
-    if check_ray_already_started():
-        raise click.ClickException("Ray is already started on this node.")
-
     # 1. Parse address and check if we are on the head node.
     gcs_host_port = ray._common.network_utils.parse_address(address)
     if gcs_host_port is None:
@@ -203,68 +200,91 @@ def symmetric_run(address, min_nodes, ray_args_and_entrypoint):
     
 
     result = None
+    cluster_started_here = False
+    ray_already_started = check_ray_already_started()
+    if ray_already_started:
+        click.echo("Ray is already started on this node. Reusing existing cluster.")
+
     # 2. Start Ray and run commands.
     try:
-        if is_head:
-            # On the head node, start Ray, run the command, then stop Ray.
-            click.echo("On head node. Starting Ray cluster head...")
-
-            # Build the ray start command with all parameters
-            ray_start_cmd = [
-                "ray",
-                "start",
-                "--head",
-                f"--node-ip-address={resolved_gcs_host}",
-                f"--port={gcs_port}",
-                *ray_start_args,
-            ]
-
-            # Start Ray head. This runs in the background and hides output.
-            subprocess.run(ray_start_cmd, check=True, capture_output=True)
-            click.echo("Head node started.")
-            click.echo("=======================")
-            if min_nodes > 1 and not check_cluster_ready(min_nodes):
-                raise click.ClickException(
-                    "Timed out waiting for other nodes to start."
+        if ray_already_started:
+            if is_head:
+                click.echo("On head node. Reusing existing Ray cluster.")
+                click.echo("=======================")
+                if min_nodes > 1 and not check_cluster_ready(min_nodes):
+                    raise click.ClickException(
+                        "Timed out waiting for other nodes to start."
+                    )
+                click.echo(
+                    f"Running command on head node: {entrypoint_on_head}",
                 )
-
-            click.echo(
-                f"Running command on head node: {entrypoint_on_head}",
-            )
-            click.echo("=======================")
-            result = subprocess.run(entrypoint_on_head)
-            click.echo("=======================")
+                click.echo("=======================")
+                result = subprocess.run(entrypoint_on_head)
+                click.echo("=======================")
+            else:
+                click.echo("[WORKER] Ray already started on this node. Skipping ray start.")
         else:
-            # On a worker node, start Ray and connect to the head.
-            click.echo(f"[WORKER] Hostname: {socket.gethostname()}")
-            click.echo(f"[WORKER] address argument: {address}")
-            click.echo(f"[WORKER] ip_head env var: {os.getenv('ip_head', '<not_set>')}")
-            click.echo(f"[WORKER] Local IPs: {my_ips}")
-            click.echo(f"[WORKER] Sleeping 10 seconds to let head come up...")
-            time.sleep(10)
+            if is_head:
+                # On the head node, start Ray, run the command, then stop Ray.
+                click.echo("On head node. Starting Ray cluster head...")
 
-            # Build the ray start command for worker nodes with all parameters
-            ray_start_cmd = [
-                "ray",
-                "start",
-                "--address",
-                address,
-                "--block",
-                *ray_start_args,
-            ]
+                # Build the ray start command with all parameters
+                ray_start_cmd = [
+                    "ray",
+                    "start",
+                    "--head",
+                    f"--node-ip-address={resolved_gcs_host}",
+                    f"--port={gcs_port}",
+                    *ray_start_args,
+                ]
 
-            click.echo(f"[WORKER] Running worker ray start: {' '.join(ray_start_cmd)}")
+                # Start Ray head. This runs in the background and hides output.
+                subprocess.run(ray_start_cmd, check=True, capture_output=True)
+                cluster_started_here = True
+                click.echo("Head node started.")
+                click.echo("=======================")
+                if min_nodes > 1 and not check_cluster_ready(min_nodes):
+                    raise click.ClickException(
+                        "Timed out waiting for other nodes to start."
+                    )
 
-            proc = subprocess.run(
-                ray_start_cmd,
-                check=False,
-                capture_output=True,
-            )
-            click.echo(f"[WORKER] ray start return code: {proc.returncode}")
-            if proc.stdout:
-                click.echo(f"[WORKER] ray start stdout:\n{proc.stdout.decode()}")
-            if proc.stderr:
-                click.echo(f"[WORKER] ray start stderr:\n{proc.stderr.decode()}")
+                click.echo(
+                    f"Running command on head node: {entrypoint_on_head}",
+                )
+                click.echo("=======================")
+                result = subprocess.run(entrypoint_on_head)
+                click.echo("=======================")
+            else:
+                # On a worker node, start Ray and connect to the head.
+                click.echo(f"[WORKER] Hostname: {socket.gethostname()}")
+                click.echo(f"[WORKER] address argument: {address}")
+                click.echo(f"[WORKER] ip_head env var: {os.getenv('ip_head', '<not_set>')}")
+                click.echo(f"[WORKER] Local IPs: {my_ips}")
+                click.echo(f"[WORKER] Sleeping 10 seconds to let head come up...")
+                time.sleep(10)
+
+                # Build the ray start command for worker nodes with all parameters
+                ray_start_cmd = [
+                    "ray",
+                    "start",
+                    "--address",
+                    address,
+                    "--block",
+                    *ray_start_args,
+                ]
+
+                click.echo(f"[WORKER] Running worker ray start: {' '.join(ray_start_cmd)}")
+
+                proc = subprocess.run(
+                    ray_start_cmd,
+                    check=False,
+                    capture_output=True,
+                )
+                click.echo(f"[WORKER] ray start return code: {proc.returncode}")
+                if proc.stdout:
+                    click.echo(f"[WORKER] ray start stdout:\n{proc.stdout.decode()}")
+                if proc.stderr:
+                    click.echo(f"[WORKER] ray start stderr:\n{proc.stderr.decode()}")
 
     except subprocess.CalledProcessError as e:
         click.echo(f"Failed to start Ray: {e}", err=True)
@@ -277,7 +297,7 @@ def symmetric_run(address, min_nodes, ray_args_and_entrypoint):
         click.echo("Interrupted by user.", err=True)
     finally:
         # Stop Ray cluster.
-        if is_head:
+        if is_head and cluster_started_here:
             subprocess.run(
                 ["ray", "stop"],
                 stdout=subprocess.DEVNULL,
