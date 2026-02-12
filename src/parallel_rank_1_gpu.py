@@ -1,3 +1,24 @@
+#!/usr/bin/env python3
+"""
+parallel_rank_1_gpu.py
+
+GPU-accelerated rank-1 solver with Ray CPU orchestration.
+
+Same CLI shape as your original parallel_rank_1.py, plus:
+- --K
+- --gpus (optional cap; default uses all Ray-visible GPUs)
+
+Core idea:
+- CPU computes k0 and sorted_idx.
+- CPU Ray tasks build batched integer assignments k_batch for a list of prefix lengths l.
+- GPU actor(s) keep dense Q on device and score candidates in batch:
+    score(z) = Re(conj(z)^T Q z),  z_i = exp(2πj k_i / K).
+
+Design A (multi-GPU):
+- Spawn one Rank1GPUActor per GPU.
+- Round-robin batches across actors.
+"""
+
 import argparse
 import itertools
 import json
@@ -29,23 +50,11 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 
-def _torch_real_dtype_from_precision(precision: int):
-    import torch
-
+def _torch_dtype_names_from_precision(precision: int):
     if precision in (16, 32):
-        return torch.float32
+        return "float32", "complex64"
     if precision == 64:
-        return torch.float64
-    raise ValueError("precision must be one of {16,32,64}")
-
-
-def _torch_complex_dtype_from_precision(precision: int):
-    import torch
-
-    if precision in (16, 32):
-        return torch.complex64
-    if precision == 64:
-        return torch.complex128
+        return "float64", "complex128"
     raise ValueError("precision must be one of {16,32,64}")
 
 
@@ -63,29 +72,33 @@ class Rank1GPUActor:
     def __init__(self, K: int, precision: int):
         import torch
 
-        torch.backends.cuda.matmul.allow_tf32 = True
-        torch.backends.cudnn.allow_tf32 = True 
-        torch.set_float32_matmul_precision("high") 
+        if not torch.cuda.is_available():
+            raise RuntimeError("CUDA not available")
 
         self.device = "cuda"
-        self.K = K
-        self.precision = precision
+        self.K = int(K)
+        self.precision = int(precision)
 
-        self.rdtype = _torch_real_dtype_from_precision(self.precision)
-        self.cdtype = _torch_complex_dtype_from_precision(self.precision)
+        rdtype_name, cdtype_name = _torch_dtype_names_from_precision(self.precision)
+        self.rdtype = getattr(torch, rdtype_name)
+        self.cdtype = getattr(torch, cdtype_name)
 
         kk = torch.arange(self.K, device=self.device, dtype=torch.float32)
         self.roots = torch.exp(2j * torch.pi * kk / self.K).to(self.cdtype)  # (K,)
 
-        self.Q = None
+        self.Q = None  # (n,n) real float
         self.n = None
 
     def set_instance(self, Q_np: np.ndarray):
         import torch
 
-        Q_t = torch.as_tensor(Q_np)
+        Q_arr = np.asarray(Q_np)
+        if (not Q_arr.flags.writeable) or (not Q_arr.flags.c_contiguous):
+            Q_arr = np.array(Q_arr, copy=True, order="C")
+        Q_t = torch.as_tensor(Q_arr)
         if Q_t.dtype == torch.float16:
             Q_t = Q_t.to(torch.float32)
+        # Assume dense real Q (as in your code)
         self.Q = Q_t.to(device=self.device, dtype=self.rdtype).contiguous()
         self.n = int(self.Q.shape[0])
 
@@ -96,7 +109,10 @@ class Rank1GPUActor:
             if self.Q is None:
                 raise RuntimeError("Call set_instance(Q) before score_k_batch")
 
-            k = torch.as_tensor(k_batch_np, device=self.device, dtype=torch.int64)
+            k_arr = np.asarray(k_batch_np)
+            if (not k_arr.flags.writeable) or (not k_arr.flags.c_contiguous):
+                k_arr = np.array(k_arr, copy=True, order="C")
+            k = torch.as_tensor(k_arr, device=self.device, dtype=torch.int64)
             if k.ndim != 2:
                 raise ValueError("k_batch must have shape (B,n)")
 
@@ -217,11 +233,12 @@ def process_rank_1_parallel_gpu(
     in_flight = []
     submitted = 0
     completed = 0
+
     best_score = float("-inf")
     best_l = 0
 
     num_gpu = len(gpu_actors)
-    
+
     batch_id = 0
     for batch in batched_l_values():
         actor = gpu_actors[batch_id % num_gpu]
@@ -273,6 +290,7 @@ def process_rank_1_parallel_gpu(
 def parse_args():
     parser = argparse.ArgumentParser(description="Parallel MAX k CUT experiment (rank 1, GPU)")
     parser.add_argument("--n", type=int, default=10000, help="Problem size")
+    parser.add_argument("--seed", type=int, default=42, help="Random seed")
     parser.add_argument(
         "--precision",
         type=int,
@@ -299,19 +317,19 @@ def parse_args():
         "--gpus",
         type=int,
         default=0,
-        help="If > 0, cap number of GPU actors to this many. Default uses all Ray-visible GPUs.",
+        help="If >0, cap number of GPU actors to this many. Default uses all Ray-visible GPUs.",
     )
     return parser.parse_args()
 
+
 def main():
     args = parse_args()
-    import torch
-    torch.backends.cuda.matmul.allow_tf32 = True
-    torch.backends.cudnn.allow_tf32 = True 
-    torch.set_float32_matmul_precision("high") 
 
     float_dtype, complex_dtype = set_numpy_precision(args.precision)
     log.info(f"Using precision={args.precision} -> float={float_dtype.__name__}, complex={complex_dtype.__name__}")
+
+    np.random.seed(args.seed)
+
     log.info("Starting MAX k CUT experiment (rank 1, GPU)")
     ray.init(address="auto", ignore_reinit_error=True)
     log.info("Ray initialized")
