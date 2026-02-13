@@ -165,99 +165,103 @@ class RankRGPUActor:
                 Q_t = Q_t.to(torch.float32)
             self.Q = Q_t.to(dtype=self.qdtype, device=self.device).contiguous()
 
-    def score_batch(self, C_np: np.ndarray, overrides: List[Tuple[np.ndarray, np.ndarray]]):
-        """
-        C_np: (B,r) complex on CPU
-        overrides: length B list of (idxs, root_ids):
-          idxs: shape (t,) vertex indices to overwrite
-          root_ids: shape (t,) in [0,K)
+def score_batch(self, C_np: np.ndarray, overrides: List[Tuple[np.ndarray, np.ndarray]]):
+    """
+    Optimized score_batch.
 
-        Returns: (best_score, best_k (n,), best_z (n,))
-        """
-        import torch
+    Key speedups:
+    1) Quantization without torch.angle/round: argmax over roots via real(conj(root)*Y)
+    2) Overrides applied via one batched scatter (no per-b tensor creation)
+    3) Scoring avoids complex Qz construction:
+         score = sum_i (zr_i * (Q@zr)_i + zi_i * (Q@zi)_i)
+       and uses ONE GEMM by concatenating [zr, zi] -> Q @ [zr|zi]
+    4) Enables TF32-friendly matmul settings for float32 (if available)
+    """
+    import torch
 
-        with torch.inference_mode():
-            if self.V is None or self.Q is None:
-                raise RuntimeError("Call set_instance(V, Q) before score_batch(...)")
+    with torch.inference_mode():
+        if self.V is None or self.Q is None:
+            raise RuntimeError("Call set_instance(V, Q) before score_batch(...)")
 
-            C_arr = np.asarray(C_np)
-            if (not C_arr.flags.writeable) or (not C_arr.flags.c_contiguous):
-                C_arr = np.array(C_arr, copy=True, order="C")
-            C = torch.as_tensor(C_arr, device=self.device, dtype=self.cdtype)  # (B,r)
-            B = int(C.shape[0])
+        # TF32 / matmul precision knobs (safe no-ops on unsupported setups)
+        # Put these in __init__ ideally, but keeping here makes it self-contained.
+        if self.Q.dtype == torch.float32:
+            try:
+                torch.backends.cuda.matmul.allow_tf32 = True
+                torch.set_float32_matmul_precision("high")
+            except Exception:
+                pass
 
-            # Y = V @ C^T : (n,r) @ (r,B) -> (n,B)
-            Y = torch.matmul(self.V, C.T)  # (n,B) complex
+        # ---- Upload C (ensure contiguous on host) ----
+        C_arr = np.asarray(C_np)
+        if (not C_arr.flags.c_contiguous):
+            C_arr = np.ascontiguousarray(C_arr)
+        C = torch.as_tensor(C_arr, device=self.device, dtype=self.cdtype)  # (B,r)
+        B = int(C.shape[0])
 
-            # Quantize by phase rounding
-            theta = torch.angle(Y)  # (n,B) float
-            k = torch.round(theta * (self.K / (2 * torch.pi))).to(torch.int64) % self.K  # (n,B)
+        # ---- Y = V @ C^T : (n,r) @ (r,B) -> (n,B) complex ----
+        Y = torch.matmul(self.V, C.T)  # (n,B) complex
 
-            # Apply overrides
-            for b in range(B):
-                idxs, root_ids = overrides[b]
-                if idxs is None or len(idxs) == 0:
-                    continue
-                idxs_t = torch.tensor(idxs, device=self.device, dtype=torch.int64)
-                roots_t = torch.tensor(root_ids, device=self.device, dtype=torch.int64)
-                k[idxs_t, b] = roots_t
+        # ---- Quantize WITHOUT angle/round ----
+        # k[i,b] = argmax_k Re(conj(root_k) * Y[i,b])
+        # self.roots: (K,) complex
+        # scoresK: (K,n,B) real
+        roots_conj = torch.conj(self.roots).view(self.K, 1, 1)  # (K,1,1)
+        scoresK = torch.real(roots_conj * Y.unsqueeze(0))        # (K,n,B)
+        k = torch.argmax(scoresK, dim=0).to(torch.int64)         # (n,B)
 
-            z = self.roots[k]  # (n,B) complex
+        # ---- Apply overrides via ONE scatter ----
+        # Build flat (row, col, val) on CPU, then one GPU assignment.
+        rows_list = []
+        cols_list = []
+        vals_list = []
+        for b, (idxs, root_ids) in enumerate(overrides):
+            if idxs is None or len(idxs) == 0:
+                continue
+            idxs = np.asarray(idxs, dtype=np.int64)
+            root_ids = np.asarray(root_ids, dtype=np.int64)
+            # rows are vertex indices, cols are batch index b
+            rows_list.append(idxs)
+            cols_list.append(np.full(idxs.shape, b, dtype=np.int64))
+            vals_list.append(root_ids)
 
-            # DenseQ scoring: score_b = Re( conj(z_b)^T Q z_b )
-            # Qz = Q @ z  -> (n,B) complex
-            if self.Q.dtype in (torch.float32, torch.float64):
-                Qz = torch.matmul(self.Q, z.real) + 1j * torch.matmul(self.Q, z.imag)  # (n,B) complex
-            else:
-                # complex Q path (rare)
-                Qz = torch.matmul(self.Q, z)
+        if rows_list:
+            rows_np = np.concatenate(rows_list, axis=0)
+            cols_np = np.concatenate(cols_list, axis=0)
+            vals_np = np.concatenate(vals_list, axis=0)
+            rows_t = torch.as_tensor(rows_np, device=self.device, dtype=torch.int64)
+            cols_t = torch.as_tensor(cols_np, device=self.device, dtype=torch.int64)
+            vals_t = torch.as_tensor(vals_np, device=self.device, dtype=torch.int64)
+            k[rows_t, cols_t] = vals_t
 
-            scores = torch.sum(torch.conj(z) * Qz, dim=0).real  # (B,)
+        # ---- z = roots[k] : (n,B) complex ----
+        z = self.roots[k]  # (n,B) complex
+        zr = z.real
+        zi = z.imag
 
-            best_b = torch.argmax(scores)
-            best_score = float(scores[best_b].item())
-            best_k = k[:, best_b].to("cpu").numpy()
-            best_z = z[:, best_b].to("cpu").numpy()
-            return best_score, best_k, best_z
+        # ---- Scoring, optimized ----
+        # DenseQ scoring: score_b = Re( conj(z_b)^T Q z_b )
+        # For real Q: Re(conj(z) * (Q@z)) = sum( zr*(Q@zr) + zi*(Q@zi) )
+        #
+        # Compute Q @ [zr | zi] in ONE GEMM:
+        if self.Q.dtype in (torch.float32, torch.float64):
+            Zcat = torch.cat([zr, zi], dim=1)            # (n, 2B)
+            QZcat = torch.matmul(self.Q, Zcat)           # (n, 2B)
+            Qzr, Qzi = QZcat.split(B, dim=1)             # (n,B), (n,B)
+            scores = (zr * Qzr + zi * Qzi).sum(dim=0)    # (B,)
+        else:
+            # Rare complex-Q path: keep original (slower)
+            Qz = torch.matmul(self.Q, z)                 # (n,B) complex
+            scores = torch.sum(torch.conj(z) * Qz, dim=0).real
 
-    def score_k_batch(self, k_batch_np: np.ndarray) -> np.ndarray:
-        """
-        Rank-1 scoring helper: scores batches of integer assignments k.
+        # ---- Best ----
+        best_b = torch.argmax(scores)
+        best_score = float(scores[best_b].item())
+        best_k = k[:, best_b].to("cpu").numpy()
+        best_z = z[:, best_b].to("cpu").numpy()
+        return best_score, best_k, best_z
 
-        Input:
-          k_batch_np: (B,n) int64 entries in [0,K)
-        Output:
-          scores_np: (B,) real numpy
-        """
-        import torch
-
-        with torch.inference_mode():
-            if self.Q is None:
-                raise RuntimeError("Call set_instance(V, Q) before score_k_batch(...)")
-
-            k_arr = np.asarray(k_batch_np)
-            if (not k_arr.flags.writeable) or (not k_arr.flags.c_contiguous):
-                k_arr = np.array(k_arr, copy=True, order="C")
-            k = torch.as_tensor(k_arr, device=self.device, dtype=torch.int64)
-            if k.ndim != 2:
-                raise ValueError("k_batch must have shape (B,n)")
-
-            # z: (B,n) complex
-            z = self.roots[k]
-            zT = z.T  # (n,B)
-
-            # score_b = Re( conj(z_b)^T Q z_b )
-            if self.Q.dtype in (torch.float32, torch.float64):
-                Qzr = torch.matmul(self.Q, zT.real)
-                Qzi = torch.matmul(self.Q, zT.imag)
-                Qz = Qzr + 1j * Qzi
-            else:
-                Qz = torch.matmul(self.Q, zT)
-
-            scores = torch.sum(torch.conj(zT) * Qz, dim=0).real
-            return scores.to("cpu").numpy()
-
-
+        
 # -----------------------------
 # CPU Ray task: build batch payload, call GPU once
 # -----------------------------
