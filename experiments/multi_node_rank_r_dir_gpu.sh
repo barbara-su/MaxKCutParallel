@@ -7,9 +7,9 @@
 #SBATCH --nodes=1
 #SBATCH --tasks-per-node=1
 #SBATCH --partition=commons
-#SBATCH --cpus-per-task=8
+#SBATCH --cpus-per-task=40
 #SBATCH --gres=gpu:1
-#SBATCH --mem=20G
+#SBATCH --mem=100G
 #SBATCH --time=23:00:00
 
 # One Ray cluster, many instances (GPU).
