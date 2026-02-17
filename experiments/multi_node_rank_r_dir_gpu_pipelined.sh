@@ -34,7 +34,6 @@
 # Example:
 #   sbatch experiments/multi_node_rank_r_dir_gpu_pipelined.sh graphs/erdos_renyi/rank_2/p01/n20 results/gpu_pipe 2 3 32 256 10000 500000 0 2 0 0
 
-rm -rf /tmp/ray/
 set -euo pipefail
 
 QV_DIR=${1:-graphs}

@@ -8,7 +8,7 @@
 #SBATCH --tasks-per-node=1
 #SBATCH --partition=commons
 #SBATCH --cpus-per-task=8
-#SBATCH --gres=gpu:4
+#SBATCH --gres=gpu:2
 #SBATCH --mem=100G
 #SBATCH --time=23:00:00
 #SBATCH --exclude=bg5u24g1
@@ -34,7 +34,6 @@
 # Example:
 #   sbatch experiments/multi_node_rank_r_dir_gpu_fullgpu.sh graphs/erdos_renyi/rank_2/p01/n20 results/fullgpu 2 3 32 500000 0 0 0
 
-rm -rf /tmp/ray/
 set -euo pipefail
 
 QV_DIR=${1:-graphs}

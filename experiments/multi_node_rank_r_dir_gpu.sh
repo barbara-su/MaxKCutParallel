@@ -29,7 +29,6 @@
 # Example:
 #   sbatch experiments/multi_node_rank_r_dir_gpu.sh graphs/erdos_renyi/rank_2/p01/n20 results/erdos_renyi/rank_2/p01/n20 2 3 32 256 0
 
-rm -rf /tmp/ray/
 set -euo pipefail
 
 QV_DIR=${1:-graphs}
