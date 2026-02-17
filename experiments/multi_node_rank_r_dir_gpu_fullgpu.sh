@@ -26,7 +26,7 @@
 #   4: K (default 3)
 #   5: precision in {16,32,64} (default 32)
 #   6: candidates_per_task / index_batch_size (default 256)
-#   7: max_in_flight_cpu (default 0 -> auto)
+#   7: max_in_flight_gpu_requests (default 0 -> auto)
 #   8: gpus cap passed to solver (default 0 -> all visible)
 #   9: debug flag (0/1, default 0)
 #
@@ -42,7 +42,7 @@ R=${3:-2}
 K=${4:-3}
 PRECISION=${5:-32}
 CANDIDATES_PER_TASK=${6:-256}
-MAX_IN_FLIGHT_CPU=${7:-0}
+MAX_IN_FLIGHT_GPU_REQUESTS=${7:-0}
 GPUS_CAP=${8:-0}
 DEBUG_FLAG=${9:-0}
 
@@ -61,7 +61,7 @@ echo "Using rank = $R"
 echo "Using K = $K"
 echo "Using precision = $PRECISION"
 echo "Using candidates_per_task/index_batch_size = $CANDIDATES_PER_TASK"
-echo "Using max_in_flight_cpu = $MAX_IN_FLIGHT_CPU"
+echo "Using max_in_flight_gpu_requests = $MAX_IN_FLIGHT_GPU_REQUESTS"
 echo "Using gpus cap = $GPUS_CAP"
 echo "Debug enabled: $DEBUG_FLAG"
 
@@ -142,7 +142,7 @@ srun --nodes="$SLURM_JOB_NUM_NODES" --ntasks="$SLURM_JOB_NUM_NODES" \
       --K "$K" \
       --precision "$PRECISION" \
       --candidates_per_task "$CANDIDATES_PER_TASK" \
-      --max_in_flight_cpu "$MAX_IN_FLIGHT_CPU" \
+      --max_in_flight_cpu "$MAX_IN_FLIGHT_GPU_REQUESTS" \
       --gpus "$GPUS_CAP" \
     #   --skip_existing \
       $DEBUG_ARG
