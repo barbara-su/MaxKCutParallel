@@ -139,7 +139,7 @@ class RankRGPUActor:
         cdtype_name, qdtype_name = _torch_dtype_names_from_precision(self.precision)
         self.cdtype = getattr(torch, cdtype_name)
         
-        # Q in your code is real; keep it real on GPU for speed/memory.
+        # Q is real.
         self.qdtype = getattr(torch, qdtype_name)
 
         kk = torch.arange(self.K, device=self.device, dtype=torch.float32)
