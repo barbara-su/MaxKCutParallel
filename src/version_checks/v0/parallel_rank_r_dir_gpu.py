@@ -168,7 +168,9 @@ class RankRGPUActor:
             
             scores = torch.sum(torch.conj(z) * Qz, dim=0).real  # (B,)
             best_b = torch.argmax(scores)
-            best_score = float(scores[best_b].item())
+            
+            # account for precision of tf32
+            best_score = float(torch.round(scores[best_b]).item())
             best_k = k[:, best_b].to("cpu").numpy()
             best_z = z[:, best_b].to("cpu").numpy()
             return best_score, best_k, best_z
@@ -605,9 +607,7 @@ def main():
                 gpu_actors=gpu_actors,
             )
             best_l = None
-        
-        best_score = float(np.round(best_score))
-
+            
         elapsed = time.time() - t0
         log.info(f"Done: score={best_score}, time={elapsed:.4f}s")
         log.info(

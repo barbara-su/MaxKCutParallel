@@ -120,6 +120,8 @@ def process_rank_1_batch_hybrid(
     """
     One CPU Ray task: build k_batch, GPU score them, return (score, l)
     """
+    import torch
+
     B = len(l_values)
     t_build_start = time.perf_counter()
     
@@ -141,7 +143,9 @@ def process_rank_1_batch_hybrid(
     scores = ray.get(gpu_actor.score_k_batch.remote(k_batch))  # (B,)
     gpu_score_sec = time.perf_counter() - t_gpu_start
     best_pos = int(np.argmax(scores))
-    best_score = float(scores[best_pos])
+    
+    # acount for precision of tf32
+    best_score = float(torch.round(torch.as_tensor(scores[best_pos])).item())
     best_l = int(l_values[best_pos])
     return best_score, best_l, int(batch_id), float(build_sec), float(gpu_score_sec)
 
@@ -394,7 +398,6 @@ def main():
         candidates_per_task=int(args.candidates_per_task),
         gpu_actors=gpu_actors,
     )
-    best_score = float(np.round(best_score))
 
     elapsed = time.time() - start
     log.info(
