@@ -1,30 +1,3 @@
-#!/usr/bin/env python3
-"""
-parallel_rank_r_dir_gpu.py
-
-Hybrid GPU + Ray CPU parallelization for the rank-r solver over a directory.
-
-High-level structure
-- Ray CPU tasks enumerate (2r-1)-tuples (combinations) and do the "small math":
-  - VI extraction
-  - nullspace / intersection (find_intersection)
-  - decision-region check (determine_phi_sign_c)
-  - used-vertex refinement (find_intersection_fixed_angle)
-  - produce: a complex direction c (length r) plus per-candidate overrides for used vertices
-
-- Ray GPU actor(s) (one per GPU) own the GPU(s) and do the heavy batched work:
-  - Y = V @ C^T  (GEMM)
-  - quantize Y to nearest K-th root (phase rounding)
-  - apply per-candidate overrides
-  - score candidates, preferably via low-rank identity:
-      score(z) = || z^H V ||^2  (two GEMMs + reductions)
-    This is equivalent to z^H Q z if Q = V V^H.
-
-Notes
-- This keeps your exact candidate construction logic for used vertices, but batches everything else.
-- This expects V in files to be the factor matrix corresponding to Q (or the approximation you want to optimize).
-"""
-
 import argparse
 import itertools
 import json
@@ -47,7 +20,6 @@ from utils import (
     determine_phi_sign_c,
     find_intersection_fixed_angle,
     convert_ctilde_to_complex,
-    complex_to_partition,
     opt_K_cut,
 )
 from parallel_rank_1_gpu import process_rank_1_parallel_gpu  # (best_score, best_k, best_z, best_l)
@@ -61,10 +33,6 @@ logging.basicConfig(
 )
 log = logging.getLogger(__name__)
 
-
-# -----------------------------
-# Helpers
-# -----------------------------
 def discover_instances(qv_dir: Path) -> List[Tuple[Path, Path]]:
     """
     For every file starting with 'Q' and ending with '.npy',
@@ -104,18 +72,12 @@ def _nearest_root_id(v_c: complex, roots: np.ndarray) -> int:
     metric = np.real(np.conj(roots) * v_c)
     return int(np.argmax(metric))
 
-
-# -----------------------------
-# GPU Actor
-# -----------------------------
 @ray.remote(num_gpus=1)
 class RankRGPUActor:
     """
-    Owns GPU, keeps V and dense Q resident, does batched quantization + scoring.
-
+    GPU actor that does scoring
     score(z) = Re(conj(z)^T Q z)
     """
-
     def __init__(self, K: int, precision: int):
         import torch
 
@@ -128,6 +90,7 @@ class RankRGPUActor:
 
         cdtype_name, qdtype_name = _torch_dtype_names_from_precision(self.precision)
         self.cdtype = getattr(torch, cdtype_name)
+        
         # Q in your code is real; keep it real on GPU for speed/memory.
         self.qdtype = getattr(torch, qdtype_name)
 
@@ -175,7 +138,6 @@ class RankRGPUActor:
         Returns: (best_score, best_k (n,), best_z (n,))
         """
         import torch
-
         with torch.inference_mode():
             if self.V is None or self.Q is None:
                 raise RuntimeError("Call set_instance(V, Q) before score_batch(...)")
@@ -205,15 +167,9 @@ class RankRGPUActor:
             z = self.roots[k]  # (n,B) complex
 
             # DenseQ scoring: score_b = Re( conj(z_b)^T Q z_b )
-            # Qz = Q @ z  -> (n,B) complex
-            if self.Q.dtype in (torch.float32, torch.float64):
-                Qz = torch.matmul(self.Q, z.real) + 1j * torch.matmul(self.Q, z.imag)  # (n,B) complex
-            else:
-                # complex Q path (rare)
-                Qz = torch.matmul(self.Q, z)
-
+            Qz = torch.matmul(self.Q, z.real) + 1j * torch.matmul(self.Q, z.imag)
+            
             scores = torch.sum(torch.conj(z) * Qz, dim=0).real  # (B,)
-
             best_b = torch.argmax(scores)
             best_score = float(scores[best_b].item())
             best_k = k[:, best_b].to("cpu").numpy()
@@ -247,13 +203,10 @@ class RankRGPUActor:
             zT = z.T  # (n,B)
 
             # score_b = Re( conj(z_b)^T Q z_b )
-            if self.Q.dtype in (torch.float32, torch.float64):
-                Qzr = torch.matmul(self.Q, zT.real)
-                Qzi = torch.matmul(self.Q, zT.imag)
-                Qz = Qzr + 1j * Qzi
-            else:
-                Qz = torch.matmul(self.Q, zT)
-
+            Qzr = torch.matmul(self.Q, zT.real)
+            Qzi = torch.matmul(self.Q, zT.imag)
+            Qz = Qzr + 1j * Qzi
+            
             scores = torch.sum(torch.conj(zT) * Qz, dim=0).real
             return scores.to("cpu").numpy()
 
@@ -281,10 +234,8 @@ def process_combination_batch_hybrid(
     n = V.shape[0]
     complex_dtype = V.dtype
     roots = _roots_numpy(K, complex_dtype)
-
     C_list: List[np.ndarray] = []
     overrides: List[Tuple[np.ndarray, np.ndarray]] = []
-
     for combo in combinations_batch:
         try:
             I = np.array(combo, dtype=int)
@@ -295,24 +246,17 @@ def process_combination_batch_hybrid(
 
             if not (-np.pi / K < phi[2 * r - 2] <= np.pi / K):
                 continue
-
             c_tilde = c_tilde * sign_c
             c = convert_ctilde_to_complex(c_tilde, r)  # (r,)
-
-            # Used vertices
             v_used = set()
             for idx in I:
                 v_row, _ = row_mapping[idx]
                 v_used.add(v_row)
-
-            # Build overrides for used vertices using fixed-angle intersection,
-            # else fallback to base c.
             idxs_out: List[int] = []
             roots_out: List[int] = []
 
             for v_idx in v_used:
                 vtilde_rows_for_v = [idx for idx in inverse_mapping[v_idx] if idx in I]
-
                 assigned = False
                 for vtilde_idx in vtilde_rows_for_v:
                     pos = int(np.where(I == vtilde_idx)[0][0])
@@ -328,13 +272,11 @@ def process_combination_batch_hybrid(
                         break
                     except ValueError:
                         continue
-
                 if not assigned:
                     v_c = V[v_idx] @ c
                     root_id = _nearest_root_id(v_c, roots)
                     idxs_out.append(int(v_idx))
                     roots_out.append(int(root_id))
-
             C_list.append(np.asarray(c, dtype=complex_dtype))
             overrides.append(
                 (np.asarray(idxs_out, dtype=np.int64), np.asarray(roots_out, dtype=np.int64))
@@ -362,10 +304,6 @@ def process_combination_batch_hybrid(
         int(len(C_list)),
     )
 
-
-# -----------------------------
-# Rank-r solver (single r)
-# -----------------------------
 def process_rankr_single_hybrid_gpu(
     V: np.ndarray,
     K: int,
@@ -411,7 +349,6 @@ def process_rankr_single_hybrid_gpu(
             yield batch
 
     start_time = time.time()
-
     max_in_flight = max(2 * num_cpus, 1)
     in_flight = []
     submitted = 0
@@ -576,10 +513,6 @@ def process_rankr_recursive_hybrid_gpu(
 
     return best_score, best_k, best_z
 
-
-# -----------------------------
-# CLI / Driver
-# -----------------------------
 def parse_args():
     ap = argparse.ArgumentParser(description="Run parallel_rank_r over a directory (hybrid GPU) without restarting Ray.")
     ap.add_argument("--qv_dir", type=str, required=True, help="Directory containing Q*.npy and V*.npy")
@@ -603,10 +536,6 @@ def parse_args():
 
 def main():
     args = parse_args()
-
-    np.random.seed(42)
-    random.seed(42)
-
     qv_dir = Path(args.qv_dir).expanduser().resolve()
     results_dir = Path(args.results_dir).expanduser().resolve()
     results_dir.mkdir(parents=True, exist_ok=True)
