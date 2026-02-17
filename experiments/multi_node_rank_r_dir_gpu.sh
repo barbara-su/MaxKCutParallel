@@ -11,6 +11,7 @@
 #SBATCH --gres=gpu:1
 #SBATCH --mem=100G
 #SBATCH --time=23:00:00
+#SBATCH --exclude=bg4u7g1,bg4u9g1
 
 # One Ray cluster, many instances (GPU).
 # This calls src/parallel_rank_r_dir_gpu.py ONCE, which iterates the directory internally
