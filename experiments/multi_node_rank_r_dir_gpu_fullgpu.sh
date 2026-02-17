@@ -15,7 +15,8 @@
 
 # One Ray cluster, many instances (GPU).
 # Full-GPU candidate generation for r>=2:
-# CPU only handles index batching/dispatch.
+# driver submits rank ranges; GPU actors do unranking + candidate generation + scoring.
+# (no CPU Ray index-task layer, no host->device index batch transfer).
 # This calls src/parallel_rank_r_dir_gpu_fullgpu.py ONCE, which iterates the directory internally
 # without restarting Ray.
 #

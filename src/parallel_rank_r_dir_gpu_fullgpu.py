@@ -1,5 +1,4 @@
 import argparse
-import itertools
 import json
 import logging
 import math
@@ -58,6 +57,66 @@ def _torch_dtype_names_from_precision(precision: int) -> Tuple[str, str]:
         return "complex64", "float32"
     raise ValueError("precision must be one of {16,32,64}")
 
+
+def _unrank_combination_lex(n: int, k: int, rank: int) -> np.ndarray:
+    """
+    Unrank a 0-based lexicographic combination, matching itertools.combinations(range(n), k).
+    Returns shape (k,) int64.
+    """
+    if k < 0 or n < 0 or k > n:
+        raise ValueError("Invalid n/k for combination unranking")
+    total = math.comb(n, k)
+    if rank < 0 or rank >= total:
+        raise ValueError(f"rank out of bounds: rank={rank}, total={total}")
+
+    out = np.empty(k, dtype=np.int64)
+    x = 0
+    r = int(rank)
+    for i in range(k):
+        while True:
+            count = math.comb(n - x - 1, k - i - 1)
+            if r < count:
+                out[i] = x
+                x += 1
+                break
+            r -= count
+            x += 1
+    return out
+
+
+def _next_combination_inplace(c: np.ndarray, n: int, k: int) -> bool:
+    """
+    Advance c (shape (k,)) to next lexicographic combination in-place.
+    Returns False if c was already the last one.
+    """
+    for i in range(k - 1, -1, -1):
+        max_i = n - k + i
+        if int(c[i]) < max_i:
+            c[i] += 1
+            for j in range(i + 1, k):
+                c[j] = c[j - 1] + 1
+            return True
+    return False
+
+
+def _build_combination_batch_from_rank(n: int, k: int, start_rank: int, batch_size: int) -> np.ndarray:
+    """
+    Build a contiguous lexicographic batch of combinations directly into an array.
+    Output shape: (batch_size, k), dtype=int64.
+    """
+    if batch_size <= 0:
+        return np.empty((0, k), dtype=np.int64)
+
+    batch = np.empty((batch_size, k), dtype=np.int64)
+    cur = _unrank_combination_lex(n, k, int(start_rank))
+    batch[0] = cur
+    for row in range(1, batch_size):
+        ok = _next_combination_inplace(cur, n, k)
+        if not ok:
+            raise RuntimeError("Unexpected end while building combination batch")
+        batch[row] = cur
+    return batch
+
 @ray.remote(num_gpus=1)
 class RankRGPUActor:
     """
@@ -92,6 +151,7 @@ class RankRGPUActor:
         self.n = None
         self.r = None
         self._zcat_buf = None  # (n, >=2B) real workspace for one-GEMM scoring
+        self._comb_lut = None  # (N+1, kmax+1) int64 on GPU, for lex unranking
 
     def set_instance(self, V_np: np.ndarray, Q_np: np.ndarray, V_tilde_np: np.ndarray = None):
         """
@@ -116,12 +176,116 @@ class RankRGPUActor:
 
         if V_tilde_np is None:
             self.V_tilde = None
+            self._comb_lut = None
         else:
             VT_arr = np.asarray(V_tilde_np)
             if (not VT_arr.flags.writeable) or (not VT_arr.flags.c_contiguous):
                 VT_arr = np.array(VT_arr, copy=True, order="C")
             VT_t = torch.as_tensor(VT_arr)
             self.V_tilde = VT_t.to(dtype=self.qdtype, device=self.device).contiguous()
+
+            # Precompute binomial lookup on GPU: C(n,k) for n in [0..N], k in [0..2r-1].
+            N = int(self.V_tilde.shape[0])
+            kmax = max(1, 2 * int(self.r) - 1)
+            lut_np = np.zeros((N + 1, kmax + 1), dtype=np.int64)
+            lut_np[:, 0] = 1
+            for nn in range(1, N + 1):
+                upper = min(nn, kmax)
+                for kk in range(1, upper + 1):
+                    if kk == nn:
+                        lut_np[nn, kk] = 1
+                    else:
+                        lut_np[nn, kk] = lut_np[nn - 1, kk - 1] + lut_np[nn - 1, kk]
+            self._comb_lut = torch.as_tensor(lut_np, device=self.device, dtype=torch.int64)
+
+    def _build_index_batch_gpu(self, start_rank: int, batch_size: int, comb_size: int):
+        """
+        Build lexicographic combinations on GPU by unranking a contiguous rank range.
+        Output: I of shape (B, comb_size), int64, on GPU.
+        """
+        import torch
+
+        if self.V_tilde is None or self._comb_lut is None:
+            raise RuntimeError("V_tilde / comb LUT is not initialized in actor")
+
+        N = int(self.V_tilde.shape[0])
+        B = int(batch_size)
+        k = int(comb_size)
+        if B <= 0:
+            return torch.empty((0, k), device=self.device, dtype=torch.int64)
+        if k <= 0 or k > N:
+            raise ValueError(f"Invalid comb_size={k} for N={N}")
+
+        remaining = torch.arange(B, device=self.device, dtype=torch.int64) + int(start_rank)
+        out = torch.empty((B, k), device=self.device, dtype=torch.int64)
+        x = torch.zeros((B,), device=self.device, dtype=torch.int64)
+
+        for pos in range(k):
+            rem_pick = k - pos - 1
+            max_x = N - (k - pos)
+            while True:
+                count = self._comb_lut[N - x - 1, rem_pick]
+                go_next = (remaining >= count) & (x < max_x)
+                if not bool(torch.any(go_next).item()):
+                    break
+                remaining = torch.where(go_next, remaining - count, remaining)
+                x = torch.where(go_next, x + 1, x)
+            out[:, pos] = x
+            x = x + 1
+        return out
+
+    def _score_index_batch_tensor(self, I, r: int):
+        """
+        Shared scorer for I already on GPU: I shape (B, 2r-1), int64.
+        """
+        import torch
+
+        if I.ndim != 2:
+            raise ValueError("I_batch must have shape (B, 2r-1)")
+
+        B = int(I.shape[0])
+        if B == 0:
+            return float("-inf"), None, None, 0
+
+        # Gather VI and compute batched null vectors.
+        VI = self.V_tilde[I]  # (B, 2r-1, 2r)
+        c_tilde, valid_null = self._build_null_vectors_pivot(VI)
+        phi, sign_c = self._determine_phi_sign_torch(c_tilde)
+        feasible_phi = (-torch.pi / self.K < phi[:, 2 * r - 2]) & (phi[:, 2 * r - 2] <= torch.pi / self.K)
+
+        c_tilde = c_tilde * sign_c.unsqueeze(1)
+        C = self._ctilde_to_complex_torch(c_tilde, int(r))  # (B,r)
+
+        # Quantize from Y = V @ C^T
+        Y = torch.matmul(self.V[:, : int(r)], C.T)  # (n,B) complex
+        theta = torch.angle(Y)
+        k = torch.round(theta * (self.K / (2 * torch.pi))).to(torch.int64) % self.K
+        z = self.roots[k]  # (n,B)
+
+        # Score with one GEMM.
+        zr = z.real
+        zi = z.imag
+        if self._zcat_buf is None or self._zcat_buf.shape[0] != self.n or self._zcat_buf.shape[1] < 2 * B:
+            self._zcat_buf = torch.empty((self.n, 2 * B), device=self.device, dtype=self.qdtype)
+        Zcat = self._zcat_buf[:, : 2 * B]
+        Zcat[:, :B] = zr
+        Zcat[:, B : 2 * B] = zi
+        QZcat = torch.matmul(self.Q, Zcat)  # (n,2B)
+        Qzr, Qzi = QZcat[:, :B], QZcat[:, B:]
+        scores = torch.sum(zr * Qzr + zi * Qzi, dim=0)
+
+        valid = valid_null & feasible_phi & torch.isfinite(scores)
+        feasible_count = int(valid.sum().item())
+        if feasible_count == 0:
+            return float("-inf"), None, None, 0
+
+        neg_inf = torch.full_like(scores, float("-inf"))
+        scores = torch.where(valid, scores, neg_inf)
+        best_b = torch.argmax(scores)
+        best_score = float(torch.round(scores[best_b]).item())
+        best_k = k[:, best_b].to("cpu").numpy()
+        best_z = z[:, best_b].to("cpu").numpy()
+        return best_score, best_k, best_z, feasible_count
 
     def _build_null_vectors_pivot(self, VI):
         """
@@ -236,52 +400,22 @@ class RankRGPUActor:
             if (not I_arr.flags.writeable) or (not I_arr.flags.c_contiguous):
                 I_arr = np.array(I_arr, copy=True, order="C")
             I = torch.as_tensor(I_arr, device=self.device, dtype=torch.int64)
-            if I.ndim != 2:
-                raise ValueError("I_batch must have shape (B, 2r-1)")
+            return self._score_index_batch_tensor(I, int(r))
 
-            B = int(I.shape[0])
-            if B == 0:
-                return float("-inf"), None, None, 0
+    def score_rank_batch(self, start_rank: int, batch_size: int, r: int):
+        """
+        Full-GPU rank-batch path:
+        build I on GPU via unranking, then score.
+        """
+        import torch
 
-            # Gather VI and compute batched null vectors.
-            VI = self.V_tilde[I]  # (B, 2r-1, 2r)
-            c_tilde, valid_null = self._build_null_vectors_pivot(VI)
-            phi, sign_c = self._determine_phi_sign_torch(c_tilde)
-            feasible_phi = (-torch.pi / self.K < phi[:, 2 * r - 2]) & (phi[:, 2 * r - 2] <= torch.pi / self.K)
+        with torch.inference_mode():
+            if self.V is None or self.Q is None or self.V_tilde is None:
+                raise RuntimeError("Call set_instance(V, Q, V_tilde) before score_rank_batch(...)")
 
-            c_tilde = c_tilde * sign_c.unsqueeze(1)
-            C = self._ctilde_to_complex_torch(c_tilde, int(r))  # (B,r)
-
-            # Quantize from Y = V @ C^T
-            Y = torch.matmul(self.V[:, : int(r)], C.T)  # (n,B) complex
-            theta = torch.angle(Y)
-            k = torch.round(theta * (self.K / (2 * torch.pi))).to(torch.int64) % self.K
-            z = self.roots[k]  # (n,B)
-
-            # Score with one GEMM.
-            zr = z.real
-            zi = z.imag
-            if self._zcat_buf is None or self._zcat_buf.shape[0] != self.n or self._zcat_buf.shape[1] < 2 * B:
-                self._zcat_buf = torch.empty((self.n, 2 * B), device=self.device, dtype=self.qdtype)
-            Zcat = self._zcat_buf[:, : 2 * B]
-            Zcat[:, :B] = zr
-            Zcat[:, B : 2 * B] = zi
-            QZcat = torch.matmul(self.Q, Zcat)  # (n,2B)
-            Qzr, Qzi = QZcat[:, :B], QZcat[:, B:]
-            scores = torch.sum(zr * Qzr + zi * Qzi, dim=0)
-
-            valid = valid_null & feasible_phi & torch.isfinite(scores)
-            feasible_count = int(valid.sum().item())
-            if feasible_count == 0:
-                return float("-inf"), None, None, 0
-
-            neg_inf = torch.full_like(scores, float("-inf"))
-            scores = torch.where(valid, scores, neg_inf)
-            best_b = torch.argmax(scores)
-            best_score = float(torch.round(scores[best_b]).item())
-            best_k = k[:, best_b].to("cpu").numpy()
-            best_z = z[:, best_b].to("cpu").numpy()
-            return best_score, best_k, best_z, feasible_count
+            comb_size = 2 * int(r) - 1
+            I = self._build_index_batch_gpu(int(start_rank), int(batch_size), int(comb_size))
+            return self._score_index_batch_tensor(I, int(r))
 
     def score_batch(
         self,
@@ -429,14 +563,6 @@ def process_rankr_single_fullgpu(
         total_gpu_tasks,
     )
 
-    def batched_combinations():
-        iterator = itertools.combinations(range(num_vtilde_rows), comb_size)
-        while True:
-            batch = list(itertools.islice(iterator, candidates_per_task))
-            if not batch:
-                break
-            yield batch
-
     start_time = time.time()
     if max_in_flight_cpu <= 0:
         max_in_flight = max(2 * num_cpus, 1)
@@ -459,17 +585,11 @@ def process_rankr_single_fullgpu(
     if num_gpu_actors < 1:
         raise RuntimeError("gpu_actors list is empty")
 
-    def submit_one(batch, batch_id):
-        t_index_start = time.perf_counter()
-        I_batch = np.asarray(batch, dtype=np.int64)
-        if I_batch.ndim != 2:
-            I_batch = I_batch.reshape(len(batch), -1)
-        index_sec = time.perf_counter() - t_index_start
-
+    def submit_one(start_rank: int, batch_size: int, batch_id: int, index_sec: float):
         actor = gpu_actors[batch_id % num_gpu_actors]
         t_submit = time.perf_counter()
-        fut = actor.score_index_batch.remote(I_batch, int(r))
-        in_flight_meta[fut] = (int(batch_id), float(index_sec), int(len(batch)), float(t_submit))
+        fut = actor.score_rank_batch.remote(int(start_rank), int(batch_size), int(r))
+        in_flight_meta[fut] = (int(batch_id), float(index_sec), int(batch_size), float(t_submit))
         return fut
 
     def handle_done(done_ref):
@@ -503,10 +623,14 @@ def process_rankr_single_fullgpu(
                 (total_feasible / total_combos_seen) if total_combos_seen > 0 else 0.0,
             )
 
-    batch_id = 0
-    for comb_batch in batched_combinations():
-        in_flight.append(submit_one(comb_batch, batch_id))
-        batch_id += 1
+    for batch_id in range(total_tasks):
+        start_rank = batch_id * candidates_per_task
+        combos_seen = min(candidates_per_task, num_combinations - start_rank)
+        t_index_start = time.perf_counter()
+        # Driver bookkeeping only; index generation is inside GPU actor.
+        index_sec = time.perf_counter() - t_index_start
+
+        in_flight.append(submit_one(start_rank, combos_seen, batch_id, index_sec))
         submitted += 1
 
         if len(in_flight) >= max_in_flight:
@@ -626,7 +750,7 @@ def main():
 
     float_dtype, complex_dtype = set_numpy_precision(args.precision)
     log.info(f"precision={args.precision} -> float={float_dtype.__name__}, complex={complex_dtype.__name__}")
-    log.info("Full-GPU mode: CPU does index batching only for rank>=2")
+    log.info("Full-GPU mode: rank>=2 uses GPU unranking + GPU candidate generation + GPU scoring")
 
     ray.init(address="auto", ignore_reinit_error=True)
     resources = ray.available_resources()
