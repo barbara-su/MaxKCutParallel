@@ -102,6 +102,7 @@ class RankRGPUActor:
         self.Q = None  # (n,n) real (float32/float64)
         self.n = None
         self.r = None
+        self._zcat_buf = None  # (n, >=2B) real workspace for one-GEMM scoring
 
     def set_instance(self, V_np: np.ndarray, Q_np: np.ndarray):
         """
@@ -124,12 +125,16 @@ class RankRGPUActor:
         Q_t = torch.as_tensor(Q_arr)
         self.Q = Q_t.to(dtype=self.qdtype, device=self.device).contiguous()
 
-    def score_batch(self, C_np: np.ndarray, overrides: List[Tuple[np.ndarray, np.ndarray]]):
+    def score_batch(
+        self,
+        C_np: np.ndarray,
+        override_triplets_np: np.ndarray,
+    ):
         """
         C_np: (B,r) complex on CPU
-        overrides: length B list of (idxs, root_ids):
-          idxs: shape (t,) vertex indices to overwrite
-          root_ids: shape (t,) in [0,K)
+        override_triplets_np:
+          shape (3, M), flattened override triplets so we can apply all overrides in one scatter:
+            k[override_rows, override_cols] = override_vals
 
         Returns: (best_score, best_k (n,), best_z (n,))
         """
@@ -152,14 +157,13 @@ class RankRGPUActor:
             theta = torch.angle(Y)  # (n,B) float
             k = torch.round(theta * (self.K / (2 * torch.pi))).to(torch.int64) % self.K  # (n,B)
 
-            # apply overrides
-            for b in range(B):
-                idxs, root_ids = overrides[b]
-                if idxs is None or len(idxs) == 0:
-                    continue
-                idxs_t = torch.tensor(idxs, device=self.device, dtype=torch.int64)
-                roots_t = torch.tensor(root_ids, device=self.device, dtype=torch.int64)
-                k[idxs_t, b] = roots_t
+            # apply overrides with one scatter
+            if override_triplets_np is not None and override_triplets_np.size > 0:
+                triplets_arr = np.asarray(override_triplets_np)
+                if (not triplets_arr.flags.writeable) or (not triplets_arr.flags.c_contiguous):
+                    triplets_arr = np.array(triplets_arr, copy=True, order="C")
+                triplets_t = torch.as_tensor(triplets_arr, device=self.device, dtype=torch.int64)
+                k[triplets_t[0], triplets_t[1]] = triplets_t[2]
 
             z = self.roots[k]  # (n,B)
 
@@ -167,7 +171,11 @@ class RankRGPUActor:
             # score_b = zr_b^T Q zr_b + zi_b^T Q zi_b
             zr = z.real
             zi = z.imag
-            Zcat = torch.cat([zr, zi], dim=1)  # (n, 2B)
+            if self._zcat_buf is None or self._zcat_buf.shape[0] != self.n or self._zcat_buf.shape[1] < 2 * B:
+                self._zcat_buf = torch.empty((self.n, 2 * B), device=self.device, dtype=self.qdtype)
+            Zcat = self._zcat_buf[:, : 2 * B]
+            Zcat[:, :B] = zr
+            Zcat[:, B : 2 * B] = zi
             QZcat = torch.matmul(self.Q, Zcat)  # (n, 2B)
             Qzr, Qzi = QZcat[:, :B], QZcat[:, B:]
             scores = torch.sum(zr * Qzr + zi * Qzi, dim=0)  # (B,)
@@ -208,7 +216,12 @@ class RankRGPUActor:
             # score_b = zr_b^T Q zr_b + zi_b^T Q zi_b, with one GEMM.
             zr = zT.real
             zi = zT.imag
-            Zcat = torch.cat([zr, zi], dim=1)  # (n, 2B)
+            B = int(zr.shape[1])
+            if self._zcat_buf is None or self._zcat_buf.shape[0] != self.n or self._zcat_buf.shape[1] < 2 * B:
+                self._zcat_buf = torch.empty((self.n, 2 * B), device=self.device, dtype=self.qdtype)
+            Zcat = self._zcat_buf[:, : 2 * B]
+            Zcat[:, :B] = zr
+            Zcat[:, B : 2 * B] = zi
             QZcat = torch.matmul(self.Q, Zcat)  # (n, 2B)
             Qzr, Qzi = QZcat[:, : zr.shape[1]], QZcat[:, zr.shape[1] :]
             scores = torch.sum(zr * Qzr + zi * Qzi, dim=0)
@@ -234,7 +247,9 @@ def process_combination_batch_hybrid(
     complex_dtype = V.dtype
     roots = _roots_numpy(K, complex_dtype)
     C_list: List[np.ndarray] = []
-    overrides: List[Tuple[np.ndarray, np.ndarray]] = []
+    rows_flat: List[int] = []
+    cols_flat: List[int] = []
+    vals_flat: List[int] = []
     for combo in combinations_batch:
         try:
             I = np.array(combo, dtype=int)
@@ -276,10 +291,12 @@ def process_combination_batch_hybrid(
                     root_id = _nearest_root_id(v_c, roots)
                     idxs_out.append(int(v_idx))
                     roots_out.append(int(root_id))
+            col_idx = len(C_list)
             C_list.append(np.asarray(c, dtype=complex_dtype))
-            overrides.append(
-                (np.asarray(idxs_out, dtype=np.int64), np.asarray(roots_out, dtype=np.int64))
-            )
+            if len(idxs_out) > 0:
+                rows_flat.extend(idxs_out)
+                cols_flat.extend([col_idx] * len(idxs_out))
+                vals_flat.extend(roots_out)
 
         except (ValueError, np.linalg.LinAlgError):
             continue
@@ -289,8 +306,15 @@ def process_combination_batch_hybrid(
         return float("-inf"), None, None, int(batch_id), float(build_sec), 0.0, int(len(combinations_batch)), 0
 
     C_np = np.stack(C_list, axis=0)  # (B,r)
+    if len(rows_flat) > 0:
+        override_triplets = np.empty((3, len(rows_flat)), dtype=np.int64)
+        override_triplets[0, :] = np.asarray(rows_flat, dtype=np.int64)
+        override_triplets[1, :] = np.asarray(cols_flat, dtype=np.int64)
+        override_triplets[2, :] = np.asarray(vals_flat, dtype=np.int64)
+    else:
+        override_triplets = np.empty((3, 0), dtype=np.int64)
     t_gpu_start = time.perf_counter()
-    best_score, best_k, best_z = ray.get(gpu_actor.score_batch.remote(C_np, overrides))
+    best_score, best_k, best_z = ray.get(gpu_actor.score_batch.remote(C_np, override_triplets))
     gpu_score_sec = time.perf_counter() - t_gpu_start
     
     return (

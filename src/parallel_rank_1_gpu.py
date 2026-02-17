@@ -67,6 +67,7 @@ class Rank1GPUActor:
 
         self.Q = None  # (n,n) real float
         self.n = None
+        self._zcat_buf = None  # (n, >=2B) real workspace for one-GEMM scoring
 
     def set_instance(self, Q_np: np.ndarray):
         import torch
@@ -100,9 +101,14 @@ class Rank1GPUActor:
             zT = z.T  # (n,B)
             zr = zT.real
             zi = zT.imag
-            Zcat = torch.cat([zr, zi], dim=1)  # (n, 2B)
+            B = int(zr.shape[1])
+            if self._zcat_buf is None or self._zcat_buf.shape[0] != self.n or self._zcat_buf.shape[1] < 2 * B:
+                self._zcat_buf = torch.empty((self.n, 2 * B), device=self.device, dtype=self.rdtype)
+            Zcat = self._zcat_buf[:, : 2 * B]
+            Zcat[:, :B] = zr
+            Zcat[:, B : 2 * B] = zi
             QZcat = torch.matmul(self.Q, Zcat)  # (n, 2B)
-            Qzr, Qzi = QZcat[:, : zr.shape[1]], QZcat[:, zr.shape[1] :]
+            Qzr, Qzi = QZcat[:, :B], QZcat[:, B:]
 
             # score_b = zr_b^T Q zr_b + zi_b^T Q zi_b
             scores = torch.sum(zr * Qzr + zi * Qzi, dim=0)  # (B,)
