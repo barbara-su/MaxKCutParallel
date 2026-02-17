@@ -35,7 +35,7 @@ def _torch_dtype_names_from_precision(precision: int):
     if precision in (16, 32):
         return "float32", "complex64"
     if precision == 64:
-        return "float32", "complex64"
+        return "float64", "complex128"
     raise ValueError("precision must be one of {16,32,64}")
 
 
@@ -377,7 +377,7 @@ def main():
         else:
             Q = np.asarray(generate_Q(0.5, args.n, "erdos_renyi", seed=args.seed), dtype=float_dtype)
             log.info("Random graph Laplacian generated")
-            eigvals, eigvecs = np.linalg.eigh(Q.astype(np.float32, copy=False))
+            eigvals, eigvecs = np.linalg.eigh(Q.astype(np.float64, copy=False))
             _, V = low_rank_matrix(Q, eigvals, eigvecs, r=1)
             V = np.asarray(V, dtype=complex_dtype)
             log.info("Eigen decomposition complete and top eigenvector extracted")
@@ -438,7 +438,7 @@ def main():
 
     if args.debug:
         log.info("Computing optimal K-cut...")
-        opt_score, _ = opt_K_cut(Q.astype(np.float32, copy=False), K=int(args.K))
+        opt_score, _ = opt_K_cut(Q.astype(np.float64, copy=False), K=int(args.K))
         log.info(f"Correct score: {opt_score}")
         output["opt_score"] = float(opt_score)
 

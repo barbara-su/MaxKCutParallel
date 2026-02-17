@@ -23,7 +23,7 @@ python -c "import ray; ray.init(address='auto'); print(ray.cluster_resources())"
 ### Allocate node for myself
 srun --pty --time=23:00:00 --gres=gpu:h100:1 --mem=40G $SHELL
 salloc -p commons -N 1 --gres=gpu:h200:1 --mem=40G --time=23:00:00
-salloc -p commons -N 1 --gres=gpu:h100:2 --mem=40G --time=23:00:00
+salloc -p commons -N 1 --gres=gpu:h100:1 --mem=40G --time=23:00:00
 srun --jobid=93770 --overlap --pty bash
 srun --pty bash
 

@@ -10,13 +10,15 @@ from typing import Dict, List, Tuple
 
 import numpy as np
 import ray
-from numba import njit
 
 from utils import (
     set_numpy_precision,
     compute_vtilde,
+    get_row_mapping,
     find_intersection,
+    determine_phi_sign_c,
     find_intersection_fixed_angle,
+    convert_ctilde_to_complex,
     opt_K_cut,
 )
 from parallel_rank_1_gpu import process_rank_1_parallel_gpu  # (best_score, best_k, best_z, best_l)
@@ -58,77 +60,15 @@ def _torch_dtype_names_from_precision(precision: int) -> Tuple[str, str]:
     if precision in (16, 32):
         return "complex64", "float32"
     if precision == 64:
-        return "complex64", "float32"
+        return "complex128", "float64"
     raise ValueError("precision must be one of {16,32,64}")
 
 def _roots_numpy(K: int, complex_dtype) -> np.ndarray:
     return np.exp(1j * 2 * np.pi * np.arange(K) / K).astype(complex_dtype, copy=False)
 
-
-@njit(cache=True)
-def _determine_phi_sign_c_numba(c_tilde):
-    D = len(c_tilde)
-    phi = np.zeros(D - 1)
-    for phi_ind in range(D - 1):
-        if phi_ind > 0:
-            prod_cos = 1.0
-            tiny = False
-            for i in range(phi_ind):
-                c = np.cos(phi[i])
-                if abs(c) < 1e-10:
-                    tiny = True
-                    break
-                prod_cos *= c
-            if tiny:
-                phi[phi_ind] = 0.0
-                continue
-        else:
-            prod_cos = 1.0
-
-        arg = c_tilde[phi_ind] / prod_cos if abs(prod_cos) > 1e-10 else 0.0
-        if arg < -1.0:
-            arg = -1.0
-        elif arg > 1.0:
-            arg = 1.0
-        phi[phi_ind] = np.arcsin(arg)
-
-    if phi[D - 2] == 0.0 or c_tilde[D - 2] == 0.0:
-        sign_c = 1.0
-    else:
-        if abs(np.cos(phi[D - 2])) < 1e-10:
-            sign_c = 1.0
-        else:
-            val = np.tan(phi[D - 2]) * c_tilde[D - 2] * c_tilde[D - 1]
-            if val > 0.0:
-                sign_c = 1.0
-            elif val < 0.0:
-                sign_c = -1.0
-            else:
-                sign_c = 0.0
-
-    return phi, sign_c
-
-
-@njit(cache=True)
-def _convert_ctilde_to_complex_numba(c_tilde, r):
-    out = np.zeros(r, dtype=np.complex64)
-    for j in range(r):
-        idx = 2 * j
-        if idx + 1 < len(c_tilde):
-            out[j] = c_tilde[idx] + 1j * c_tilde[idx + 1]
-    return out
-
-
-@njit(cache=True)
-def _nearest_root_id_numba(vr, vi, roots_r, roots_i):
-    best_idx = 0
-    best_metric = roots_r[0] * vr + roots_i[0] * vi
-    for i in range(1, roots_r.shape[0]):
-        metric = roots_r[i] * vr + roots_i[i] * vi
-        if metric > best_metric:
-            best_metric = metric
-            best_idx = i
-    return best_idx
+def _nearest_root_id(v_c: complex, roots: np.ndarray) -> int:
+    metric = np.real(np.conj(roots) * v_c)
+    return int(np.argmax(metric))
 
 @ray.remote(num_gpus=1)
 class RankRGPUActor:
@@ -159,7 +99,7 @@ class RankRGPUActor:
         self.roots = torch.exp(2j * torch.pi * kk / self.K).to(self.cdtype)  # (K,)
 
         self.V = None  # (n,r) complex
-        self.Q = None  # (n,n) real (float32)
+        self.Q = None  # (n,n) real (float32/float64)
         self.n = None
         self.r = None
         self._zcat_buf = None  # (n, >=2B) real workspace for one-GEMM scoring
@@ -295,6 +235,8 @@ def process_combination_batch_hybrid(
     r: int,
     combinations_batch: List[Tuple[int, ...]],
     batch_id: int,
+    row_mapping: Dict[int, Tuple[int, int]],
+    inverse_mapping: Dict[int, List[int]],
     gpu_actor: "ray.actor.ActorHandle",
 ):
     """
@@ -304,55 +246,40 @@ def process_combination_batch_hybrid(
     t_build_start = time.perf_counter()
     complex_dtype = V.dtype
     roots = _roots_numpy(K, complex_dtype)
-    roots_r = roots.real.astype(np.float32, copy=False)
-    roots_i = roots.imag.astype(np.float32, copy=False)
-    num_vtilde_rows = int(V_tilde.shape[0])
-    pos_lookup = np.full(num_vtilde_rows, -1, dtype=np.int64)
-    combo_positions = np.arange(2 * r - 1, dtype=np.int64)
     C_list: List[np.ndarray] = []
     rows_flat: List[int] = []
     cols_flat: List[int] = []
     vals_flat: List[int] = []
     for combo in combinations_batch:
-        I = None
         try:
-            I = np.array(combo, dtype=np.int64)
+            I = np.array(combo, dtype=int)
             VI = V_tilde[I]  # (2r-1, 2r)
-            pos_lookup[I] = combo_positions
-            VI_minus = np.empty((VI.shape[0] - 1, VI.shape[1]), dtype=VI.dtype)
 
             c_tilde = find_intersection(VI)
-            phi, sign_c = _determine_phi_sign_c_numba(c_tilde)
+            phi, sign_c = determine_phi_sign_c(c_tilde)
 
             if not (-np.pi / K < phi[2 * r - 2] <= np.pi / K):
-                pos_lookup[I] = -1
                 continue
             c_tilde = c_tilde * sign_c
-            c = _convert_ctilde_to_complex_numba(c_tilde, r).astype(complex_dtype, copy=False)
-
-            # Mapping from V_tilde row to vertex is fixed by construction in get_row_mapping:
-            # v_tilde_idx = v_idx * K + rotation  =>  v_idx = v_tilde_idx // K.
-            v_used = np.unique(I // K)
+            c = convert_ctilde_to_complex(c_tilde, r)  # (r,)
+            v_used = set()
+            for idx in I:
+                v_row, _ = row_mapping[idx]
+                v_used.add(v_row)
             idxs_out: List[int] = []
             roots_out: List[int] = []
 
             for v_idx in v_used:
-                v_idx = int(v_idx)
+                vtilde_rows_for_v = [idx for idx in inverse_mapping[v_idx] if idx in I]
                 assigned = False
-                for rotation in range(K):
-                    vtilde_idx = v_idx * K + rotation
-                    pos = pos_lookup[vtilde_idx]
-                    if pos < 0:
-                        continue
-                    if pos > 0:
-                        VI_minus[:pos, :] = VI[:pos, :]
-                    if pos < VI.shape[0] - 1:
-                        VI_minus[pos:, :] = VI[pos + 1 :, :]
+                for vtilde_idx in vtilde_rows_for_v:
+                    pos = int(np.where(I == vtilde_idx)[0][0])
+                    VI_minus = np.delete(VI, pos, axis=0)
                     try:
                         new_c_tilde = find_intersection_fixed_angle(VI_minus, r, K)
-                        new_c = _convert_ctilde_to_complex_numba(new_c_tilde, r).astype(complex_dtype, copy=False)
+                        new_c = convert_ctilde_to_complex(new_c_tilde, r)
                         v_c = V[v_idx] @ new_c
-                        root_id = _nearest_root_id_numba(float(np.real(v_c)), float(np.imag(v_c)), roots_r, roots_i)
+                        root_id = _nearest_root_id(v_c, roots)
                         idxs_out.append(int(v_idx))
                         roots_out.append(int(root_id))
                         assigned = True
@@ -361,7 +288,7 @@ def process_combination_batch_hybrid(
                         continue
                 if not assigned:
                     v_c = V[v_idx] @ c
-                    root_id = _nearest_root_id_numba(float(np.real(v_c)), float(np.imag(v_c)), roots_r, roots_i)
+                    root_id = _nearest_root_id(v_c, roots)
                     idxs_out.append(int(v_idx))
                     roots_out.append(int(root_id))
             col_idx = len(C_list)
@@ -370,11 +297,8 @@ def process_combination_batch_hybrid(
                 rows_flat.extend(idxs_out)
                 cols_flat.extend([col_idx] * len(idxs_out))
                 vals_flat.extend(roots_out)
-            pos_lookup[I] = -1
 
         except (ValueError, np.linalg.LinAlgError):
-            if I is not None:
-                pos_lookup[I] = -1
             continue
 
     build_sec = time.perf_counter() - t_build_start
@@ -419,6 +343,9 @@ def process_rankr_single_hybrid_gpu(
     log.info("Computing V_tilde")
     V_tilde = compute_vtilde(V)
 
+    log.info("Computing row mappings for V_tilde")
+    row_mapping, inverse_mapping = get_row_mapping(n, K)
+
     num_vtilde_rows = K * n
     comb_size = 2 * r - 1
     if comb_size > num_vtilde_rows:
@@ -434,6 +361,8 @@ def process_rankr_single_hybrid_gpu(
 
     V_tilde_ref = ray.put(V_tilde)
     V_ref = ray.put(V)
+    row_mapping_ref = ray.put(row_mapping)
+    inverse_mapping_ref = ray.put(inverse_mapping)
 
     def batched_combinations():
         iterator = itertools.combinations(range(num_vtilde_rows), comb_size)
@@ -471,6 +400,8 @@ def process_rankr_single_hybrid_gpu(
             r,
             batch,
             batch_id,
+            row_mapping_ref,
+            inverse_mapping_ref,
             actor,
         )
 
@@ -635,7 +566,6 @@ def main():
 
     float_dtype, complex_dtype = set_numpy_precision(args.precision)
     log.info(f"precision={args.precision} -> float={float_dtype.__name__}, complex={complex_dtype.__name__}")
-    log.info("Numba acceleration: enabled")
 
     ray.init(address="auto", ignore_reinit_error=True)
     resources = ray.available_resources()
@@ -737,7 +667,7 @@ def main():
         
         # compute optimal cut if debug enabled
         if args.debug:
-            opt_score, _ = opt_K_cut(Q.astype(np.float32, copy=False), K=int(args.K))
+            opt_score, _ = opt_K_cut(Q.astype(np.float64, copy=False), K=int(args.K))
             output["opt_score"] = float(opt_score)
             log.info(f"opt_score={opt_score}")
 
