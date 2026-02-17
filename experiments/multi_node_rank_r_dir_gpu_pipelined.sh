@@ -1,8 +1,8 @@
 #!/bin/bash
 
-#SBATCH --job-name=multi-nodes-rank-r-dir-gpu
-#SBATCH --output=logs/multi-nodes-rank-r-dir-gpu-%j.out
-#SBATCH --error=logs/multi-nodes-rank-r-dir-gpu-%j.err
+#SBATCH --job-name=multi-nodes-rank-r-dir-gpu-pipe
+#SBATCH --output=logs/multi-nodes-rank-r-dir-gpu-pipe-%j.out
+#SBATCH --error=logs/multi-nodes-rank-r-dir-gpu-pipe-%j.err
 
 #SBATCH --nodes=1
 #SBATCH --tasks-per-node=1
@@ -11,10 +11,10 @@
 #SBATCH --gres=gpu:2
 #SBATCH --mem=100G
 #SBATCH --time=23:00:00
-#SBATCH --exclude=bg4u7g1,bg4u9g1
+#SBATCH --exclude=bg5u16g1
 
-# One Ray cluster, many instances (GPU).
-# This calls src/parallel_rank_r_dir_gpu.py ONCE, which iterates the directory internally
+# One Ray cluster, many instances (GPU), pipelined CPU producer + GPU consumer.
+# This calls src/parallel_rank_r_dir_gpu_pipelined.py ONCE, which iterates the directory internally
 # without restarting Ray.
 #
 # Args:
@@ -23,22 +23,32 @@
 #   3: rank (default 2)
 #   4: K (default 3)
 #   5: precision in {16,32,64} (default 32)
-#   6: candidates_per_task (default 256)
-#   7: debug flag (0/1, default 0)
+#   6: candidates_per_task for rank-1 base case (default 256)
+#   7: cpu_combos_per_task for rank>1 producer tasks (default 10000)
+#   8: target_gpu_batch for rank>1 super-batch size (default 500000)
+#   9: max_in_flight_cpu (default 0 -> auto)
+#  10: max_pending_gpu (default 2)
+#  11: gpus cap passed to solver (default 0 -> all visible)
+#  12: debug flag (0/1, default 0)
 #
 # Example:
-#   sbatch experiments/multi_node_rank_r_dir_gpu.sh graphs/erdos_renyi/rank_2/p01/n20 results/erdos_renyi/rank_2/p01/n20 2 3 32 256 0
+#   sbatch experiments/multi_node_rank_r_dir_gpu_pipelined.sh graphs/erdos_renyi/rank_2/p01/n20 results/gpu_pipe 2 3 32 256 10000 500000 0 2 0 0
 
 rm -rf /tmp/ray/
 set -euo pipefail
 
 QV_DIR=${1:-graphs}
-RESULTS_DIR=${2:-results_rank_r_dir_gpu}
+RESULTS_DIR=${2:-results_rank_r_dir_gpu_pipelined}
 R=${3:-2}
 K=${4:-3}
 PRECISION=${5:-32}
 CANDIDATES_PER_TASK=${6:-256}
-DEBUG_FLAG=${7:-0}
+CPU_COMBOS_PER_TASK=${7:-10000}
+TARGET_GPU_BATCH=${8:-500000}
+MAX_IN_FLIGHT_CPU=${9:-0}
+MAX_PENDING_GPU=${10:-2}
+GPUS_CAP=${11:-0}
+DEBUG_FLAG=${12:-0}
 
 DEBUG_ARG=""
 if [[ "$DEBUG_FLAG" -eq 1 ]]; then
@@ -54,7 +64,12 @@ echo "Using results_dir = $RESULTS_DIR"
 echo "Using rank = $R"
 echo "Using K = $K"
 echo "Using precision = $PRECISION"
-echo "Using candidates_per_task = $CANDIDATES_PER_TASK"
+echo "Using candidates_per_task (rank-1) = $CANDIDATES_PER_TASK"
+echo "Using cpu_combos_per_task (rank>1) = $CPU_COMBOS_PER_TASK"
+echo "Using target_gpu_batch (rank>1) = $TARGET_GPU_BATCH"
+echo "Using max_in_flight_cpu (rank>1) = $MAX_IN_FLIGHT_CPU"
+echo "Using max_pending_gpu (rank>1) = $MAX_PENDING_GPU"
+echo "Using gpus cap = $GPUS_CAP"
 echo "Debug enabled: $DEBUG_FLAG"
 
 nodes=$(scontrol show hostnames "$SLURM_JOB_NODELIST")
@@ -116,7 +131,7 @@ export ip_head
 echo "Ray head GCS address: $ip_head"
 
 # Run ONCE via symmetric_run.
-# parallel_rank_r_dir_gpu.py will:
+# parallel_rank_r_dir_gpu_pipelined.py will:
 # - ray.init(address="auto") once
 # - iterate all Q*.npy / V*.npy pairs
 # - write jsons into RESULTS_DIR
@@ -127,13 +142,18 @@ srun --nodes="$SLURM_JOB_NUM_NODES" --ntasks="$SLURM_JOB_NUM_NODES" \
     --num-cpus "$SLURM_CPUS_PER_TASK" \
     --num-gpus "$GPUS_PER_NODE" \
     -- \
-    python -u src/parallel_rank_r_dir_gpu.py \
+    python -u src/parallel_rank_r_dir_gpu_pipelined.py \
       --qv_dir "$QV_DIR" \
       --results_dir "$RESULTS_DIR" \
       --rank "$R" \
       --K "$K" \
       --precision "$PRECISION" \
       --candidates_per_task "$CANDIDATES_PER_TASK" \
+      --cpu_combos_per_task "$CPU_COMBOS_PER_TASK" \
+      --target_gpu_batch "$TARGET_GPU_BATCH" \
+      --max_in_flight_cpu "$MAX_IN_FLIGHT_CPU" \
+      --max_pending_gpu "$MAX_PENDING_GPU" \
+      --gpus "$GPUS_CAP" \
     #   --skip_existing \
       $DEBUG_ARG
 
