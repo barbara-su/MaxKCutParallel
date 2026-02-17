@@ -504,7 +504,7 @@ def process_rankr_single_hybrid_gpu(
                 best_z = batch_z
                 log.info(f"New best score from batch {b_id}: {best_score}")
 
-            if completed % 500 == 0:
+            if completed % 10 == 0:
                 log.info(
                     "Progress: submitted=%d, completed=%d, in_flight=%d, avg_cpu_build=%.4fs, avg_gpu_score=%.4fs, feasible_ratio=%.4f",
                     submitted,
@@ -539,7 +539,7 @@ def process_rankr_single_hybrid_gpu(
             best_z = batch_z
             log.info(f"New best score from batch {b_id}: {best_score}")
 
-        if completed % 500 == 0:
+        if completed % 10 == 0:
             log.info(
                 "Progress: submitted=%d, completed=%d, in_flight=%d, avg_cpu_build=%.4fs, avg_gpu_score=%.4fs, feasible_ratio=%.4f",
                 submitted,
