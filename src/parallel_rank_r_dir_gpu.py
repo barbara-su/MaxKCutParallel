@@ -163,11 +163,16 @@ class RankRGPUActor:
 
             z = self.roots[k]  # (n,B)
 
-            # DenseQ scoring: score_b = Re( conj(z_b)^T Q z_b )
-            Qz = torch.matmul(self.Q, z.real) + 1j * torch.matmul(self.Q, z.imag)
-            
-            scores = torch.sum(torch.conj(z) * Qz, dim=0).real  # (B,)
+            # DenseQ scoring with real Q using one GEMM:
+            # score_b = zr_b^T Q zr_b + zi_b^T Q zi_b
+            zr = z.real
+            zi = z.imag
+            Zcat = torch.cat([zr, zi], dim=1)  # (n, 2B)
+            QZcat = torch.matmul(self.Q, Zcat)  # (n, 2B)
+            Qzr, Qzi = QZcat[:, :B], QZcat[:, B:]
+            scores = torch.sum(zr * Qzr + zi * Qzi, dim=0)  # (B,)
             best_b = torch.argmax(scores)
+            
             # account for precision of tf32
             best_score = float(torch.round(scores[best_b]).item())
             best_k = k[:, best_b].to("cpu").numpy()
@@ -200,12 +205,13 @@ class RankRGPUActor:
             z = self.roots[k]
             zT = z.T  # (n,B)
 
-            # score_b = Re( conj(z_b)^T Q z_b )
-            Qzr = torch.matmul(self.Q, zT.real)
-            Qzi = torch.matmul(self.Q, zT.imag)
-            Qz = Qzr + 1j * Qzi
-            
-            scores = torch.sum(torch.conj(zT) * Qz, dim=0).real
+            # score_b = zr_b^T Q zr_b + zi_b^T Q zi_b, with one GEMM.
+            zr = zT.real
+            zi = zT.imag
+            Zcat = torch.cat([zr, zi], dim=1)  # (n, 2B)
+            QZcat = torch.matmul(self.Q, Zcat)  # (n, 2B)
+            Qzr, Qzi = QZcat[:, : zr.shape[1]], QZcat[:, zr.shape[1] :]
+            scores = torch.sum(zr * Qzr + zi * Qzi, dim=0)
             return scores.to("cpu").numpy()
 
 @ray.remote

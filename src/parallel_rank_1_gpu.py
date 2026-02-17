@@ -96,14 +96,16 @@ class Rank1GPUActor:
             # z: (B,n) complex
             z = self.roots[k]
 
-            # Q @ z^T
+            # Q @ z^T with one GEMM by stacking real/imag parts.
             zT = z.T  # (n,B)
-            Qzr = torch.matmul(self.Q, zT.real)
-            Qzi = torch.matmul(self.Q, zT.imag)
-            Qz = Qzr + 1j * Qzi  # (n,B) complex
+            zr = zT.real
+            zi = zT.imag
+            Zcat = torch.cat([zr, zi], dim=1)  # (n, 2B)
+            QZcat = torch.matmul(self.Q, Zcat)  # (n, 2B)
+            Qzr, Qzi = QZcat[:, : zr.shape[1]], QZcat[:, zr.shape[1] :]
 
-            # score_b = sum_i conj(z_i) * (Qz)_i
-            scores = torch.sum(torch.conj(zT) * Qz, dim=0).real  # (B,)
+            # score_b = zr_b^T Q zr_b + zi_b^T Q zi_b
+            scores = torch.sum(zr * Qzr + zi * Qzi, dim=0)  # (B,)
 
             return scores.to("cpu").numpy()
 
