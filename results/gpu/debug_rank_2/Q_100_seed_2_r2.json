@@ -5,7 +5,7 @@
   "candidates_per_task": 10000,
   "max_in_flight_cpu": 0,
   "best_score": 447.0,
-  "time_seconds": 16.603341102600098,
+  "time_seconds": 10.735260725021362,
   "best_k": [
     2,
     2,
@@ -313,7 +313,7 @@
     0.0
   ],
   "num_workers": 8,
-  "num_gpus": 2,
+  "num_gpus": 3,
   "q_file": "/scratch/bs82/graphs/debug_rank_2/Q_100_seed_2.npy",
   "v_file": "/scratch/bs82/graphs/debug_rank_2/V_100_seed_2.npy"
 }

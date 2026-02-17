@@ -13,6 +13,8 @@ import ray
 from utils import (
     set_numpy_precision,
     compute_vtilde,
+    find_intersection_fixed_angle,
+    convert_ctilde_to_complex,
     opt_K_cut,
 )
 from parallel_rank_1_gpu import process_rank_1_parallel_gpu  # (best_score, best_k, best_z, best_l)
@@ -118,6 +120,80 @@ def _build_combination_batch_from_rank(n: int, k: int, start_rank: int, batch_si
     return batch
 
 
+def _roots_numpy(K: int, complex_dtype) -> np.ndarray:
+    return np.exp(1j * 2 * np.pi * np.arange(K) / K).astype(complex_dtype, copy=False)
+
+
+def _nearest_root_id(v_c: complex, roots: np.ndarray) -> int:
+    metric = np.real(np.conj(roots) * v_c)
+    return int(np.argmax(metric))
+
+
+def _build_exact_override_triplets_single(
+    I_np: np.ndarray,
+    V_tilde: np.ndarray,
+    V: np.ndarray,
+    K: int,
+    r: int,
+    base_c: np.ndarray,
+) -> np.ndarray:
+    """
+    Baseline-exact override refinement for a single candidate (same logic as hybrid CPU path).
+    Returns triplets shape (3, M): rows, cols (all 0), vals.
+    """
+    I = np.asarray(I_np, dtype=np.int64)
+    VI = V_tilde[I]
+    num_vtilde_rows = int(V_tilde.shape[0])
+    pos_lookup = np.full(num_vtilde_rows, -1, dtype=np.int64)
+    pos_lookup[I] = np.arange(I.shape[0], dtype=np.int64)
+    VI_minus = np.empty((VI.shape[0] - 1, VI.shape[1]), dtype=VI.dtype)
+
+    roots = _roots_numpy(int(K), V.dtype)
+    c_base = np.asarray(base_c, dtype=V.dtype)
+    v_used = np.unique(I // int(K))
+
+    rows_out: List[int] = []
+    vals_out: List[int] = []
+
+    for v_idx in v_used:
+        v_idx = int(v_idx)
+        assigned = False
+        for rotation in range(int(K)):
+            vtilde_idx = v_idx * int(K) + rotation
+            pos = pos_lookup[vtilde_idx]
+            if pos < 0:
+                continue
+            if pos > 0:
+                VI_minus[:pos, :] = VI[:pos, :]
+            if pos < VI.shape[0] - 1:
+                VI_minus[pos:, :] = VI[pos + 1 :, :]
+            try:
+                new_c_tilde = find_intersection_fixed_angle(VI_minus, int(r), int(K))
+                new_c = convert_ctilde_to_complex(new_c_tilde, int(r)).astype(V.dtype, copy=False)
+                v_c = V[v_idx] @ new_c
+                root_id = _nearest_root_id(v_c, roots)
+                rows_out.append(v_idx)
+                vals_out.append(int(root_id))
+                assigned = True
+                break
+            except ValueError:
+                continue
+
+        if not assigned:
+            v_c = V[v_idx] @ c_base
+            root_id = _nearest_root_id(v_c, roots)
+            rows_out.append(v_idx)
+            vals_out.append(int(root_id))
+
+    if len(rows_out) == 0:
+        return np.empty((3, 0), dtype=np.int64)
+
+    triplets = np.empty((3, len(rows_out)), dtype=np.int64)
+    triplets[0, :] = np.asarray(rows_out, dtype=np.int64)
+    triplets[1, :] = 0  # single-column score_batch call
+    triplets[2, :] = np.asarray(vals_out, dtype=np.int64)
+    return triplets
+
 @ray.remote(num_gpus=1)
 class RankRGPUActor:
     """
@@ -145,9 +221,6 @@ class RankRGPUActor:
 
         kk = torch.arange(self.K, device=self.device, dtype=torch.float32)
         self.roots = torch.exp(2j * torch.pi * kk / self.K).to(self.cdtype)  # (K,)
-        ang = torch.tensor(np.pi / self.K, device=self.device, dtype=self.qdtype)
-        self.sin_last = torch.sin(ang)
-        self.cos_last = torch.cos(ang)
 
         self.V = None  # (n,r) complex
         self.Q = None  # (n,n) real (float32)
@@ -238,119 +311,6 @@ class RankRGPUActor:
             x = x + 1
         return out
 
-    def _ctilde_to_complex_single(self, c_tilde, r: int):
-        re = c_tilde[0 : 2 * r : 2]
-        im = c_tilde[1 : 2 * r : 2]
-        return re.to(self.cdtype) + (1j * im.to(self.cdtype))
-
-    def _find_intersection_fixed_angle_single(self, VI_minus, r: int):
-        """
-        Torch equivalent of utils.find_intersection_fixed_angle for one candidate.
-        Returns c_tilde on success, else None.
-        """
-        import torch
-
-        m = 2 * int(r) - 2
-        A = VI_minus[:, :m]
-        tail = VI_minus[:, m : m + 2]
-        b = -(tail[:, 0] * self.sin_last + tail[:, 1] * self.cos_last)
-
-        phi_reduced = None
-        try:
-            x, info = torch.linalg.solve_ex(A, b.unsqueeze(-1))
-            if int(info.item()) == 0:
-                phi_reduced = x.squeeze(-1)
-        except RuntimeError:
-            phi_reduced = None
-
-        if phi_reduced is None:
-            try:
-                phi_reduced = torch.linalg.lstsq(A, b.unsqueeze(-1)).solution.squeeze(-1)
-            except RuntimeError:
-                return None
-
-        c_tilde = torch.zeros(2 * int(r), device=self.device, dtype=self.qdtype)
-        if m > 0:
-            cosv = torch.cos(phi_reduced)
-            sinv = torch.sin(phi_reduced)
-            prefix = torch.empty(m + 1, device=self.device, dtype=self.qdtype)
-            prefix[0] = 1.0
-            prefix[1:] = torch.cumprod(cosv, dim=0)
-            c_tilde[:m] = prefix[:m] * sinv
-            prod_cos = prefix[-1]
-        else:
-            prod_cos = torch.tensor(1.0, device=self.device, dtype=self.qdtype)
-        c_tilde[2 * int(r) - 2] = prod_cos * self.sin_last
-        c_tilde[2 * int(r) - 1] = prod_cos * self.cos_last
-        return c_tilde
-
-    def _exact_refine_best_candidate(self, I_best, c_best, r: int):
-        """
-        Baseline-exact used-vertex refinement for a single best candidate.
-        Returns (refined_score_float, refined_k_cpu_np, refined_z_cpu_np) or None on failure.
-        """
-        import torch
-
-        VI = self.V_tilde[I_best]  # (2r-1, 2r)
-        v_used = torch.unique(
-            torch.div(I_best, int(self.K), rounding_mode="floor"),
-            sorted=True,
-        )
-
-        rows_out: List[int] = []
-        vals_out: List[int] = []
-        comb_size = int(I_best.shape[0])
-
-        for v_idx_t in v_used:
-            v_idx = int(v_idx_t.item())
-            assigned = False
-            for rotation in range(int(self.K)):
-                vtilde_idx = v_idx * int(self.K) + rotation
-                pos_t = torch.nonzero(I_best == vtilde_idx, as_tuple=False)
-                if pos_t.numel() == 0:
-                    continue
-                pos = int(pos_t[0].item())
-                if pos == 0:
-                    VI_minus = VI[1:, :]
-                elif pos == comb_size - 1:
-                    VI_minus = VI[:-1, :]
-                else:
-                    VI_minus = torch.cat((VI[:pos, :], VI[pos + 1 :, :]), dim=0)
-
-                new_c_tilde = self._find_intersection_fixed_angle_single(VI_minus, int(r))
-                if new_c_tilde is None:
-                    continue
-                new_c = self._ctilde_to_complex_single(new_c_tilde, int(r))
-                v_c = torch.sum(self.V[v_idx, : int(r)] * new_c)
-                root_id = int(torch.argmax((torch.conj(self.roots) * v_c).real).item())
-                rows_out.append(v_idx)
-                vals_out.append(root_id)
-                assigned = True
-                break
-
-            if not assigned:
-                v_c = torch.sum(self.V[v_idx, : int(r)] * c_best)
-                root_id = int(torch.argmax((torch.conj(self.roots) * v_c).real).item())
-                rows_out.append(v_idx)
-                vals_out.append(root_id)
-
-        # Re-quantize and apply exact overrides (same semantics as score_batch for B=1).
-        y1 = torch.matmul(self.V[:, : int(r)], c_best)  # (n,)
-        k1 = torch.round(torch.angle(y1) * (self.K / (2 * torch.pi))).to(torch.int64) % self.K
-        if len(rows_out) > 0:
-            rows_t = torch.as_tensor(rows_out, device=self.device, dtype=torch.int64)
-            vals_t = torch.as_tensor(vals_out, device=self.device, dtype=torch.int64)
-            k1[rows_t] = vals_t
-
-        z1 = self.roots[k1]  # (n,)
-        zr = z1.real
-        zi = z1.imag
-        qzr = torch.matmul(self.Q, zr)
-        qzi = torch.matmul(self.Q, zi)
-        score = torch.sum(zr * qzr + zi * qzi)
-        score_f = float(torch.round(score).item())
-        return score_f, k1.to("cpu").numpy(), z1.to("cpu").numpy()
-
     def _score_index_batch_tensor(self, I, r: int):
         """
         Shared scorer for I already on GPU: I shape (B, 2r-1), int64.
@@ -362,7 +322,7 @@ class RankRGPUActor:
 
         B_total = int(I.shape[0])
         if B_total == 0:
-            return float("-inf"), None, None, 0
+            return float("-inf"), None, None, 0, None, None
 
         # Baseline-compatible used-vertex mapping:
         # v_tilde_idx = v_idx * K + rotation  =>  v_idx = v_tilde_idx // K
@@ -423,7 +383,7 @@ class RankRGPUActor:
         valid = valid_null & feasible_phi & torch.isfinite(scores)
         feasible_count = int(valid.sum().item())
         if feasible_count == 0:
-            return float("-inf"), None, None, 0
+            return float("-inf"), None, None, 0, None, None
 
         neg_inf = torch.full_like(scores, float("-inf"))
         scores = torch.where(valid, scores, neg_inf)
@@ -431,12 +391,9 @@ class RankRGPUActor:
         best_score = float(torch.round(scores[best_b]).item())
         best_k = k_assign[:, best_b].to("cpu").numpy()
         best_z = z[:, best_b].to("cpu").numpy()
-        refined = self._exact_refine_best_candidate(I[best_b], C[best_b], int(r))
-        if refined is not None:
-            refined_score, refined_k, refined_z = refined
-            if refined_score > best_score:
-                best_score, best_k, best_z = refined_score, refined_k, refined_z
-        return best_score, best_k, best_z, feasible_count
+        best_I = I[best_b].to("cpu").numpy()
+        best_C = C[best_b].to("cpu").numpy()
+        return best_score, best_k, best_z, feasible_count, best_I, best_C
 
     def _build_null_vectors_pivot(self, VI):
         """
@@ -680,7 +637,7 @@ def process_rankr_single_fullgpu(
 ):
     n, r = V.shape
     log.info(f"Rank r subroutine (full-GPU candidate generation): n={n}, r={r}, K={K}")
-    log.info("Full-GPU path applies exact baseline used-vertex refinement fully on GPU.")
+    log.info("Full-GPU path applies baseline-style used-vertex fallback overrides on GPU.")
 
     if candidates_per_task <= 0:
         raise ValueError("--candidates_per_task must be positive")
@@ -729,6 +686,7 @@ def process_rankr_single_fullgpu(
     best_z = None
     total_index_sec = 0.0
     total_gpu_sec = 0.0
+    total_exact_refine_sec = 0.0
     total_combos_seen = 0
     total_feasible = 0
 
@@ -740,16 +698,36 @@ def process_rankr_single_fullgpu(
         actor = gpu_actors[batch_id % num_gpu_actors]
         t_submit = time.perf_counter()
         fut = actor.score_rank_batch.remote(int(start_rank), int(batch_size), int(r))
-        in_flight_meta[fut] = (int(batch_id), float(index_sec), int(batch_size), float(t_submit))
+        in_flight_meta[fut] = (int(batch_id), float(index_sec), int(batch_size), float(t_submit), actor)
         return fut
 
     def handle_done(done_ref):
-        nonlocal completed, total_index_sec, total_gpu_sec, total_combos_seen, total_feasible
+        nonlocal completed, total_index_sec, total_gpu_sec, total_exact_refine_sec, total_combos_seen, total_feasible
         nonlocal best_score, best_k, best_z
 
-        batch_score, batch_k, batch_z, feasible_count = ray.get(done_ref)
-        b_id, index_sec, combos_seen, t_submit = in_flight_meta.pop(done_ref)
+        batch_score, batch_k, batch_z, feasible_count, batch_I, batch_C = ray.get(done_ref)
+        b_id, index_sec, combos_seen, t_submit, actor = in_flight_meta.pop(done_ref)
         gpu_sec = time.perf_counter() - t_submit
+
+        # Exact baseline override refinement for batch winner candidate.
+        if batch_k is not None and batch_I is not None and batch_C is not None:
+            t_refine_start = time.perf_counter()
+            override_triplets = _build_exact_override_triplets_single(
+                batch_I,
+                V_tilde,
+                V,
+                int(K),
+                int(r),
+                batch_C,
+            )
+            C_one = np.asarray(batch_C, dtype=V.dtype).reshape(1, -1)
+            refined_score, refined_k, refined_z = ray.get(
+                actor.score_batch.remote(C_one, override_triplets)
+            )
+            refine_sec = time.perf_counter() - t_refine_start
+            total_exact_refine_sec += float(refine_sec)
+            if refined_score > batch_score:
+                batch_score, batch_k, batch_z = refined_score, refined_k, refined_z
 
         completed += 1
         total_index_sec += float(index_sec)
@@ -796,11 +774,13 @@ def process_rankr_single_fullgpu(
     log.info(f"Full-GPU rank-r search complete in {elapsed:.4f}s; submitted={submitted}, completed={completed}")
     if completed > 0:
         log.info(
-            "Rank-r timing summary: total_cpu_index=%.4fs, total_gpu_batch=%.4fs, avg_cpu_index=%.4fs/task, avg_gpu_batch=%.4fs/task, feasible_ratio=%.4f (%d/%d)",
+            "Rank-r timing summary: total_cpu_index=%.4fs, total_gpu_batch=%.4fs, total_exact_refine=%.4fs, avg_cpu_index=%.4fs/task, avg_gpu_batch=%.4fs/task, avg_exact_refine=%.4fs/task, feasible_ratio=%.4f (%d/%d)",
             total_index_sec,
             total_gpu_sec,
+            total_exact_refine_sec,
             total_index_sec / completed,
             total_gpu_sec / completed,
+            total_exact_refine_sec / completed,
             (total_feasible / total_combos_seen) if total_combos_seen > 0 else 0.0,
             total_feasible,
             total_combos_seen,
