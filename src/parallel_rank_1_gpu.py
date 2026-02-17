@@ -68,14 +68,11 @@ class Rank1GPUActor:
     def set_instance(self, Q_np: np.ndarray):
         import torch
 
+        # build Q as writable and contiguous.
         Q_arr = np.asarray(Q_np)
         if (not Q_arr.flags.writeable) or (not Q_arr.flags.c_contiguous):
             Q_arr = np.array(Q_arr, copy=True, order="C")
         Q_t = torch.as_tensor(Q_arr)
-        if Q_t.dtype == torch.float16:
-            Q_t = Q_t.to(torch.float32)
-            
-        # Assume dense real Q (as in your code)
         self.Q = Q_t.to(device=self.device, dtype=self.rdtype).contiguous()
         self.n = int(self.Q.shape[0])
 
@@ -118,13 +115,12 @@ def process_rank_1_batch_hybrid(
     gpu_actor: "ray.actor.ActorHandle",
 ):
     """
-    One CPU Ray task:
-    - build k_batch for this list of l values
-    - GPU score them
-    - return best (score, l) within this task
+    One CPU Ray task: build k_batch, GPU score them, return (score, l)
     """
-    B = int(len(l_values))
+    B = len(l_values)
     t_build_start = time.perf_counter()
+    
+    # batch is empty
     if B == 0:
         return float("-inf"), None, int(batch_id), 0.0, 0.0
 
@@ -145,7 +141,6 @@ def process_rank_1_batch_hybrid(
     best_score = float(scores[best_pos])
     best_l = int(l_values[best_pos])
     return best_score, best_l, int(batch_id), float(build_sec), float(gpu_score_sec)
-
 
 def process_rank_1_parallel_gpu(
     V: np.ndarray,
@@ -352,7 +347,7 @@ def main():
     gpu_actors = [Rank1GPUActor.remote(K=int(args.K), precision=int(args.precision)) for _ in range(num_gpu_actors)]
     log.info(f"Spawned {len(gpu_actors)} Rank1GPUActor(s).")
 
-    # Load Q and V (same behavior as your original)
+    # load Q and V
     t_load_start = time.perf_counter()
     if not args.debug:
         log.info("Loading Q and V...")
@@ -379,7 +374,7 @@ def main():
         V = np.asarray(V, dtype=complex_dtype)
     load_sec = time.perf_counter() - t_load_start
 
-    # Broadcast Q to all GPU actors
+    # broadcast Q to all GPU actors
     t_broadcast_start = time.perf_counter()
     ray.get([a.set_instance.remote(Q) for a in gpu_actors])
     broadcast_sec = time.perf_counter() - t_broadcast_start
@@ -387,7 +382,7 @@ def main():
     log.info("Executing parallel rank 1 algorithm (GPU scoring)")
     start = time.time()
 
-    # V can be (n,1) or (n,), handle both
+    # V can be (n,1) or (n,)
     v1 = V[:, 0] if V.ndim == 2 else V
     best_score, best_k, best_z, best_l = process_rank_1_parallel_gpu(
         v1,

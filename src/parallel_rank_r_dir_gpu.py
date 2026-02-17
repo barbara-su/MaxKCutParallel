@@ -3,11 +3,10 @@ import itertools
 import json
 import logging
 import math
-import random
 import time
 import warnings
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Tuple
 
 import numpy as np
 import ray
@@ -49,24 +48,23 @@ def discover_instances(qv_dir: Path) -> List[Tuple[Path, Path]]:
         out.append((q_path, v_path))
     return out
 
-
 def result_already_exists(results_dir: Path, q_path: Path, rank: int) -> bool:
     stem = q_path.stem
     out_path = results_dir / f"{stem}_r{rank}.json"
     return out_path.exists()
 
-
 def _torch_dtype_names_from_precision(precision: int) -> Tuple[str, str]:
+    """
+    Convert precision to torch dtype
+    """
     if precision in (16, 32):
         return "complex64", "float32"
     if precision == 64:
         return "complex128", "float64"
     raise ValueError("precision must be one of {16,32,64}")
 
-
 def _roots_numpy(K: int, complex_dtype) -> np.ndarray:
     return np.exp(1j * 2 * np.pi * np.arange(K) / K).astype(complex_dtype, copy=False)
-
 
 def _nearest_root_id(v_c: complex, roots: np.ndarray) -> int:
     metric = np.real(np.conj(roots) * v_c)
@@ -103,30 +101,25 @@ class RankRGPUActor:
         self.r = None
 
     def set_instance(self, V_np: np.ndarray, Q_np: np.ndarray):
+        """
+        Initialize Q and V.
+        """
         import torch
-
-        # V
+        
+        # build V as writable and contiguous
         V_arr = np.asarray(V_np)
         if (not V_arr.flags.writeable) or (not V_arr.flags.c_contiguous):
             V_arr = np.array(V_arr, copy=True, order="C")
         V_t = torch.as_tensor(V_arr)
-        if V_t.dtype not in (torch.complex64, torch.complex128):
-            V_t = V_t.to(torch.complex64)
         self.V = V_t.to(dtype=self.cdtype, device=self.device).contiguous()
         self.n, self.r = self.V.shape
 
-        # Q (assume real PSD / Laplacian style)
+        # build Q as writable and contiguous
         Q_arr = np.asarray(Q_np)
         if (not Q_arr.flags.writeable) or (not Q_arr.flags.c_contiguous):
             Q_arr = np.array(Q_arr, copy=True, order="C")
         Q_t = torch.as_tensor(Q_arr)
-        if Q_t.dtype in (torch.complex64, torch.complex128):
-            # If someone passes complex Q, keep it complex, but this is unusual.
-            Q_t = Q_t.to(self.cdtype)
-        else:
-            if Q_t.dtype == torch.float16:
-                Q_t = Q_t.to(torch.float32)
-            self.Q = Q_t.to(dtype=self.qdtype, device=self.device).contiguous()
+        self.Q = Q_t.to(dtype=self.qdtype, device=self.device).contiguous()
 
     def score_batch(self, C_np: np.ndarray, overrides: List[Tuple[np.ndarray, np.ndarray]]):
         """
@@ -138,6 +131,7 @@ class RankRGPUActor:
         Returns: (best_score, best_k (n,), best_z (n,))
         """
         import torch
+        
         with torch.inference_mode():
             if self.V is None or self.Q is None:
                 raise RuntimeError("Call set_instance(V, Q) before score_batch(...)")
@@ -151,11 +145,11 @@ class RankRGPUActor:
             # Y = V @ C^T : (n,r) @ (r,B) -> (n,B)
             Y = torch.matmul(self.V, C.T)  # (n,B) complex
 
-            # Quantize by phase rounding
+            # quantize by phase rounding
             theta = torch.angle(Y)  # (n,B) float
             k = torch.round(theta * (self.K / (2 * torch.pi))).to(torch.int64) % self.K  # (n,B)
 
-            # Apply overrides
+            # apply overrides
             for b in range(B):
                 idxs, root_ids = overrides[b]
                 if idxs is None or len(idxs) == 0:
@@ -164,7 +158,7 @@ class RankRGPUActor:
                 roots_t = torch.tensor(root_ids, device=self.device, dtype=torch.int64)
                 k[idxs_t, b] = roots_t
 
-            z = self.roots[k]  # (n,B) complex
+            z = self.roots[k]  # (n,B)
 
             # DenseQ scoring: score_b = Re( conj(z_b)^T Q z_b )
             Qz = torch.matmul(self.Q, z.real) + 1j * torch.matmul(self.Q, z.imag)
@@ -210,10 +204,6 @@ class RankRGPUActor:
             scores = torch.sum(torch.conj(zT) * Qz, dim=0).real
             return scores.to("cpu").numpy()
 
-
-# -----------------------------
-# CPU Ray task: build batch payload, call GPU once
-# -----------------------------
 @ray.remote
 def process_combination_batch_hybrid(
     V_tilde: np.ndarray,
@@ -231,7 +221,6 @@ def process_combination_batch_hybrid(
     GPU: quantize, apply overrides, score, select best in batch.
     """
     t_build_start = time.perf_counter()
-    n = V.shape[0]
     complex_dtype = V.dtype
     roots = _roots_numpy(K, complex_dtype)
     C_list: List[np.ndarray] = []
@@ -293,6 +282,7 @@ def process_combination_batch_hybrid(
     t_gpu_start = time.perf_counter()
     best_score, best_k, best_z = ray.get(gpu_actor.score_batch.remote(C_np, overrides))
     gpu_score_sec = time.perf_counter() - t_gpu_start
+    
     return (
         float(best_score),
         best_k,
@@ -548,28 +538,21 @@ def main():
     num_workers = int(resources.get("CPU", 1))
     num_gpus_visible = int(resources.get("GPU", 0))
     log.info(f"Ray connected. Detected CPU slots: {num_workers}, GPU slots: {num_gpus_visible}")
-    if num_gpus_visible < 1:
-        raise SystemExit("No GPU detected by Ray. Ensure CUDA_VISIBLE_DEVICES is set and Ray sees GPUs.")
-
+    
     instances = discover_instances(qv_dir)
-    if not instances:
-        raise SystemExit(f"No instances found in {qv_dir} matching Q*.npy")
-
-    if args.start_index < 0 or args.start_index >= len(instances):
-        raise SystemExit(f"--start_index out of range: {args.start_index} (0..{len(instances)-1})")
-
     instances = instances[args.start_index:]
     if args.max_instances and args.max_instances > 0:
         instances = instances[: args.max_instances]
 
     log.info(f"Discovered {len(instances)} instances to run (after slicing) from {qv_dir}")
 
-    # Create one GPU actor per visible GPU (Design A), optionally capped by --gpus
+    # Create one GPU actor per visible GPU
     num_gpu_actors = num_gpus_visible if int(args.gpus) <= 0 else min(int(args.gpus), num_gpus_visible)
     gpu_actors = [
         RankRGPUActor.remote(K=int(args.K), precision=int(args.precision))
         for _ in range(num_gpu_actors)
     ]
+    
     log.info(f"Spawned {len(gpu_actors)} GPU actors (visible GPUs: {num_gpus_visible}).")
     
     for idx, (q_path, v_path) in enumerate(instances):
@@ -599,8 +582,8 @@ def main():
         t_broadcast_start = time.perf_counter()
         ray.get([a.set_instance.remote(V, Q) for a in gpu_actors])
         broadcast_sec = time.perf_counter() - t_broadcast_start
-
         t0 = time.time()
+
         if args.rank == 1:
             best_score, best_k, best_z, best_l = process_rank_1_parallel_gpu(
                 V[:, 0],
@@ -609,6 +592,7 @@ def main():
                 candidates_per_task=int(args.candidates_per_task),
                 gpu_actors=gpu_actors,
             )
+            
         else:
             best_score, best_k, best_z = process_rankr_recursive_hybrid_gpu(
                 V,
@@ -618,8 +602,8 @@ def main():
                 gpu_actors=gpu_actors,
             )
             best_l = None
+            
         elapsed = time.time() - t0
-
         log.info(f"Done: score={best_score}, time={elapsed:.4f}s")
         log.info(
             "Phase timing: load_qv=%.4fs, broadcast_to_gpu_actors=%.4fs, solve=%.4fs",
@@ -627,7 +611,7 @@ def main():
             broadcast_sec,
             elapsed,
         )
-
+        
         output: Dict[str, object] = {
             "rank": int(args.rank),
             "K": int(args.K),
@@ -646,7 +630,8 @@ def main():
         
         if best_l is not None:
             output["best_l"] = int(best_l)
-
+        
+        # compute optimal cut if debug enabled
         if args.debug:
             opt_score, _ = opt_K_cut(Q.astype(np.float64, copy=False), K=int(args.K))
             output["opt_score"] = float(opt_score)
@@ -663,7 +648,6 @@ def main():
 
     log.info("All instances complete.")
     ray.shutdown()
-
 
 if __name__ == "__main__":
     main()
