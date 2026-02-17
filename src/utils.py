@@ -4,11 +4,9 @@ import networkx as nx
 import numpy as np
 import math
 from scipy import sparse
-from scipy import linalg
 from itertools import product
 import os
 import random
-import numpy as np
 
 def low_rank_matrix(Q, eigvals, eigvecs, r: int = 2):
     """
@@ -436,34 +434,30 @@ def find_intersection(VI):
         Normalized vector in the null space of VI, representing the
         intersection point of the hyperplanes.
     """
-    # Get dimensions of VI
+    # One SVD pass: use singular values for rank check and right-singular vector
+    # for the null direction.
     rows, cols = VI.shape
+    U, S, Vh = np.linalg.svd(VI, full_matrices=True)
 
-    # Check that VI has full rank
-    matrix_rank = np.linalg.matrix_rank(VI)
     min_dim = min(rows, cols)
+    if S.size > 0:
+        sv_tol = max(rows, cols) * np.finfo(S.dtype).eps * S[0]
+        matrix_rank = int(np.sum(S > sv_tol))
+    else:
+        matrix_rank = 0
 
     if matrix_rank != min_dim:
-        raise ValueError('VI matrix is not full rank')
+        raise ValueError("VI matrix is not full rank")
 
-    # Compute null space of VI
-    # In Python, we can use scipy.linalg.null_space
-    null_space = linalg.null_space(VI)
+    # With full rank and rows >= cols, null space is empty.
+    if rows >= cols:
+        raise ValueError("No intersection found - null space is empty")
 
-    # If null space is empty (no solution), raise an error
-    if null_space.size == 0:
-        raise ValueError('No intersection found - null space is empty')
-
-    # If null space has multiple columns, take the first one
-    if null_space.shape[1] > 1:
-        c_tilde = null_space[:, 0]
-    else:
-        c_tilde = null_space.flatten()
-
-    # Normalize the vector
-    c_tilde = c_tilde / np.linalg.norm(c_tilde)
-
-    return c_tilde
+    c_tilde = Vh[-1, :]
+    nrm = np.linalg.norm(c_tilde)
+    if nrm <= 1e-12:
+        raise ValueError("No stable intersection, near-zero null vector")
+    return c_tilde / nrm
 
 def convert_ctilde_to_complex(c_tilde, r):
     """
@@ -481,54 +475,53 @@ def convert_ctilde_to_complex(c_tilde, r):
     c : ndarray
         Complex vector representation.
     """
-    c = np.zeros(r, dtype=complex)
-    for j in range(r):
-        if 2*j+1 < len(c_tilde):
-            c[j] = c_tilde[2*j] + 1j * c_tilde[2*j+1]
+    c_tilde = np.asarray(c_tilde)
+    out_dtype = np.result_type(c_tilde.dtype, np.complex64)
+    c = np.zeros(r, dtype=out_dtype)
+    m = min(r, c_tilde.size // 2)
+    if m > 0:
+        c[:m] = c_tilde[0 : 2 * m : 2] + 1j * c_tilde[1 : 2 * m : 2]
     return c
 
-def determine_phi_sign_c(c_tilde):
+def determine_phi_sign_c(c_tilde, eps: float = 1e-10):
     """
     Given the real hyperspherical coordinates c_tilde, compute the angles phi and
     determine the sign correction factor.
 
     Handles numerical precision issues gracefully.
     """
-    D = len(c_tilde)  # Should be 2*r
-    phi = np.zeros(D-1)
+    c_tilde = np.asarray(c_tilde)
+    D = c_tilde.size  # Should be 2*r
+    phi = np.zeros(D - 1, dtype=c_tilde.dtype)
 
-    # For each angle in the hyperspherical parameterization
-    for phi_ind in range(D-1):
-        # prod_cos is the product of cosines of all previous angles
-        if phi_ind > 0:
-            cos_values = np.cos(phi[:phi_ind])
-            # Check for very small cosine values that could cause issues
-            if np.any(np.abs(cos_values) < 1e-10):
-                # Handle degenerate case
-                phi[phi_ind] = 0.0
-                continue
-            prod_cos = np.prod(cos_values)
-        else:
-            prod_cos = 1.0
+    # Track product of cosines incrementally (O(D) instead of O(D^2)).
+    prod_cos = 1.0
+    for i in range(D - 1):
+        if abs(prod_cos) < eps:
+            phi[i] = 0.0
+            continue
 
-        # Compute the argument for arcsin with bounds checking
-        arg = c_tilde[phi_ind] / prod_cos if abs(prod_cos) > 1e-10 else 0.0
+        arg = np.clip(c_tilde[i] / prod_cos, -1.0, 1.0)
+        phi[i] = np.arcsin(arg)
 
-        # Clip to valid arcsin range to handle numerical errors
-        arg = np.clip(arg, -1.0, 1.0)
+        if i < D - 2:
+            ci = np.cos(phi[i])
+            if abs(ci) < eps:
+                prod_cos = 0.0
+            else:
+                prod_cos *= ci
 
-        # Now safely compute arcsin
-        phi[phi_ind] = np.arcsin(arg)
-
-    # Determine the sign correction
-    if phi[D-2] == 0 or c_tilde[D-2] == 0:
+    # Determine the sign correction (same logic as before, but reuse cos).
+    j = D - 2
+    if phi[j] == 0 or c_tilde[j] == 0:
         sign_c = 1
     else:
-        # Check for potential division by zero or invalid tan
-        if abs(np.cos(phi[D-2])) < 1e-10:
+        cos_j = np.cos(phi[j])
+        if abs(cos_j) < eps:
             sign_c = 1
         else:
-            sign_c = np.sign(np.tan(phi[D-2]) * c_tilde[D-2] * c_tilde[D-1])
+            tan_j = np.sin(phi[j]) / cos_j
+            sign_c = np.sign(tan_j * c_tilde[j] * c_tilde[j + 1])
 
     return phi, sign_c
 
@@ -562,7 +555,7 @@ def get_row_mapping(n, K):
 
     return mapping, inverse_mapping
 
-def construct_ctilde_from_phi(phi_reduced, r, K):
+def construct_ctilde_from_phi(phi_reduced, r, K, sin_last=None, cos_last=None):
     """
     Construct the c_tilde vector with specific phi angles and the last angle fixed at pi/K.
 
@@ -580,25 +573,30 @@ def construct_ctilde_from_phi(phi_reduced, r, K):
     c_tilde : ndarray
         The constructed c_tilde vector with last angle fixed at pi/K
     """
-    # Initialize the full c_tilde vector
-    c_tilde = np.zeros(2*r)
+    phi_reduced = np.asarray(phi_reduced)
+    c_tilde = np.zeros(2 * r, dtype=phi_reduced.dtype if phi_reduced.size > 0 else float)
 
-    # First element is just sin(phi_1)
-    c_tilde[0] = np.sin(phi_reduced[0])
+    if sin_last is None or cos_last is None:
+        ang = np.pi / K
+        sin_last = np.sin(ang)
+        cos_last = np.cos(ang)
 
-    # Fill in the middle elements
-    prod_cos = np.cos(phi_reduced[0])
-    for i in range(1, len(phi_reduced)):
-        c_tilde[i] = prod_cos * np.sin(phi_reduced[i])
-        prod_cos *= np.cos(phi_reduced[i])
+    if phi_reduced.size > 0:
+        cosv = np.cos(phi_reduced)
+        sinv = np.sin(phi_reduced)
+        prefix = np.empty(phi_reduced.size + 1, dtype=phi_reduced.dtype)
+        prefix[0] = 1.0
+        prefix[1:] = np.cumprod(cosv)
+        c_tilde[: phi_reduced.size] = prefix[: phi_reduced.size] * sinv
+        prod_cos = prefix[-1]
+    else:
+        prod_cos = 1.0
 
-    # Last two elements use phi_{2r-1} = pi/K
-    c_tilde[2*r-2] = prod_cos * np.sin(np.pi/K)
-    c_tilde[2*r-1] = prod_cos * np.cos(np.pi/K)
-
+    c_tilde[2 * r - 2] = prod_cos * sin_last
+    c_tilde[2 * r - 1] = prod_cos * cos_last
     return c_tilde
 
-def find_intersection_fixed_angle(VI_minus, r, K):
+def find_intersection_fixed_angle(VI_minus, r, K, sin_last=None, cos_last=None):
     """
     Find the intersection point with the last angle fixed at pi/K.
 
@@ -616,35 +614,41 @@ def find_intersection_fixed_angle(VI_minus, r, K):
     c_tilde : ndarray
         The constructed c_tilde vector with fixed last angle
     """
-    # We need to augment VI_minus to include the constraint that the last angle is pi/K
-    # This effectively means we need to solve for 2r-2 angles instead of 2r-1
-
-    # We can approach this by:
-    # 1. Using the fact that for spherical coordinates, the last coordinate is:
-    #    c_tilde[2r-2] = cos(phi_1)...cos(phi_{2r-3})sin(phi_{2r-2})
-    #    c_tilde[2r-1] = cos(phi_1)...cos(phi_{2r-3})cos(phi_{2r-2})
-    # 2. For phi_{2r-2} = pi/K, we have sin(phi_{2r-2}) = sin(pi/K) and cos(phi_{2r-2}) = cos(pi/K)
+    if sin_last is None or cos_last is None:
+        ang = np.pi / K
+        sin_last = np.sin(ang)
+        cos_last = np.cos(ang)
 
     # Extract the constraints for the first 2r-2 variables
     A = VI_minus[:, :2*r-2]
 
     # Extract the constraints for the last two variables
-    b = -VI_minus[:, 2*r-2:] @ np.array([np.sin(np.pi/K), np.cos(np.pi/K)])
+    tail = VI_minus[:, 2*r-2:]
+    if tail.shape[1] == 2:
+        b = -(tail[:, 0] * sin_last + tail[:, 1] * cos_last)
+    else:
+        b = -tail @ np.array([sin_last, cos_last], dtype=VI_minus.dtype)
 
     # Solve the system A * phi = b
     try:
-        # If A is square and invertible, use direct solve
-        if A.shape[0] == A.shape[1] and np.linalg.matrix_rank(A) == A.shape[0]:
+        if A.shape[0] == A.shape[1]:
             phi_reduced = np.linalg.solve(A, b)
         else:
-            # Otherwise use least squares
-            phi_reduced, residuals, rank, s = np.linalg.lstsq(A, b, rcond=None)
+            phi_reduced, *_ = np.linalg.lstsq(A, b, rcond=None)
     except np.linalg.LinAlgError:
-        # If system can't be solved, raise an error
-        raise ValueError("Could not find intersection with fixed angle")
+        try:
+            phi_reduced, *_ = np.linalg.lstsq(A, b, rcond=None)
+        except np.linalg.LinAlgError as e:
+            raise ValueError("Could not find intersection with fixed angle") from e
 
     # Construct c_tilde from the reduced phi
-    c_tilde = construct_ctilde_from_phi(phi_reduced, r, K)
+    c_tilde = construct_ctilde_from_phi(
+        phi_reduced,
+        r,
+        K,
+        sin_last=sin_last,
+        cos_last=cos_last,
+    )
 
     return c_tilde
 
