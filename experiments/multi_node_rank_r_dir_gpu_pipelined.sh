@@ -8,10 +8,9 @@
 #SBATCH --tasks-per-node=1
 #SBATCH --partition=commons
 #SBATCH --cpus-per-task=80
-#SBATCH --gres=gpu:2
+#SBATCH --gres=gpu:h100:4
 #SBATCH --mem=100G
 #SBATCH --time=23:00:00
-#SBATCH --exclude=bg5u16g1
 
 # One Ray cluster, many instances (GPU), pipelined CPU producer + GPU consumer.
 # This calls src/parallel_rank_r_dir_gpu_pipelined.py ONCE, which iterates the directory internally
