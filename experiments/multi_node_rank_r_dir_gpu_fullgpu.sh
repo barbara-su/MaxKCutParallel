@@ -29,9 +29,10 @@
 #   7: max_in_flight_gpu_requests (default 0 -> auto)
 #   8: gpus cap passed to solver (default 0 -> all visible)
 #   9: debug flag (0/1, default 0)
+#  10: gpu_inner_batch_size (default 0 -> auto memory-bounded chunking inside each GPU actor)
 #
 # Example:
-#   sbatch experiments/multi_node_rank_r_dir_gpu_fullgpu.sh graphs/erdos_renyi/rank_2/p01/n20 results/fullgpu 2 3 32 500000 0 0 0
+#   sbatch experiments/multi_node_rank_r_dir_gpu_fullgpu.sh graphs/erdos_renyi/rank_2/p01/n20 results/fullgpu 2 3 32 50000000 0 0 0 0
 
 set -euo pipefail
 
@@ -44,6 +45,7 @@ CANDIDATES_PER_TASK=${6:-256}
 MAX_IN_FLIGHT_GPU_REQUESTS=${7:-0}
 GPUS_CAP=${8:-0}
 DEBUG_FLAG=${9:-0}
+GPU_INNER_BATCH_SIZE=${10:-0}
 
 DEBUG_ARG=""
 if [[ "$DEBUG_FLAG" -eq 1 ]]; then
@@ -59,10 +61,11 @@ echo "Using results_dir = $RESULTS_DIR"
 echo "Using rank = $R"
 echo "Using K = $K"
 echo "Using precision = $PRECISION"
-echo "Using candidates_per_task/index_batch_size = $CANDIDATES_PER_TASK"
+echo "Using candidates_per_task/logical_batch_size = $CANDIDATES_PER_TASK"
 echo "Using max_in_flight_gpu_requests = $MAX_IN_FLIGHT_GPU_REQUESTS"
 echo "Using gpus cap = $GPUS_CAP"
 echo "Debug enabled: $DEBUG_FLAG"
+echo "Using gpu_inner_batch_size = $GPU_INNER_BATCH_SIZE"
 
 nodes=$(scontrol show hostnames "$SLURM_JOB_NODELIST")
 nodes_array=($nodes)
@@ -142,6 +145,7 @@ srun --nodes="$SLURM_JOB_NUM_NODES" --ntasks="$SLURM_JOB_NUM_NODES" \
       --precision "$PRECISION" \
       --candidates_per_task "$CANDIDATES_PER_TASK" \
       --max_in_flight_cpu "$MAX_IN_FLIGHT_GPU_REQUESTS" \
+      --gpu_inner_batch_size "$GPU_INNER_BATCH_SIZE" \
       --gpus "$GPUS_CAP" \
     #   --skip_existing \
       $DEBUG_ARG

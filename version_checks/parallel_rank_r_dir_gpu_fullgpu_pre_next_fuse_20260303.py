@@ -441,9 +441,6 @@ class RankRGPUActor:
             except Exception:
                 self._use_triton_quantize = False
 
-        if self.K == 3:
-            return self._quantize_k3_ids_torch(Y)
-
         best_proj = (Y * self.roots_conj[0]).real
         k = torch.zeros_like(best_proj, dtype=torch.int64)
         for root_id in range(1, self.K):
@@ -456,45 +453,6 @@ class RankRGPUActor:
                 k,
             )
         return k
-
-    def _quantize_k3_ids_torch(self, X):
-        import torch
-
-        x_r = X.real
-        x_i = X.imag
-        p0 = x_r
-        p1 = (-0.5 * x_r) + (0.8660254037844386 * x_i)
-        p2 = (-0.5 * x_r) - (0.8660254037844386 * x_i)
-
-        k = torch.zeros_like(x_r, dtype=torch.int64)
-        better1 = p1 > p0
-        best = torch.where(better1, p1, p0)
-        k = torch.where(better1, torch.ones_like(k), k)
-        better2 = p2 > best
-        k = torch.where(better2, torch.full_like(k, 2), k)
-        return k
-
-    def _quantize_k3_root_components_torch(self, X):
-        import torch
-
-        x_r = X.real
-        x_i = X.imag
-        p0 = x_r
-        p1 = (-0.5 * x_r) + (0.8660254037844386 * x_i)
-        p2 = (-0.5 * x_r) - (0.8660254037844386 * x_i)
-
-        root_r = torch.ones_like(x_r, dtype=self.qdtype)
-        root_i = torch.zeros_like(x_i, dtype=self.qdtype)
-
-        better1 = p1 > p0
-        best = torch.where(better1, p1, p0)
-        root_r = torch.where(better1, torch.full_like(root_r, -0.5), root_r)
-        root_i = torch.where(better1, torch.full_like(root_i, 0.8660254037844386), root_i)
-
-        better2 = p2 > best
-        root_r = torch.where(better2, torch.full_like(root_r, -0.5), root_r)
-        root_i = torch.where(better2, torch.full_like(root_i, -0.8660254037844386), root_i)
-        return root_r, root_i
 
     def _quantize_k3_to_zcat(self, Y, Zcat):
         if not self._use_triton_quantize:
@@ -705,6 +663,8 @@ class RankRGPUActor:
         rows = v_sorted.transpose(0, 1).contiguous().to(torch.int64)  # (comb_size, B)
         V_rows = self.V[rows, : int(r)]  # (comb_size, B, r)
         vc = torch.sum(V_rows * C.unsqueeze(0), dim=2)  # (comb_size, B) complex
+        metric = (vc.unsqueeze(0) * torch.conj(self.roots).view(self.K, 1, 1)).real  # (K, comb_size, B)
+        vals = torch.argmax(metric, dim=0).to(torch.int64)  # (comb_size, B)
         cols = (
             torch.arange(B, device=self.device, dtype=torch.int64)
             .view(1, B)
@@ -718,25 +678,13 @@ class RankRGPUActor:
         Zcat = self._zcat_buf[:, : 2 * B]
         used_fused_pack = self._quantize_k3_to_zcat(Y, Zcat)
         if used_fused_pack:
-            if self.K == 3:
-                vr, vi = self._quantize_k3_root_components_torch(vc)
-                Zcat[rows[mask_t], cols[mask_t]] = vr[mask_t]
-                Zcat[rows[mask_t], cols[mask_t] + B] = vi[mask_t]
-            else:
-                metric = (vc.unsqueeze(0) * torch.conj(self.roots).view(self.K, 1, 1)).real
-                vals = torch.argmax(metric, dim=0).to(torch.int64)
-                root_vals = self.roots[vals]
-                Zcat[rows[mask_t], cols[mask_t]] = root_vals.real[mask_t]
-                Zcat[rows[mask_t], cols[mask_t] + B] = root_vals.imag[mask_t]
+            root_vals = self.roots[vals]
+            Zcat[rows[mask_t], cols[mask_t]] = root_vals.real[mask_t]
+            Zcat[rows[mask_t], cols[mask_t] + B] = root_vals.imag[mask_t]
             zr = Zcat[:, :B]
             zi = Zcat[:, B : 2 * B]
         else:
             k_assign = self._quantize_nearest_root(Y)
-            if self.K == 3:
-                vals = self._quantize_k3_ids_torch(vc)
-            else:
-                metric = (vc.unsqueeze(0) * torch.conj(self.roots).view(self.K, 1, 1)).real
-                vals = torch.argmax(metric, dim=0).to(torch.int64)
             k_assign[rows[mask_t], cols[mask_t]] = vals[mask_t]
             z = self.roots[k_assign]  # (n,B)
             zr = z.real
