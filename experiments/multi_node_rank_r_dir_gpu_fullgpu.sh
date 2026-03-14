@@ -30,9 +30,12 @@
 #   8: gpus cap passed to solver (default 0 -> all visible)
 #   9: debug flag (0/1, default 0)
 #  10: gpu_inner_batch_size (default 0 -> auto memory-bounded chunking inside each GPU actor)
+#  11: max_instances (default 0 -> process every Q/V pair in the directory)
+#  12: start_index in sorted instance order (default 0)
+#  13: skip_existing flag (0/1, default 0)
 #
 # Example:
-#   sbatch experiments/multi_node_rank_r_dir_gpu_fullgpu.sh graphs/erdos_renyi/rank_2/p01/n20 results/fullgpu 2 3 32 50000000 0 0 0 0
+#   sbatch experiments/multi_node_rank_r_dir_gpu_fullgpu.sh graphs/erdos_renyi/rank_2/p01/n20 results/fullgpu 2 3 32 50000000 0 0 0 0 1 0 1
 
 set -euo pipefail
 
@@ -46,10 +49,18 @@ MAX_IN_FLIGHT_GPU_REQUESTS=${7:-0}
 GPUS_CAP=${8:-0}
 DEBUG_FLAG=${9:-0}
 GPU_INNER_BATCH_SIZE=${10:-0}
+MAX_INSTANCES=${11:-0}
+START_INDEX=${12:-0}
+SKIP_EXISTING_FLAG=${13:-0}
 
 DEBUG_ARG=""
 if [[ "$DEBUG_FLAG" -eq 1 ]]; then
   DEBUG_ARG="--debug"
+fi
+
+SKIP_EXISTING_ARG=""
+if [[ "$SKIP_EXISTING_FLAG" -eq 1 ]]; then
+  SKIP_EXISTING_ARG="--skip_existing"
 fi
 
 echo "Job started on $(hostname)"
@@ -66,6 +77,9 @@ echo "Using max_in_flight_gpu_requests = $MAX_IN_FLIGHT_GPU_REQUESTS"
 echo "Using gpus cap = $GPUS_CAP"
 echo "Debug enabled: $DEBUG_FLAG"
 echo "Using gpu_inner_batch_size = $GPU_INNER_BATCH_SIZE"
+echo "Using max_instances = $MAX_INSTANCES"
+echo "Using start_index = $START_INDEX"
+echo "Skip existing outputs: $SKIP_EXISTING_FLAG"
 
 nodes=$(scontrol show hostnames "$SLURM_JOB_NODELIST")
 nodes_array=($nodes)
@@ -144,10 +158,12 @@ srun --nodes="$SLURM_JOB_NUM_NODES" --ntasks="$SLURM_JOB_NUM_NODES" \
       --K "$K" \
       --precision "$PRECISION" \
       --candidates_per_task "$CANDIDATES_PER_TASK" \
-      --max_in_flight_cpu "$MAX_IN_FLIGHT_GPU_REQUESTS" \
+      --max_in_flight_gpu_requests "$MAX_IN_FLIGHT_GPU_REQUESTS" \
       --gpu_inner_batch_size "$GPU_INNER_BATCH_SIZE" \
       --gpus "$GPUS_CAP" \
-    #   --skip_existing \
-      $DEBUG_ARG
+      --max_instances "$MAX_INSTANCES" \
+      --start_index "$START_INDEX" \
+      $DEBUG_ARG \
+      $SKIP_EXISTING_ARG
 
 echo "Job complete."

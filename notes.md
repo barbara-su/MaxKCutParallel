@@ -57,3 +57,8 @@ zip -r rank_1_results.zip results
 
 # Check allocation (GPU)
 sinfo -N -O "NodeList,CPUsState,Memory,FreeMem,Gres,GresUsed"   | awk 'NR==1{print; next} {print $1, $2, $3/1024, $4/1024, $5, $6}'
+
+### Start codex
+export PATH=/scratch/bs82/tools/node-v20.11.1-linux-x64/bin:$PATH
+npm config set prefix /scratch/bs82/npm-global
+export PATH=/scratch/bs82/npm-global/bin:$PATH

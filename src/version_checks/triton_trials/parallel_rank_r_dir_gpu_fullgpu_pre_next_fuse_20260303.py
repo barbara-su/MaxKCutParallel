@@ -1,3 +1,9 @@
+"""Historical full-GPU solver snapshot from 2026-03-03 before the next fusion pass.
+
+This variant sits between the post-Triton work and the later fused-path cleanup and
+is retained so behavior can be compared across optimization steps.
+"""
+
 import argparse
 import json
 import logging
@@ -258,13 +264,20 @@ def _load_json_if_exists(path: Optional[Path]) -> Optional[Dict[str, object]]:
         return json.load(f)
 
 
-def _auto_gpu_inner_batch_size(n: int) -> int:
-    # Rough peak working-set estimate is ~32 * n * B bytes
-    # (Y complex + k int64 + Zcat float32). Bias toward throughput; callers
-    # can still force a lower value via --gpu_inner_batch_size.
-    target_workspace_bytes = 8 << 30
-    est = target_workspace_bytes // (32 * max(1, int(n)))
-    return max(4096, min(262144, int(est)))
+def _auto_gpu_inner_batch_size(n: int, free_bytes: Optional[int] = None, use_triton_pack: bool = False) -> int:
+    # Rough peak working-set estimate:
+    # - fallback path: Y complex + k int64 + z complex + Zcat + QZcat ~= 32 * n * B bytes
+    # - fused K=3 path: Y complex + Zcat + QZcat ~= 24 * n * B bytes
+    # Keep a large reserve so the actor still has room for Q, V, and temporary kernels.
+    bytes_per_candidate = (24 if use_triton_pack else 32) * max(1, int(n))
+    if free_bytes is None:
+        target_workspace_bytes = 8 << 30
+    else:
+        reserve_bytes = 4 << 30
+        usable = max(1 << 30, int(free_bytes) - reserve_bytes)
+        target_workspace_bytes = int(usable * 0.8)
+    est = max(4096, target_workspace_bytes // max(1, bytes_per_candidate))
+    return max(4096, min(1_048_576, int(est)))
 
 
 @ray.remote(num_gpus=1)
@@ -322,7 +335,6 @@ class RankRGPUActor:
         V_t = torch.as_tensor(V_arr)
         self.V = V_t.to(dtype=self.cdtype, device=self.device).contiguous()
         self.n, self.r = self.V.shape
-        self.gpu_inner_batch_size = _auto_gpu_inner_batch_size(int(self.n))
 
         # build Q as writable and contiguous
         Q_arr = np.asarray(Q_np)
@@ -330,6 +342,16 @@ class RankRGPUActor:
             Q_arr = np.array(Q_arr, copy=True, order="C")
         Q_t = torch.as_tensor(Q_arr)
         self.Q = Q_t.to(dtype=self.qdtype, device=self.device).contiguous()
+        try:
+            free_bytes, total_bytes = torch.cuda.mem_get_info()
+            memory_hint_bytes = max(int(free_bytes), int(total_bytes * 0.75))
+        except RuntimeError:
+            memory_hint_bytes = None
+        self.gpu_inner_batch_size = _auto_gpu_inner_batch_size(
+            int(self.n),
+            free_bytes=memory_hint_bytes,
+            use_triton_pack=bool(self._use_triton_quantize),
+        )
 
         if V_tilde_np is None:
             self.V_tilde = None
@@ -399,11 +421,14 @@ class RankRGPUActor:
                 y_r = Y.real
                 y_i = Y.imag
                 out = torch.empty(Y.shape, device=self.device, dtype=torch.int64)
+                kernel = globals().get("_quantize_k3_kernel")
+                if kernel is None:
+                    raise RuntimeError("Triton K=3 quantization kernel is unavailable")
                 grid = lambda meta: (
                     triton.cdiv(Y.shape[0], meta["BLOCK_M"]),
                     triton.cdiv(Y.shape[1], meta["BLOCK_N"]),
                 )
-                _quantize_k3_kernel[grid](
+                kernel[grid](
                     y_r,
                     y_i,
                     out,
@@ -434,6 +459,59 @@ class RankRGPUActor:
                 k,
             )
         return k
+
+    def _quantize_k3_to_zcat(self, Y, Zcat):
+        if not self._use_triton_quantize:
+            return False
+        try:
+            y_r = Y.real
+            y_i = Y.imag
+            cols = int(Y.shape[1])
+            zr = Zcat[:, :cols]
+            zi = Zcat[:, cols : 2 * cols]
+            kernel = globals().get("_quantize_k3_to_zcat_kernel")
+            if kernel is None:
+                raise RuntimeError("Triton K=3 Zcat kernel is unavailable")
+            grid = lambda meta: (
+                triton.cdiv(Y.shape[0], meta["BLOCK_M"]),
+                triton.cdiv(cols, meta["BLOCK_N"]),
+            )
+            kernel[grid](
+                y_r,
+                y_i,
+                zr,
+                zi,
+                Y.shape[0],
+                cols,
+                y_r.stride(0),
+                y_r.stride(1),
+                y_i.stride(0),
+                y_i.stride(1),
+                zr.stride(0),
+                zr.stride(1),
+                zi.stride(0),
+                zi.stride(1),
+                BLOCK_M=16,
+                BLOCK_N=256,
+            )
+            return True
+        except Exception:
+            self._use_triton_quantize = False
+            return False
+
+    def _apply_fallback_override_single(self, I_best, c_best, r: int, k_best):
+        import torch
+
+        v_used = torch.unique(
+            torch.div(I_best, int(self.K), rounding_mode="floor"),
+            sorted=True,
+        )
+        for v_idx_t in v_used:
+            v_idx = int(v_idx_t.item())
+            v_c = torch.sum(self.V[v_idx, : int(r)] * c_best)
+            root_id = int(torch.argmax((torch.conj(self.roots) * v_c).real).item())
+            k_best[v_idx] = root_id
+        return k_best
 
     def _ctilde_to_complex_single(self, c_tilde, r: int):
         re = c_tilde[0 : 2 * r : 2]
@@ -578,7 +656,6 @@ class RankRGPUActor:
 
         # Quantize from Y = V @ C^T
         Y = torch.matmul(self.V[:, : int(r)], C.T)  # (n,B) complex
-        k_assign = self._quantize_nearest_root(Y)
 
         # Baseline-compatible fallback override (no fixed-angle refit):
         # baseline uses v_used = np.unique(I // K), i.e. one override per unique vertex.
@@ -600,18 +677,26 @@ class RankRGPUActor:
             .expand(comb_size, B)
         )
         mask_t = mask.transpose(0, 1).contiguous()  # (comb_size, B)
-        k_assign[rows[mask_t], cols[mask_t]] = vals[mask_t]
-
-        z = self.roots[k_assign]  # (n,B)
 
         # Score with one GEMM.
-        zr = z.real
-        zi = z.imag
         if self._zcat_buf is None or self._zcat_buf.shape[0] != self.n or self._zcat_buf.shape[1] < 2 * B:
             self._zcat_buf = torch.empty((self.n, 2 * B), device=self.device, dtype=self.qdtype)
         Zcat = self._zcat_buf[:, : 2 * B]
-        Zcat[:, :B] = zr
-        Zcat[:, B : 2 * B] = zi
+        used_fused_pack = self._quantize_k3_to_zcat(Y, Zcat)
+        if used_fused_pack:
+            root_vals = self.roots[vals]
+            Zcat[rows[mask_t], cols[mask_t]] = root_vals.real[mask_t]
+            Zcat[rows[mask_t], cols[mask_t] + B] = root_vals.imag[mask_t]
+            zr = Zcat[:, :B]
+            zi = Zcat[:, B : 2 * B]
+        else:
+            k_assign = self._quantize_nearest_root(Y)
+            k_assign[rows[mask_t], cols[mask_t]] = vals[mask_t]
+            z = self.roots[k_assign]  # (n,B)
+            zr = z.real
+            zi = z.imag
+            Zcat[:, :B] = zr
+            Zcat[:, B : 2 * B] = zi
         QZcat = torch.matmul(self.Q, Zcat)  # (n,2B)
         Qzr, Qzi = QZcat[:, :B], QZcat[:, B:]
         scores = torch.sum(zr * Qzr + zi * Qzi, dim=0)
@@ -625,8 +710,14 @@ class RankRGPUActor:
         scores = torch.where(valid, scores, neg_inf)
         best_b = torch.argmax(scores)
         best_score = float(torch.round(scores[best_b]).item())
-        best_k = k_assign[:, best_b].to("cpu").numpy()
-        best_z = z[:, best_b].to("cpu").numpy()
+        if used_fused_pack:
+            best_k_t = self._quantize_nearest_root(Y[:, best_b : best_b + 1]).squeeze(1)
+            best_k_t = self._apply_fallback_override_single(I[best_b], C[best_b], int(r), best_k_t)
+            best_k = best_k_t.to("cpu").numpy()
+            best_z = self.roots[best_k_t].to("cpu").numpy()
+        else:
+            best_k = k_assign[:, best_b].to("cpu").numpy()
+            best_z = z[:, best_b].to("cpu").numpy()
         refined = self._exact_refine_best_candidate(I[best_b], C[best_b], int(r))
         if refined is not None:
             refined_score, refined_k, refined_z = refined
@@ -766,8 +857,9 @@ class RankRGPUActor:
             if logical_batch <= 0:
                 return float("-inf"), None, None, 0, 0.0
 
+            auto_chunk = int(inner_batch_size) <= 0
             chunk_size = int(inner_batch_size) if int(inner_batch_size) > 0 else int(self.gpu_inner_batch_size)
-            chunk_size = max(1, min(chunk_size, logical_batch))
+            chunk_size = max(1, int(chunk_size))
 
             best_score = float("-inf")
             best_k = None
@@ -775,19 +867,34 @@ class RankRGPUActor:
             feasible_total = 0
             t_start = time.perf_counter()
 
-            for offset in range(0, logical_batch, chunk_size):
+            offset = 0
+            while offset < logical_batch:
                 cur = min(chunk_size, logical_batch - offset)
-                I = self._build_index_batch_gpu(
-                    int(start_rank) + int(offset),
-                    int(cur),
-                    int(comb_size),
-                )
-                chunk_score, chunk_k, chunk_z, feasible_count = self._score_index_batch_tensor(I, int(r))
+                while True:
+                    try:
+                        I = self._build_index_batch_gpu(
+                            int(start_rank) + int(offset),
+                            int(cur),
+                            int(comb_size),
+                        )
+                        chunk_score, chunk_k, chunk_z, feasible_count = self._score_index_batch_tensor(I, int(r))
+                        break
+                    except RuntimeError as e:
+                        if (not auto_chunk) or ("out of memory" not in str(e).lower()) or cur <= 4096:
+                            raise
+                        torch.cuda.empty_cache()
+                        chunk_size = max(4096, chunk_size // 2)
+                        cur = min(chunk_size, logical_batch - offset)
+
                 feasible_total += int(feasible_count)
                 if chunk_k is not None and chunk_score > best_score:
                     best_score = float(chunk_score)
                     best_k = chunk_k
                     best_z = chunk_z
+                offset += cur
+
+            if auto_chunk:
+                self.gpu_inner_batch_size = int(chunk_size)
 
             compute_sec = time.perf_counter() - t_start
             return best_score, best_k, best_z, feasible_total, float(compute_sec)

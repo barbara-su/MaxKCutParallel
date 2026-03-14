@@ -1,3 +1,10 @@
+"""Historical full-GPU solver snapshot after Triton K=3 quantization was integrated.
+
+Use this file only for regression/performance comparison against the pre-Triton and
+pre-fusion snapshots. The actively maintained implementation lives in
+`src/parallel_rank_r_dir_gpu_fullgpu.py`.
+"""
+
 import argparse
 import json
 import logging
@@ -10,7 +17,15 @@ from typing import Dict, List, Optional, Tuple
 import numpy as np
 import ray
 
-_TRITON_AVAILABLE = False
+try:
+    import triton
+    import triton.language as tl
+
+    _TRITON_AVAILABLE = True
+except ImportError:
+    triton = None
+    tl = None
+    _TRITON_AVAILABLE = False
 
 from utils import (
     set_numpy_precision,
@@ -28,7 +43,121 @@ logging.basicConfig(
 )
 log = logging.getLogger(__name__)
 
+if _TRITON_AVAILABLE:
+    @triton.jit
+    def _quantize_k3_kernel(
+        y_r_ptr,
+        y_i_ptr,
+        out_ptr,
+        rows,
+        cols,
+        stride_yr0,
+        stride_yr1,
+        stride_yi0,
+        stride_yi1,
+        stride_out0,
+        stride_out1,
+        BLOCK_M: tl.constexpr,  # pyright: ignore[reportInvalidTypeForm]
+        BLOCK_N: tl.constexpr,  # pyright: ignore[reportInvalidTypeForm]
+    ):
+        pid_m = tl.program_id(0)
+        pid_n = tl.program_id(1)
 
+        offs_m = pid_m * BLOCK_M + tl.arange(0, BLOCK_M)
+        offs_n = pid_n * BLOCK_N + tl.arange(0, BLOCK_N)
+        mask = (offs_m[:, None] < rows) & (offs_n[None, :] < cols)
+
+        yr = tl.load(
+            y_r_ptr + offs_m[:, None] * stride_yr0 + offs_n[None, :] * stride_yr1,
+            mask=mask,
+            other=0.0,
+        )
+        yi = tl.load(
+            y_i_ptr + offs_m[:, None] * stride_yi0 + offs_n[None, :] * stride_yi1,
+            mask=mask,
+            other=0.0,
+        )
+
+        p0 = yr
+        p1 = (-0.5 * yr) + (0.8660254037844386 * yi)
+        p2 = (-0.5 * yr) - (0.8660254037844386 * yi)
+
+        k = tl.zeros((BLOCK_M, BLOCK_N), dtype=tl.int64)
+        better1 = p1 > p0
+        best = tl.where(better1, p1, p0)
+        k = tl.where(better1, 1, k)
+        better2 = p2 > best
+        k = tl.where(better2, 2, k)
+
+        tl.store(
+            out_ptr + offs_m[:, None] * stride_out0 + offs_n[None, :] * stride_out1,
+            k,
+            mask=mask,
+        )
+
+    @triton.jit
+    def _quantize_k3_to_zcat_kernel(
+        y_r_ptr,
+        y_i_ptr,
+        zr_ptr,
+        zi_ptr,
+        rows,
+        cols,
+        stride_yr0,
+        stride_yr1,
+        stride_yi0,
+        stride_yi1,
+        stride_zr0,
+        stride_zr1,
+        stride_zi0,
+        stride_zi1,
+        BLOCK_M: tl.constexpr,  # pyright: ignore[reportInvalidTypeForm]
+        BLOCK_N: tl.constexpr,  # pyright: ignore[reportInvalidTypeForm]
+    ):
+        pid_m = tl.program_id(0)
+        pid_n = tl.program_id(1)
+
+        offs_m = pid_m * BLOCK_M + tl.arange(0, BLOCK_M)
+        offs_n = pid_n * BLOCK_N + tl.arange(0, BLOCK_N)
+        mask = (offs_m[:, None] < rows) & (offs_n[None, :] < cols)
+
+        yr = tl.load(
+            y_r_ptr + offs_m[:, None] * stride_yr0 + offs_n[None, :] * stride_yr1,
+            mask=mask,
+            other=0.0,
+        )
+        yi = tl.load(
+            y_i_ptr + offs_m[:, None] * stride_yi0 + offs_n[None, :] * stride_yi1,
+            mask=mask,
+            other=0.0,
+        )
+
+        p0 = yr
+        p1 = (-0.5 * yr) + (0.8660254037844386 * yi)
+        p2 = (-0.5 * yr) - (0.8660254037844386 * yi)
+
+        root_r = tl.full((BLOCK_M, BLOCK_N), 1.0, dtype=tl.float32)
+        root_i = tl.zeros((BLOCK_M, BLOCK_N), dtype=tl.float32)
+
+        better1 = p1 > p0
+        best = tl.where(better1, p1, p0)
+        root_r = tl.where(better1, -0.5, root_r)
+        root_i = tl.where(better1, 0.8660254037844386, root_i)
+
+        better2 = p2 > best
+        root_r = tl.where(better2, -0.5, root_r)
+        root_i = tl.where(better2, -0.8660254037844386, root_i)
+
+        tl.store(
+            zr_ptr + offs_m[:, None] * stride_zr0 + offs_n[None, :] * stride_zr1,
+            root_r,
+            mask=mask,
+        )
+        tl.store(
+            zi_ptr + offs_m[:, None] * stride_zi0 + offs_n[None, :] * stride_zi1,
+            root_i,
+            mask=mask,
+        )
 
 def discover_instances(qv_dir: Path) -> List[Tuple[Path, Path]]:
     """
@@ -185,6 +314,7 @@ class RankRGPUActor:
         self._zcat_buf = None  # (n, >=2B) real workspace for one-GEMM scoring
         self._comb_lut = None  # (N+1, kmax+1) int64 on GPU, for lex unranking
         self.gpu_inner_batch_size = 4096
+        self._use_triton_quantize = bool(_TRITON_AVAILABLE and self.K == 3)
 
     def set_instance(self, V_np: np.ndarray, Q_np: np.ndarray, V_tilde_np: np.ndarray = None):
         """
@@ -270,6 +400,34 @@ class RankRGPUActor:
 
     def _quantize_nearest_root(self, Y):
         import torch
+
+        if self._use_triton_quantize:
+            try:
+                y_r = Y.real
+                y_i = Y.imag
+                out = torch.empty(Y.shape, device=self.device, dtype=torch.int64)
+                grid = lambda meta: (
+                    triton.cdiv(Y.shape[0], meta["BLOCK_M"]),
+                    triton.cdiv(Y.shape[1], meta["BLOCK_N"]),
+                )
+                _quantize_k3_kernel[grid](
+                    y_r,
+                    y_i,
+                    out,
+                    Y.shape[0],
+                    Y.shape[1],
+                    y_r.stride(0),
+                    y_r.stride(1),
+                    y_i.stride(0),
+                    y_i.stride(1),
+                    out.stride(0),
+                    out.stride(1),
+                    BLOCK_M=16,
+                    BLOCK_N=256,
+                )
+                return out
+            except Exception:
+                self._use_triton_quantize = False
 
         best_proj = (Y * self.roots_conj[0]).real
         k = torch.zeros_like(best_proj, dtype=torch.int64)

@@ -274,6 +274,12 @@ def _auto_gpu_inner_batch_size(n: int, free_bytes: Optional[int] = None, use_tri
     return max(4096, min(1_048_576, int(est)))
 
 
+def _resolve_max_in_flight_gpu_requests(requested: int, num_gpu_actors: int) -> int:
+    if int(requested) <= 0:
+        return max(2 * int(num_gpu_actors), 1)
+    return max(1, int(requested))
+
+
 @ray.remote(num_gpus=1)
 class RankRGPUActor:
     """
@@ -370,6 +376,9 @@ class RankRGPUActor:
                     else:
                         lut_np[nn, kk] = lut_np[nn - 1, kk - 1] + lut_np[nn - 1, kk]
             self._comb_lut = torch.as_tensor(lut_np, device=self.device, dtype=torch.int64)
+
+    def get_effective_gpu_inner_batch_size(self) -> int:
+        return int(self.gpu_inner_batch_size)
 
     def _build_index_batch_gpu(self, start_rank: int, batch_size: int, comb_size: int):
         """
@@ -1051,7 +1060,7 @@ def process_rankr_single_fullgpu(
     Q: np.ndarray,
     K: int,
     candidates_per_task: int,
-    max_in_flight_cpu: int,
+    max_in_flight_gpu_requests: int,
     gpu_inner_batch_size: int,
     gpu_actors: List["ray.actor.ActorHandle"],
 ):
@@ -1070,6 +1079,21 @@ def process_rankr_single_fullgpu(
     ray.get([a.set_instance.remote(V, Q, V_tilde) for a in gpu_actors])
     t_set_sec = time.perf_counter() - t_set_start
     log.info("Broadcast to GPU actors (V/Q/V_tilde) took %.4fs", t_set_sec)
+    actor_inner_batches = ray.get([a.get_effective_gpu_inner_batch_size.remote() for a in gpu_actors])
+    requested_inner_batch = int(gpu_inner_batch_size)
+    effective_inner_batch = (
+        requested_inner_batch
+        if requested_inner_batch > 0
+        else min(actor_inner_batches) if actor_inner_batches else 0
+    )
+    if requested_inner_batch > 0:
+        log.info("Using requested gpu_inner_batch_size=%d", requested_inner_batch)
+    else:
+        log.info(
+            "Auto gpu_inner_batch_size per actor=%s; using actor-managed auto chunking (effective default=%d)",
+            actor_inner_batches,
+            effective_inner_batch,
+        )
 
     num_vtilde_rows = K * n
     comb_size = 2 * r - 1
@@ -1086,21 +1110,23 @@ def process_rankr_single_fullgpu(
     num_gpu_actors = len(gpu_actors)
     if num_gpu_actors < 1:
         raise RuntimeError("gpu_actors list is empty")
-    inner_batch = int(gpu_inner_batch_size) if int(gpu_inner_batch_size) > 0 else _auto_gpu_inner_batch_size(int(n))
+    inner_batch_arg = requested_inner_batch if requested_inner_batch > 0 else 0
+    effective_max_in_flight = _resolve_max_in_flight_gpu_requests(
+        int(max_in_flight_gpu_requests),
+        int(num_gpu_actors),
+    )
     log.info(
-        "Ray CPUs=%d, candidates_per_task=%d, total_cpu_tasks=%d, total_gpu_tasks=%d, gpu_inner_batch_size=%d",
+        "Ray CPUs=%d, candidates_per_task=%d, total_cpu_tasks=%d, total_gpu_tasks=%d, effective_gpu_inner_batch_size=%d, effective_max_in_flight_gpu_requests=%d",
         num_cpus,
         candidates_per_task,
         total_tasks,
         total_gpu_tasks,
-        inner_batch,
+        effective_inner_batch,
+        effective_max_in_flight,
     )
 
     start_time = time.time()
-    if max_in_flight_cpu <= 0:
-        max_in_flight = max(2 * num_gpu_actors, 1)
-    else:
-        max_in_flight = int(max_in_flight_cpu)
+    max_in_flight = effective_max_in_flight
     in_flight = []
     in_flight_meta = {}
     submitted = 0
@@ -1122,7 +1148,7 @@ def process_rankr_single_fullgpu(
             int(start_rank),
             int(batch_size),
             int(r),
-            int(inner_batch),
+            int(inner_batch_arg),
         )
         in_flight_meta[fut] = (int(batch_id), float(index_sec), int(batch_size), float(t_submit))
         return fut
@@ -1194,7 +1220,16 @@ def process_rankr_single_fullgpu(
     if best_z is None:
         raise RuntimeError("Full-GPU rank-r algorithm found no feasible candidate")
 
-    return best_score, np.asarray(best_k), np.asarray(best_z)
+    summary: Dict[str, object] = {
+        "effective_gpu_inner_batch_size": int(effective_inner_batch),
+        "effective_gpu_inner_batch_size_per_actor": [int(x) for x in actor_inner_batches],
+        "effective_max_in_flight_gpu_requests": int(effective_max_in_flight),
+        "rank_r_search_seconds": float(elapsed),
+        "avg_rank_r_gpu_batch_seconds": float(total_gpu_compute_sec / completed) if completed > 0 else 0.0,
+        "feasible_ratio": float((total_feasible / total_combos_seen) if total_combos_seen > 0 else 0.0),
+        "rank_r_combinations": int(num_combinations),
+    }
+    return best_score, np.asarray(best_k), np.asarray(best_z), summary
 
 
 def process_rankr_recursive_fullgpu(
@@ -1202,7 +1237,7 @@ def process_rankr_recursive_fullgpu(
     Q: np.ndarray,
     K: int,
     candidates_per_task: int,
-    max_in_flight_cpu: int,
+    max_in_flight_gpu_requests: int,
     gpu_inner_batch_size: int,
     gpu_actors: List["ray.actor.ActorHandle"],
 ):
@@ -1220,25 +1255,25 @@ def process_rankr_recursive_fullgpu(
             candidates_per_task=candidates_per_task,
             gpu_actors=gpu_actors,
         )
-        return best_score, best_k, best_z
+        return best_score, best_k, best_z, {}
 
-    best_score, best_k, best_z = process_rankr_single_fullgpu(
+    best_score, best_k, best_z, rank_stage_meta = process_rankr_single_fullgpu(
         V,
         Q,
         K=K,
         candidates_per_task=candidates_per_task,
-        max_in_flight_cpu=max_in_flight_cpu,
+        max_in_flight_gpu_requests=max_in_flight_gpu_requests,
         gpu_inner_batch_size=gpu_inner_batch_size,
         gpu_actors=gpu_actors,
     )
 
     log.info(f"Recursing to lower rank r={r-1}")
-    lower_score, lower_k, lower_z = process_rankr_recursive_fullgpu(
+    lower_score, lower_k, lower_z, _ = process_rankr_recursive_fullgpu(
         V[:, : r - 1],
         Q,
         K=K,
         candidates_per_task=candidates_per_task,
-        max_in_flight_cpu=max_in_flight_cpu,
+        max_in_flight_gpu_requests=max_in_flight_gpu_requests,
         gpu_inner_batch_size=gpu_inner_batch_size,
         gpu_actors=gpu_actors,
     )
@@ -1247,7 +1282,7 @@ def process_rankr_recursive_fullgpu(
         log.info(f"Lower rank {r-1} improved score {best_score} -> {lower_score}")
         best_score, best_k, best_z = lower_score, lower_k, lower_z
 
-    return best_score, best_k, best_z
+    return best_score, best_k, best_z, rank_stage_meta
 
 def parse_args():
     ap = argparse.ArgumentParser(description="Run parallel_rank_r over a directory (full-GPU candidate generation) without restarting Ray.")
@@ -1263,10 +1298,10 @@ def parse_args():
         help="Logical batch size. For rank>=2 this is the rank-range size; actors internally chunk it for memory. For rank=1 this is l-candidates per CPU task.",
     )
     ap.add_argument(
-        "--max_in_flight_cpu",
+        "--max_in_flight_gpu_requests",
         type=int,
         default=0,
-        help="Max in-flight GPU requests for rank>=2. 0 uses auto=max(2*GPUs,1).",
+        help="Max in-flight GPU actor requests for rank>=2. 0 uses auto=max(2*GPUs,1).",
     )
     ap.add_argument(
         "--gpu_inner_batch_size",
@@ -1359,16 +1394,18 @@ def main():
             )
             
         else:
-            best_score, best_k, best_z = process_rankr_recursive_fullgpu(
+            best_score, best_k, best_z, rank_stage_meta = process_rankr_recursive_fullgpu(
                 V,
                 Q,
                 K=int(args.K),
                 candidates_per_task=int(args.candidates_per_task),
-                max_in_flight_cpu=int(args.max_in_flight_cpu),
+                max_in_flight_gpu_requests=int(args.max_in_flight_gpu_requests),
                 gpu_inner_batch_size=int(args.gpu_inner_batch_size),
                 gpu_actors=gpu_actors,
             )
             best_l = None
+        if args.rank == 1:
+            rank_stage_meta = {}
         
         elapsed = time.time() - t0
         log.info(f"Done: score={best_score}, time={elapsed:.4f}s")
@@ -1384,8 +1421,20 @@ def main():
             "K": int(args.K),
             "precision": int(args.precision),
             "candidates_per_task": int(args.candidates_per_task),
-            "max_in_flight_cpu": int(args.max_in_flight_cpu),
-            "gpu_inner_batch_size": int(args.gpu_inner_batch_size),
+            "max_in_flight_gpu_requests_mode": (
+                "auto" if int(args.max_in_flight_gpu_requests) <= 0 else "manual"
+            ),
+            "max_in_flight_gpu_requests_requested": int(args.max_in_flight_gpu_requests),
+            "effective_max_in_flight_gpu_requests": int(
+                rank_stage_meta.get("effective_max_in_flight_gpu_requests", 0)
+            ),
+            "gpu_inner_batch_size_mode": (
+                "auto" if int(args.gpu_inner_batch_size) <= 0 else "manual"
+            ),
+            "gpu_inner_batch_size_requested": int(args.gpu_inner_batch_size),
+            "effective_gpu_inner_batch_size": int(
+                rank_stage_meta.get("effective_gpu_inner_batch_size", 0)
+            ),
             "best_score": float(best_score),
             "time_seconds": float(elapsed),
             "best_k": np.asarray(best_k).tolist(),
@@ -1396,6 +1445,18 @@ def main():
             "q_file": str(q_path),
             "v_file": str(v_path),
         }
+        if "effective_gpu_inner_batch_size_per_actor" in rank_stage_meta:
+            output["effective_gpu_inner_batch_size_per_actor"] = rank_stage_meta[
+                "effective_gpu_inner_batch_size_per_actor"
+            ]
+        if "rank_r_search_seconds" in rank_stage_meta:
+            output["rank_r_search_seconds"] = float(rank_stage_meta["rank_r_search_seconds"])
+        if "avg_rank_r_gpu_batch_seconds" in rank_stage_meta:
+            output["avg_rank_r_gpu_batch_seconds"] = float(rank_stage_meta["avg_rank_r_gpu_batch_seconds"])
+        if "feasible_ratio" in rank_stage_meta:
+            output["rank_r_feasible_ratio"] = float(rank_stage_meta["feasible_ratio"])
+        if "rank_r_combinations" in rank_stage_meta:
+            output["rank_r_combinations"] = int(rank_stage_meta["rank_r_combinations"])
         
         if best_l is not None:
             output["best_l"] = int(best_l)

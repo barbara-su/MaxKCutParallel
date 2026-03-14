@@ -1,3 +1,10 @@
+"""Historical full-GPU solver snapshot captured during the 2026-03-03 H100 benchmark pass.
+
+This file preserves a checkpoint-era implementation that was used for performance
+and memory experiments before later cleanup in `src/parallel_rank_r_dir_gpu_fullgpu.py`.
+It is kept for version comparison and should not be treated as the active entrypoint.
+"""
+
 import argparse
 import json
 import logging
