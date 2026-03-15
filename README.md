@@ -12,6 +12,42 @@ On 2026-03-14, the first graph from `/scratch/bs82/graphs/gset_rank_2` (`Q_gset_
 - `max_in_flight_gpu_requests_requested=0` -> `effective_max_in_flight_gpu_requests=8`
 - `gpu_inner_batch_size_requested=0` -> `effective_gpu_inner_batch_size=1048576`
 
+## 8xH200 Rank-2 24-Hour Cutoff
+
+On 2026-03-14, the current full-GPU rank-2 path was bracketed for the 24-hour limit on a single 8xH200 node.
+
+Direct 8xH200 probe:
+
+- Node: `bg6u16g1`
+- Command pattern: `experiments/multi_node_rank_r_dir_gpu_fullgpu.sh ... 2 3 32 100000000 0 8 0 0 1 0 0`
+- Graph: `/scratch/bs82/graphs/gset_rank_2_chain_exact_h2006_20260314/gset_22/Q_gset_22.npy` (`n=2000`)
+- Auto settings resolved to `effective_max_in_flight_gpu_requests=16` and `effective_gpu_inner_batch_size=1048576`
+- First progress sample at 10 completed tasks: `avg_gpu_batch=83.4125s`
+- With `360` logical tasks total, that projects to about `3753.56s` rank-2 search time, or about `1.05h` end-to-end including broadcast and the tiny rank-1 tail
+
+Large-`n` bracket from the matching H200 logs:
+
+- Existing 6xH200 `n=5000` run on `gset_55` reached `130` completed tasks before cancellation, with stable `avg_gpu_batch` around `647.76s`
+- That implies about `168.66h` on 6 H200s, or about `126.49h` on 8 H200s assuming the same per-actor batch cost and near-linear scaling in actor count
+
+Using the measured `n=2000` 8xH200 projection together with the `n=5000` H200 batch-rate estimate gives an empirical rank-2 scaling exponent of about `5.20` for this dense full-GPU path. That yields:
+
+- `n=3500` -> about `19.81h`
+- `n=3600` -> about `22.94h`
+- `n=3700` -> about `26.45h`
+
+Practical conclusion for the current code path:
+
+- Nearest hundred that should finish within `24h` on `8` H200 GPUs: `n=3600`
+- `n=3700` is already over the line by this calibration
+- `n=5000` is far beyond the budget at about `5.27` days on `8` H200s
+
+Relevant logs:
+
+- `logs/multi-nodes-rank-r-dir-fullgpu-101360.err` (`8xH200`, `n=2000` probe)
+- `logs/multi-nodes-rank-r-dir-fullgpu-101351.err` (`6xH200`, `n=5000` partial bracket)
+- `logs/multi-nodes-rank-r-dir-fullgpu-101350.err` (`6xH200`, `n=2000` completed reference)
+
 Current JSON reporting is explicit: it records both the requested value and the resolved effective value, and it also marks each knob as `auto` or `manual`. The older pre-fix run is still available at `results/gpu/gset_rank_2_h2004_q1/Q_gset_1_r2.json`, but its `gpu_inner_batch_size: 0` field only recorded the requested CLI value and not the resolved actor-side auto chunk.
 
 ## H200 Tuning For `gpu_inner_batch_size`
