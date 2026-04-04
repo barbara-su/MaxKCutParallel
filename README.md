@@ -34,6 +34,9 @@ by approximating **Q** with its top-*r* eigenvectors and enumerating a polynomia
 - **No tensor cores required** — runs on any CUDA GPU from Pascal (2016) onward, including PowerPC systems
 - **Theoretical guarantees** — multiplicative approximation ratio for perturbed low-rank matrices (Theorems 4.1–4.2)
 - **Multiple GPU paths** — Ray-based single-node solver and Ray-free `worker.py` for cross-machine distribution
+- **Rank-1 at extreme scale** — incremental scoring solves million-node graphs in 70 minutes on a single CPU
+- **Hybrid solver** — rank-1 warm-start + greedy local search finds better cuts than either method alone
+- **Baseline suite** — incremental greedy, simulated annealing, tabu search, SDP (cvxpy) for fair comparison
 
 ## 🚀 Quick Start
 
@@ -89,6 +92,26 @@ python src/graph_generators/gen_torus.py --n 500 --rank 2
 python src/graph_generators/gen_all_instances.py --base_dir instances/ --sizes 250,500,1000
 ```
 
+### Load Real-World Graphs
+
+```bash
+# Download and process Delaunay meshes from SuiteSparse
+python src/graph_generators/gen_from_mtx.py --datasets delaunay_n13,delaunay_n16 --data_dir realworld_data/
+
+# List available datasets
+python src/graph_generators/gen_from_mtx.py --list
+```
+
+### Rank-1 with Incremental Scoring + Hybrid
+
+```bash
+# Rank-1 alone (O(n·degree), scales to n=1M)
+python src/hybrid.py --q_path data/Q.npy --v_path data/V.npy --K 3
+
+# Hybrid: Rank-1 warm-start + Greedy local search
+python src/hybrid.py --q_path data/Q.npy --v_path data/V.npy --K 3 --greedy_seeds 0,1,2
+```
+
 ### Run Baselines
 
 ```bash
@@ -101,14 +124,22 @@ python src/baselines.py --q_path data/Q.npy --K 3 --methods random,greedy,sdp
 ├── src/
 │   ├── parallel_rank_r_dir_gpu_fullgpu.py   # Main GPU solver (Ray, rank-r recursive)
 │   ├── parallel_rank_1_gpu.py               # GPU rank-1 solver
+│   ├── hybrid.py                            # Rank-1 incremental + hybrid warm-start solver
 │   ├── worker.py                            # Ray-free multi-GPU worker
 │   ├── coordinator.py                       # SSH-based cross-machine orchestrator
-│   ├── baselines.py                         # SDP, Greedy, Random baselines
+│   ├── baselines.py                         # Greedy, SA, Tabu, SDP, Random (all incremental)
 │   ├── utils.py                             # Core math: V_tilde, intersections, scoring
 │   ├── graph_generators/                    # Graph instance generators
+│   │   ├── gen_from_mtx.py                  # Load SuiteSparse/SNAP real-world graphs
+│   │   ├── gen_all_instances.py             # Batch synthetic generator with diagnostics
+│   │   └── ...                              # ER, regular, SBM, torus generators
 │   └── post_process/                        # Result aggregation scripts
 ├── experiments/
 │   ├── multi_node_rank_r_dir_gpu_fullgpu.sh # SLURM launch script
+│   ├── bench_incremental.py                 # Incremental scoring benchmark (n=10K to 1M)
+│   ├── run_extreme_scale.py                 # Extreme-scale comparison (all methods)
+│   ├── run_realworld_experiments.py          # Real-world graph experiments
+│   ├── run_hybrid_extreme.py                # Hybrid vs Greedy at extreme scale
 │   └── generate_graphs/                     # Graph generation shell scripts
 ├── gset/                                    # GSet benchmark graphs (G1–G81)
 ├── results/                                 # Precomputed results (H200, GSet)
@@ -140,6 +171,14 @@ No tensor cores, BF16, or Triton support required. The algorithm uses standard F
 | **Torus** | Matches exactly | Beats by 3–5% | 1.5–3× faster than SDP |
 | **5-Regular** | Beats at n ≥ 1000 | Comparable | 1.5–3× faster than SDP |
 | **SBM** | Comparable | Greedy wins | Faster than SDP |
+
+### Rank-1 at Extreme Scale
+
+| n | Naive (O(n²)) | Incremental (O(n·d)) | Speedup |
+|---|---|---|---|
+| 100,000 | 12 min | **41s** | 17× |
+| 500,000 | 5.6 hrs | **19 min** | 17× |
+| 1,000,000 | — | **70 min** | — |
 
 ## 📝 Citation
 
