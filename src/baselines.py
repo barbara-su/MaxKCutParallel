@@ -232,12 +232,26 @@ def sdp_max3cut(Q, K=3, num_rounds=100, seed=42):
     return float(best_score), best_z, elapsed, sdp_info
 
 
-def _incremental_delta(Q, Qz, z, idx, old_z, new_z, is_sparse=False):
-    """Compute score change when z[idx] flips from old_z to new_z.
+def _sparse_update_Qz(Q_csc, Qz, idx, dz):
+    """Update Qz += Q[:, idx] * dz using sparse index-based access. O(degree)."""
+    start = Q_csc.indptr[idx]
+    end = Q_csc.indptr[idx + 1]
+    rows = Q_csc.indices[start:end]
+    vals = Q_csc.data[start:end]
+    Qz[rows] += vals * dz
 
-    Δ = 2·Re(conj(dz)·(Qz)[idx]) + |dz|²·Q[idx,idx]
-    Also returns updated Qz.
+
+def _incremental_delta_fast(Qz, Q_diag, idx, old_z, new_z):
+    """Compute score change when z[idx] flips. O(1).
+
+    Δ = 2·Re(conj(dz)·Qz[idx]) + |dz|²·Q[idx,idx]
     """
+    dz = new_z - old_z
+    return 2 * np.real(np.conj(dz) * Qz[idx]) + np.abs(dz)**2 * Q_diag[idx]
+
+
+def _incremental_delta(Q, Qz, z, idx, old_z, new_z, is_sparse=False):
+    """Legacy wrapper. Compute score change when z[idx] flips."""
     dz = new_z - old_z
     Q_ii = Q[idx, idx]
     delta = 2 * np.real(np.conj(dz) * Qz[idx]) + np.abs(dz)**2 * Q_ii
@@ -245,7 +259,7 @@ def _incremental_delta(Q, Qz, z, idx, old_z, new_z, is_sparse=False):
 
 
 def _update_Qz(Q, Qz, idx, dz, is_sparse=False):
-    """Update Qz after z[idx] changes by dz."""
+    """Legacy wrapper. Update Qz after z[idx] changes by dz."""
     from scipy import sparse
     if is_sparse:
         if sparse.isspmatrix_csc(Q):
@@ -353,10 +367,9 @@ def greedy_cut_incremental(Q, K=3, seed=42, init_k=None, max_time=None, max_iter
             if delta <= 0:
                 continue
 
-            # Commit flip
+            # Commit flip — O(degree) sparse update
             if Q_csc is not None:
-                col = np.asarray(Q_csc.getcol(i).toarray()).flatten()
-                Qz += col * dz
+                _sparse_update_Qz(Q_csc, Qz, i, dz)
             else:
                 Qz += Q[:, i] * dz
             z[i] = new_z
@@ -421,13 +434,16 @@ def sa_cut(Q, K=3, seed=42, init_k=None, max_iters=None, max_time=None,
     best_score = score
     best_k = k.copy()
 
-    # Auto temperature: start at ~avg edge weight so acceptance ~50%
+    # Auto temperature: calibrate so initial acceptance rate ~50% for typical moves.
+    # A single-node flip on a graph with degree d changes score by O(d).
+    # For K=3 roots of unity, |dz| ~ 1.7, so typical |delta| ~ 2*d*1.7 ~ 3.4*d.
+    # Setting T_init ~ 2*avg_degree gives ~50% acceptance for typical worsening moves.
     if T_init is None:
         if is_sparse:
-            avg_weight = np.abs(Q.data).mean() if hasattr(Q, 'data') else 1.0
+            avg_degree = Q.nnz / n if n > 0 else 5.0
         else:
-            avg_weight = np.abs(Q).mean()
-        T_init = avg_weight * n * 0.1
+            avg_degree = np.count_nonzero(Q) / n if n > 0 else 5.0
+        T_init = max(2.0 * avg_degree, 1.0)
 
     T = T_init
     accepted = 0
@@ -448,11 +464,10 @@ def sa_cut(Q, K=3, seed=42, init_k=None, max_iters=None, max_time=None,
         delta = _incremental_delta(Q, Qz, z, i, old_z, new_z, is_sparse)
 
         # Metropolis criterion
-        if delta > 0 or (T > 0 and rng.random() < np.exp(delta / T)):
+        if delta > 0 or (T > 0 and rng.random() < np.exp(min(delta / T, 0))):
             dz = new_z - old_z
             if Q_csc is not None:
-                col = np.asarray(Q_csc.getcol(i).toarray()).flatten()
-                Qz += col * dz
+                _sparse_update_Qz(Q_csc, Qz, i, dz)
             else:
                 Qz += Q[:, i] * dz
             z[i] = new_z
@@ -558,8 +573,7 @@ def tabu_cut(Q, K=3, seed=42, init_k=None, max_iters=None, max_time=None,
         dz = new_z - old_z
 
         if Q_csc is not None:
-            col = np.asarray(Q_csc.getcol(i).toarray()).flatten()
-            Qz += col * dz
+            _sparse_update_Qz(Q_csc, Qz, i, dz)
         else:
             Qz += Q[:, i] * dz
         z[i] = new_z
