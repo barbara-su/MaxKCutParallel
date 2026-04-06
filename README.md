@@ -7,6 +7,7 @@
     <a href="https://arxiv.org/abs/2602.20376"><img src="https://img.shields.io/badge/arXiv-2602.20376-b31b1b.svg" alt="arXiv"></a>
     <a href="https://akyrillidis.github.io/explore-quantum/MaxKCut.html"><img src="https://img.shields.io/badge/Blog-Max--K--Cut-blue.svg" alt="Blog 1"></a>
     <a href="https://akyrillidis.github.io/explore-quantum/LowRankMaxCut_GPU.html"><img src="https://img.shields.io/badge/Blog-15_Obsolete_GPUs-purple.svg" alt="Blog 2"></a>
+    <a href="https://akyrillidis.github.io/explore-quantum/LowRankMaxCut_Rank1.html"><img src="https://img.shields.io/badge/Blog-Rank--1_at_Scale-green.svg" alt="Blog 3"></a>
     <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.8+-3776AB.svg?logo=python&logoColor=white" alt="Python"></a>
     <a href="https://pytorch.org/"><img src="https://img.shields.io/badge/PyTorch-1.12+-EE4C2C.svg?logo=pytorch&logoColor=white" alt="PyTorch"></a>
     <a href="https://developer.nvidia.com/cuda-toolkit"><img src="https://img.shields.io/badge/CUDA-P100_and_newer-76B900.svg?logo=nvidia&logoColor=white" alt="CUDA"></a>
@@ -34,8 +35,8 @@ by approximating **Q** with its top-*r* eigenvectors and enumerating a polynomia
 - **No tensor cores required** — runs on any CUDA GPU from Pascal (2016) onward, including PowerPC systems
 - **Theoretical guarantees** — multiplicative approximation ratio for perturbed low-rank matrices (Theorems 4.1–4.2)
 - **Multiple GPU paths** — Ray-based single-node solver and Ray-free `worker.py` for cross-machine distribution
-- **Rank-1 at extreme scale** — incremental scoring solves million-node graphs in 70 minutes on a single CPU
-- **Hybrid solver** — rank-1 warm-start + greedy local search finds better cuts than either method alone
+- **Rank-1 at extreme scale** — incremental scoring solves million-node graphs on a single CPU; 2-eigenvector complex rounding for K=3
+- **Hybrid solver** — rank-1 warm-start + greedy local search beats greedy on 100% of 45 tested instances (n=10K to 1M)
 - **Baseline suite** — incremental greedy, simulated annealing, tabu search, SDP (cvxpy) for fair comparison
 
 ## 🚀 Quick Start
@@ -174,11 +175,24 @@ No tensor cores, BF16, or Triton support required. The algorithm uses standard F
 
 ### Rank-1 at Extreme Scale
 
-| n | Naive (O(n²)) | Incremental (O(n·d)) | Speedup |
-|---|---|---|---|
-| 100,000 | 12 min | **41s** | 17× |
-| 500,000 | 5.6 hrs | **19 min** | 17× |
-| 1,000,000 | — | **70 min** | — |
+| n | Sweep Time | Total (incl. eigsh) |
+|---|---|---|
+| 10,000 | 0.12s | **0.3s** |
+| 100,000 | 1.3s | **7s** |
+| 500,000 | 6.2s | **2 min** |
+| 1,000,000 | 13s | **5 min** |
+
+### Hybrid (Rank-1 + Greedy) — 45 Instances
+
+| Graph Family | n range | Hybrid vs Greedy | Hybrid vs SA | Winner |
+|-------------|---------|-----------------|--------------|--------|
+| **Torus** | 10K–1M | **+3.9%** | **+0.5–2.1%** | Rank-1 / Hybrid |
+| **5-Regular** | 10K–1M | **+3.3%** | Beats SA at n ≥ 500K | Hybrid at scale |
+| **Erdős–Rényi** | 10K–100K | **+1.1%** | SA wins | SA |
+| **Delaunay** | 1K–524K | **+0.4–1.1%** | SA wins | SA |
+| **Road networks** | 1M+ | **+0.3–0.8%** | SA wins | SA |
+
+Hybrid beats greedy on **100%** of instances (45/45). On structured graphs, rank-1 alone is the best method.
 
 ## 📝 Citation
 
@@ -196,6 +210,7 @@ No tensor cores, BF16, or Triton support required. The algorithm uses standard F
 
 - 📘 [Exploiting Low-Rank Structure in Max-K-Cut Problems](https://akyrillidis.github.io/explore-quantum/MaxKCut.html) — Algorithm overview, theory, and benchmark results
 - 🖥️ [What Can 15 Obsolete GPUs Do for Combinatorial Optimization?](https://akyrillidis.github.io/explore-quantum/LowRankMaxCut_GPU.html) — GPU implementation, scaling experiments, and interactive visualizations
+- 🧱 [Rank-1 as a Building Block for Million-Node Max-3-Cut](https://akyrillidis.github.io/explore-quantum/LowRankMaxCut_Rank1.html) — Incremental scoring, hybrid warm-starts, extreme-scale experiments
 
 ## 👥 Authors
 
