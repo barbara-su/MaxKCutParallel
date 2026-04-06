@@ -7,6 +7,7 @@
     <a href="https://arxiv.org/abs/2602.20376"><img src="https://img.shields.io/badge/arXiv-2602.20376-b31b1b.svg" alt="arXiv"></a>
     <a href="https://akyrillidis.github.io/explore-quantum/MaxKCut.html"><img src="https://img.shields.io/badge/Blog-Max--K--Cut-blue.svg" alt="Blog 1"></a>
     <a href="https://akyrillidis.github.io/explore-quantum/LowRankMaxCut_GPU.html"><img src="https://img.shields.io/badge/Blog-15_Obsolete_GPUs-purple.svg" alt="Blog 2"></a>
+    <a href="https://akyrillidis.github.io/explore-quantum/LowRankMaxCut_Rank1.html"><img src="https://img.shields.io/badge/Blog-Rank--1_at_Scale-green.svg" alt="Blog 3"></a>
     <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.8+-3776AB.svg?logo=python&logoColor=white" alt="Python"></a>
     <a href="https://pytorch.org/"><img src="https://img.shields.io/badge/PyTorch-1.12+-EE4C2C.svg?logo=pytorch&logoColor=white" alt="PyTorch"></a>
     <a href="https://developer.nvidia.com/cuda-toolkit"><img src="https://img.shields.io/badge/CUDA-P100_and_newer-76B900.svg?logo=nvidia&logoColor=white" alt="CUDA"></a>
@@ -34,6 +35,9 @@ by approximating **Q** with its top-*r* eigenvectors and enumerating a polynomia
 - **No tensor cores required** — runs on any CUDA GPU from Pascal (2016) onward, including PowerPC systems
 - **Theoretical guarantees** — multiplicative approximation ratio for perturbed low-rank matrices (Theorems 4.1–4.2)
 - **Multiple GPU paths** — Ray-based single-node solver and Ray-free `worker.py` for cross-machine distribution
+- **Rank-1 at extreme scale** — incremental scoring solves million-node graphs on a single CPU; 2-eigenvector complex rounding for K=3
+- **Hybrid solver** — rank-1 warm-start + greedy local search beats greedy on 100% of 45 tested instances (n=10K to 1M)
+- **Baseline suite** — incremental greedy, simulated annealing, tabu search, SDP (cvxpy) for fair comparison
 
 ## 🚀 Quick Start
 
@@ -89,6 +93,26 @@ python src/graph_generators/gen_torus.py --n 500 --rank 2
 python src/graph_generators/gen_all_instances.py --base_dir instances/ --sizes 250,500,1000
 ```
 
+### Load Real-World Graphs
+
+```bash
+# Download and process Delaunay meshes from SuiteSparse
+python src/graph_generators/gen_from_mtx.py --datasets delaunay_n13,delaunay_n16 --data_dir realworld_data/
+
+# List available datasets
+python src/graph_generators/gen_from_mtx.py --list
+```
+
+### Rank-1 with Incremental Scoring + Hybrid
+
+```bash
+# Rank-1 alone (O(n·degree), scales to n=1M)
+python src/hybrid.py --q_path data/Q.npy --v_path data/V.npy --K 3
+
+# Hybrid: Rank-1 warm-start + Greedy local search
+python src/hybrid.py --q_path data/Q.npy --v_path data/V.npy --K 3 --greedy_seeds 0,1,2
+```
+
 ### Run Baselines
 
 ```bash
@@ -101,14 +125,22 @@ python src/baselines.py --q_path data/Q.npy --K 3 --methods random,greedy,sdp
 ├── src/
 │   ├── parallel_rank_r_dir_gpu_fullgpu.py   # Main GPU solver (Ray, rank-r recursive)
 │   ├── parallel_rank_1_gpu.py               # GPU rank-1 solver
+│   ├── hybrid.py                            # Rank-1 incremental + hybrid warm-start solver
 │   ├── worker.py                            # Ray-free multi-GPU worker
 │   ├── coordinator.py                       # SSH-based cross-machine orchestrator
-│   ├── baselines.py                         # SDP, Greedy, Random baselines
+│   ├── baselines.py                         # Greedy, SA, Tabu, SDP, Random (all incremental)
 │   ├── utils.py                             # Core math: V_tilde, intersections, scoring
 │   ├── graph_generators/                    # Graph instance generators
+│   │   ├── gen_from_mtx.py                  # Load SuiteSparse/SNAP real-world graphs
+│   │   ├── gen_all_instances.py             # Batch synthetic generator with diagnostics
+│   │   └── ...                              # ER, regular, SBM, torus generators
 │   └── post_process/                        # Result aggregation scripts
 ├── experiments/
 │   ├── multi_node_rank_r_dir_gpu_fullgpu.sh # SLURM launch script
+│   ├── bench_incremental.py                 # Incremental scoring benchmark (n=10K to 1M)
+│   ├── run_extreme_scale.py                 # Extreme-scale comparison (all methods)
+│   ├── run_realworld_experiments.py          # Real-world graph experiments
+│   ├── run_hybrid_extreme.py                # Hybrid vs Greedy at extreme scale
 │   └── generate_graphs/                     # Graph generation shell scripts
 ├── gset/                                    # GSet benchmark graphs (G1–G81)
 ├── results/                                 # Precomputed results (H200, GSet)
@@ -141,6 +173,27 @@ No tensor cores, BF16, or Triton support required. The algorithm uses standard F
 | **5-Regular** | Beats at n ≥ 1000 | Comparable | 1.5–3× faster than SDP |
 | **SBM** | Comparable | Greedy wins | Faster than SDP |
 
+### Rank-1 at Extreme Scale
+
+| n | Sweep Time | Total (incl. eigsh) |
+|---|---|---|
+| 10,000 | 0.12s | **0.3s** |
+| 100,000 | 1.3s | **7s** |
+| 500,000 | 6.2s | **2 min** |
+| 1,000,000 | 13s | **5 min** |
+
+### Hybrid (Rank-1 + Greedy) — 45 Instances
+
+| Graph Family | n range | Hybrid vs Greedy | Hybrid vs SA | Winner |
+|-------------|---------|-----------------|--------------|--------|
+| **Torus** | 10K–1M | **+3.9%** | **+0.5–2.1%** | Rank-1 / Hybrid |
+| **5-Regular** | 10K–1M | **+3.3%** | Beats SA at n ≥ 500K | Hybrid at scale |
+| **Erdős–Rényi** | 10K–100K | **+1.1%** | SA wins | SA |
+| **Delaunay** | 1K–524K | **+0.4–1.1%** | SA wins | SA |
+| **Road networks** | 1M+ | **+0.3–0.8%** | SA wins | SA |
+
+Hybrid beats greedy on **100%** of instances (45/45). On structured graphs, rank-1 alone is the best method.
+
 ## 📝 Citation
 
 ```bibtex
@@ -157,6 +210,7 @@ No tensor cores, BF16, or Triton support required. The algorithm uses standard F
 
 - 📘 [Exploiting Low-Rank Structure in Max-K-Cut Problems](https://akyrillidis.github.io/explore-quantum/MaxKCut.html) — Algorithm overview, theory, and benchmark results
 - 🖥️ [What Can 15 Obsolete GPUs Do for Combinatorial Optimization?](https://akyrillidis.github.io/explore-quantum/LowRankMaxCut_GPU.html) — GPU implementation, scaling experiments, and interactive visualizations
+- 🧱 [Rank-1 as a Building Block for Million-Node Max-3-Cut](https://akyrillidis.github.io/explore-quantum/LowRankMaxCut_Rank1.html) — Incremental scoring, hybrid warm-starts, extreme-scale experiments
 
 ## 👥 Authors
 

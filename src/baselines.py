@@ -54,7 +54,7 @@ def random_cut(Q, K=3, num_trials=None, seed=42):
     return float(best_score), best_z, elapsed
 
 
-def greedy_cut(Q, K=3, seed=42):
+def greedy_cut(Q, K=3, seed=42, init_k=None):
     """Greedy Max-K-Cut: iteratively assign each node to the best partition.
 
     Repeatedly scans all nodes; for each node, tries all K assignments
@@ -63,9 +63,11 @@ def greedy_cut(Q, K=3, seed=42):
     Args:
         Q: (n, n) real Laplacian
         K: number of partitions
-        seed: random seed for initial assignment
+        seed: random seed for initial assignment (used if init_k is None)
+        init_k: optional initial partition vector (int array, values 0..K-1).
+                 If provided, warm-starts from this assignment instead of random.
     Returns:
-        best_score, best_z, elapsed_seconds
+        best_score, best_z, elapsed_seconds, iterations
     """
     n = Q.shape[0]
     rng = np.random.RandomState(seed)
@@ -73,8 +75,11 @@ def greedy_cut(Q, K=3, seed=42):
 
     t0 = time.time()
 
-    # Random initial assignment
-    k = rng.randint(0, K, size=n)
+    # Initialize: warm-start or random
+    if init_k is not None:
+        k = np.asarray(init_k, dtype=int).copy() % K
+    else:
+        k = rng.randint(0, K, size=n)
     z = roots[k]
     best_score = score_cut(Q, z, K)
 
@@ -108,7 +113,7 @@ def greedy_cut(Q, K=3, seed=42):
                 z[i] = roots[current_k]
 
     elapsed = time.time() - t0
-    return float(best_score), z.copy(), elapsed
+    return float(best_score), z.copy(), elapsed, iterations
 
 
 def sdp_max3cut(Q, K=3, num_rounds=100, seed=42):
@@ -225,6 +230,364 @@ def sdp_max3cut(Q, K=3, num_rounds=100, seed=42):
         "num_rounds": num_rounds,
     }
     return float(best_score), best_z, elapsed, sdp_info
+
+
+def _sparse_update_Qz(Q_csc, Qz, idx, dz):
+    """Update Qz += Q[:, idx] * dz using sparse index-based access. O(degree)."""
+    start = Q_csc.indptr[idx]
+    end = Q_csc.indptr[idx + 1]
+    rows = Q_csc.indices[start:end]
+    vals = Q_csc.data[start:end]
+    Qz[rows] += vals * dz
+
+
+def _incremental_delta_fast(Qz, Q_diag, idx, old_z, new_z):
+    """Compute score change when z[idx] flips. O(1).
+
+    Δ = 2·Re(conj(dz)·Qz[idx]) + |dz|²·Q[idx,idx]
+    """
+    dz = new_z - old_z
+    return 2 * np.real(np.conj(dz) * Qz[idx]) + np.abs(dz)**2 * Q_diag[idx]
+
+
+def _incremental_delta(Q, Qz, z, idx, old_z, new_z, is_sparse=False):
+    """Legacy wrapper. Compute score change when z[idx] flips."""
+    dz = new_z - old_z
+    Q_ii = Q[idx, idx]
+    delta = 2 * np.real(np.conj(dz) * Qz[idx]) + np.abs(dz)**2 * Q_ii
+    return delta
+
+
+def _update_Qz(Q, Qz, idx, dz, is_sparse=False):
+    """Legacy wrapper. Update Qz after z[idx] changes by dz."""
+    from scipy import sparse
+    if is_sparse:
+        if sparse.isspmatrix_csc(Q):
+            col = np.asarray(Q[:, idx].toarray()).flatten()
+        else:
+            col = np.asarray(Q.tocsc()[:, idx].toarray()).flatten()
+        Qz += col * dz
+    else:
+        Qz += Q[:, idx] * dz
+    return Qz
+
+
+def greedy_cut_incremental(Q, K=3, seed=42, init_k=None, max_time=None, max_iters=None):
+    """Greedy Max-K-Cut with vectorized incremental scoring.
+
+    For each iteration, vectorizes the "best flip" computation across all nodes
+    using numpy operations. Only the committed flips do sparse column access.
+
+    Args:
+        Q: (n, n) matrix (dense or scipy.sparse)
+        K: number of partitions
+        seed: random seed
+        init_k: optional warm-start partition vector
+        max_time: wall-clock time limit in seconds (None = no limit)
+        max_iters: max greedy passes (None = until convergence)
+    Returns:
+        best_score, best_z, elapsed_seconds, iterations
+    """
+    from scipy import sparse
+    is_sparse = sparse.issparse(Q)
+
+    n = Q.shape[0]
+    rng = np.random.RandomState(seed)
+    roots = np.exp(2j * np.pi * np.arange(K) / K)
+
+    t0 = time.time()
+
+    if init_k is not None:
+        k = np.asarray(init_k, dtype=int).copy() % K
+    else:
+        k = rng.randint(0, K, size=n)
+    z = roots[k].astype(np.complex128)
+
+    # Precompute Qz and diagonal
+    if is_sparse:
+        Qz = np.asarray(Q.dot(z)).flatten()
+        Q_diag = np.asarray(Q.diagonal()).flatten()
+        Q_csc = Q.tocsc() if not sparse.isspmatrix_csc(Q) else Q
+    else:
+        Qz = Q @ z
+        Q_diag = np.diag(Q).copy()
+        Q_csc = None
+
+    score = np.real(z.conj() @ Qz)
+    best_score = score
+    best_k = k.copy()
+
+    improved = True
+    iterations = 0
+    while improved:
+        if max_time and (time.time() - t0) > max_time:
+            break
+        if max_iters and iterations >= max_iters:
+            break
+        improved = False
+        iterations += 1
+
+        # Vectorized: compute delta for all nodes × all trial assignments
+        # delta[i, trial_k] = 2·Re(conj(root_k - z[i]) · Qz[i]) + |root_k - z[i]|² · Q[i,i]
+        for trial_k in range(K):
+            new_z_all = roots[trial_k]
+            dz_all = new_z_all - z  # (n,)
+            delta_all = 2 * np.real(np.conj(dz_all) * Qz) + np.abs(dz_all)**2 * Q_diag
+
+            # Mask: only consider nodes where trial_k != current k
+            mask = (k != trial_k)
+            delta_all[~mask] = -np.inf
+
+            if trial_k == 0:
+                best_delta = delta_all.copy()
+                best_trial = np.full(n, trial_k, dtype=int)
+            else:
+                better = delta_all > best_delta
+                best_delta[better] = delta_all[better]
+                best_trial[better] = trial_k
+
+        # Find nodes with positive improvement
+        improving = best_delta > 1e-10
+        if not np.any(improving):
+            break
+
+        # Apply all improving flips (greedy: apply in order for correctness)
+        # For speed, apply all at once (parallel greedy variant)
+        flip_indices = np.where(improving)[0]
+        for i in flip_indices:
+            if max_time and (time.time() - t0) > max_time:
+                break
+            new_k = best_trial[i]
+            new_z = roots[new_k]
+            old_z = z[i]
+            dz = new_z - old_z
+
+            # Recompute delta with current Qz (may have changed from prior flips this pass)
+            delta = 2 * np.real(np.conj(dz) * Qz[i]) + np.abs(dz)**2 * Q_diag[i]
+            if delta <= 0:
+                continue
+
+            # Commit flip — O(degree) sparse update
+            if Q_csc is not None:
+                _sparse_update_Qz(Q_csc, Qz, i, dz)
+            else:
+                Qz += Q[:, i] * dz
+            z[i] = new_z
+            k[i] = new_k
+            score += delta
+            improved = True
+
+        if score > best_score:
+            best_score = score
+            best_k = k.copy()
+
+    elapsed = time.time() - t0
+    best_z = roots[best_k]
+    return float(best_score), best_z, elapsed, iterations
+
+
+def sa_cut(Q, K=3, seed=42, init_k=None, max_iters=None, max_time=None,
+           T_init=None, cooling=0.9999):
+    """Simulated Annealing for Max-K-Cut with incremental scoring.
+
+    Random single-node flips with Metropolis acceptance criterion.
+    Uses O(degree) incremental score updates.
+
+    Args:
+        Q: (n, n) matrix (dense or scipy.sparse)
+        K: number of partitions
+        seed: random seed
+        init_k: optional warm-start partition vector
+        max_iters: max number of flip attempts (default: 10*n)
+        max_time: wall-clock time limit in seconds
+        T_init: initial temperature (default: auto from avg edge weight)
+        cooling: geometric cooling factor per iteration
+    Returns:
+        best_score, best_z, elapsed_seconds, accepted_moves
+    """
+    from scipy import sparse
+    is_sparse = sparse.issparse(Q)
+
+    n = Q.shape[0]
+    rng = np.random.RandomState(seed)
+    roots = np.exp(2j * np.pi * np.arange(K) / K)
+
+    if max_iters is None:
+        max_iters = 10 * n
+
+    t0 = time.time()
+
+    if init_k is not None:
+        k = np.asarray(init_k, dtype=int).copy() % K
+    else:
+        k = rng.randint(0, K, size=n)
+    z = roots[k].astype(np.complex128)
+
+    if is_sparse:
+        Qz = np.asarray(Q.dot(z)).flatten()
+        Q_csc = Q.tocsc() if not sparse.isspmatrix_csc(Q) else Q
+    else:
+        Qz = Q @ z
+        Q_csc = None
+
+    score = np.real(z.conj() @ Qz)
+    best_score = score
+    best_k = k.copy()
+
+    # Auto temperature: calibrate so initial acceptance rate ~50% for typical moves.
+    # A single-node flip on a graph with degree d changes score by O(d).
+    # For K=3 roots of unity, |dz| ~ 1.7, so typical |delta| ~ 2*d*1.7 ~ 3.4*d.
+    # Setting T_init ~ 2*avg_degree gives ~50% acceptance for typical worsening moves.
+    if T_init is None:
+        if is_sparse:
+            avg_degree = Q.nnz / n if n > 0 else 5.0
+        else:
+            avg_degree = np.count_nonzero(Q) / n if n > 0 else 5.0
+        T_init = max(2.0 * avg_degree, 1.0)
+
+    T = T_init
+    accepted = 0
+
+    for it in range(max_iters):
+        if max_time and it % 1000 == 0 and (time.time() - t0) > max_time:
+            break
+
+        # Random node and random new assignment
+        i = rng.randint(n)
+        old_k = k[i]
+        new_k = rng.randint(K - 1)
+        if new_k >= old_k:
+            new_k += 1
+        old_z = z[i]
+        new_z = roots[new_k]
+
+        delta = _incremental_delta(Q, Qz, z, i, old_z, new_z, is_sparse)
+
+        # Metropolis criterion
+        if delta > 0 or (T > 0 and rng.random() < np.exp(min(delta / T, 0))):
+            dz = new_z - old_z
+            if Q_csc is not None:
+                _sparse_update_Qz(Q_csc, Qz, i, dz)
+            else:
+                Qz += Q[:, i] * dz
+            z[i] = new_z
+            k[i] = new_k
+            score += delta
+            accepted += 1
+
+            if score > best_score:
+                best_score = score
+                best_k = k.copy()
+
+        T *= cooling
+
+    elapsed = time.time() - t0
+    best_z = roots[best_k]
+    return float(best_score), best_z, elapsed, accepted
+
+
+def tabu_cut(Q, K=3, seed=42, init_k=None, max_iters=None, max_time=None,
+             tabu_tenure=None):
+    """Tabu Search for Max-K-Cut with incremental scoring.
+
+    Best-improvement local search with tabu list preventing recent flips.
+
+    Args:
+        Q: (n, n) matrix (dense or scipy.sparse)
+        K: number of partitions
+        seed: random seed
+        init_k: optional warm-start partition vector
+        max_iters: max number of iterations (default: 10*n)
+        max_time: wall-clock time limit in seconds
+        tabu_tenure: number of iterations a flip is forbidden (default: n//10)
+    Returns:
+        best_score, best_z, elapsed_seconds, iterations
+    """
+    from scipy import sparse
+    is_sparse = sparse.issparse(Q)
+
+    n = Q.shape[0]
+    rng = np.random.RandomState(seed)
+    roots = np.exp(2j * np.pi * np.arange(K) / K)
+
+    if max_iters is None:
+        max_iters = 10 * n
+    if tabu_tenure is None:
+        tabu_tenure = max(7, n // 10)
+
+    t0 = time.time()
+
+    if init_k is not None:
+        k = np.asarray(init_k, dtype=int).copy() % K
+    else:
+        k = rng.randint(0, K, size=n)
+    z = roots[k].astype(np.complex128)
+
+    if is_sparse:
+        Qz = np.asarray(Q.dot(z)).flatten()
+        Q_csc = Q.tocsc() if not sparse.isspmatrix_csc(Q) else Q
+    else:
+        Qz = Q @ z
+        Q_csc = None
+
+    score = np.real(z.conj() @ Qz)
+    best_score = score
+    best_k = k.copy()
+
+    # Tabu list: tabu[i] = iteration when node i becomes non-tabu
+    tabu = np.zeros(n, dtype=int)
+
+    for it in range(max_iters):
+        if max_time and it % 1000 == 0 and (time.time() - t0) > max_time:
+            break
+
+        # Find best non-tabu move (or aspiration: allow tabu if improves global best)
+        best_move_delta = -np.inf
+        best_move_i = -1
+        best_move_k = -1
+
+        for i in range(n):
+            old_z = z[i]
+            for trial_k in range(K):
+                if trial_k == k[i]:
+                    continue
+                new_z = roots[trial_k]
+                delta = _incremental_delta(Q, Qz, z, i, old_z, new_z, is_sparse)
+
+                # Accept if: not tabu, OR aspiration (improves best)
+                is_tabu = tabu[i] > it
+                aspiration = (score + delta) > best_score
+
+                if (not is_tabu or aspiration) and delta > best_move_delta:
+                    best_move_delta = delta
+                    best_move_i = i
+                    best_move_k = trial_k
+
+        if best_move_i < 0:
+            break  # No improving move found
+
+        # Apply best move
+        i = best_move_i
+        old_z = z[i]
+        new_z = roots[best_move_k]
+        dz = new_z - old_z
+
+        if Q_csc is not None:
+            _sparse_update_Qz(Q_csc, Qz, i, dz)
+        else:
+            Qz += Q[:, i] * dz
+        z[i] = new_z
+        k[i] = best_move_k
+        score += best_move_delta
+        tabu[i] = it + tabu_tenure
+
+        if score > best_score:
+            best_score = score
+            best_k = k.copy()
+
+    elapsed = time.time() - t0
+    best_z = roots[best_k]
+    return float(best_score), best_z, elapsed, it + 1
 
 
 if __name__ == "__main__":
