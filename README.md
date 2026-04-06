@@ -184,15 +184,16 @@ No tensor cores, BF16, or Triton support required. The algorithm uses standard F
 
 ### Hybrid (Rank-1 + Greedy) — 45 Instances
 
-| Graph Family | n range | Hybrid vs Greedy | Hybrid vs SA | Winner |
-|-------------|---------|-----------------|--------------|--------|
-| **Torus** | 10K–1M | **+3.9%** | **+0.5–2.1%** | Rank-1 / Hybrid |
-| **5-Regular** | 10K–1M | **+3.3%** | Beats SA at n ≥ 500K | Hybrid at scale |
-| **Erdős–Rényi** | 10K–100K | **+1.1%** | SA wins | SA |
-| **Delaunay** | 1K–524K | **+0.4–1.1%** | SA wins | SA |
-| **Road networks** | 1M+ | **+0.3–0.8%** | SA wins | SA |
+| Graph Family | n range | Hybrid vs Greedy | SA vs Hybrid | SA slowdown vs Hybrid |
+|-------------|---------|-----------------|-------------|----------------------|
+| **Torus** | 10K–1M | **+3.9%** | SA loses by 0.5–2.1% | 3–64× slower |
+| **5-Regular** | 10K–100K | **+3.3%** | SA wins by 0.9–1.1% | 26–53× slower |
+| **5-Regular** | 500K–1M | **+3.3%** | SA loses by 0.6–1.1% | 9× slower |
+| **Erdős–Rényi** | 10K–100K | **+1.1%** | SA wins by 2.1–2.4% | 71–84× slower |
+| **Delaunay** | 1K–524K | **+0.4–1.1%** | SA wins by 2.5–5.0% | 19–467× slower |
+| **Road networks** | 1M+ | **+0.3–0.8%** | SA wins by 0.9–1.2% | 6–9× slower |
 
-Hybrid beats greedy on **100%** of instances (45/45). On structured graphs, rank-1 alone is the best method.
+Hybrid beats greedy on **100%** of instances (45/45). On structured graphs (torus), rank-1 alone is the best method. Where SA wins on score, it requires 9–467× more wall-clock time than Hybrid.
 
 ## 📝 Citation
 
