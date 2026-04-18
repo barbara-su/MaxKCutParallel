@@ -590,6 +590,180 @@ def tabu_cut(Q, K=3, seed=42, init_k=None, max_iters=None, max_time=None,
     return float(best_score), best_z, elapsed, it + 1
 
 
+def dsatur_cut(Q, K=3, seed=42, improve=True, max_time=None):
+    """DSatur-inspired Max-K-Cut heuristic.
+
+    Two-phase algorithm inspired by Apte et al. (arXiv:2602.05956):
+    1. Construction: iteratively assign vertices by maximum saturation degree
+       (number of distinct labels among neighbors), breaking ties by total
+       incident edge weight. Each vertex gets the label maximizing immediate
+       cut edges.
+    2. Local improvement: 1-opt hill-climbing (flip any vertex whose relabel
+       strictly increases the global cut). Equivalent to greedy_cut_incremental.
+
+    Runtime: O(|E| log |V|) construction + O(r|E|) improvement.
+
+    Args:
+        Q: (n, n) matrix — Laplacian or weight matrix (dense or scipy.sparse).
+           For Laplacian L = D - A, edge weight w(u,v) = -L[u,v].
+        K: number of partitions
+        seed: random seed (unused currently, deterministic)
+        improve: if True, run local improvement phase
+        max_time: wall-clock time limit in seconds (None = no limit)
+    Returns:
+        best_score, best_k, elapsed_seconds, construction_score
+    """
+    import heapq
+    from scipy import sparse
+
+    t0 = time.time()
+    is_sparse = sparse.issparse(Q)
+
+    n = Q.shape[0]
+
+    # Build adjacency list from Q.
+    # For Laplacian L = D - A: edge weight w(u,v) = -L[u,v] for u != v.
+    # For general weight matrix: w(u,v) = Q[u,v].
+    # Detect Laplacian: row sums ≈ 0.
+    if is_sparse:
+        row_sums = np.asarray(Q.sum(axis=1)).ravel()
+        is_laplacian = np.max(np.abs(row_sums)) < 1e-8 * max(1.0, np.max(np.abs(Q.diagonal())))
+        coo = sparse.triu(Q, k=1).tocoo()
+        edge_rows = coo.row
+        edge_cols = coo.col
+        edge_vals = coo.data
+    else:
+        row_sums = Q.sum(axis=1)
+        is_laplacian = np.max(np.abs(row_sums)) < 1e-8 * max(1.0, np.max(np.abs(np.diag(Q))))
+        triu_idx = np.triu_indices(n, k=1)
+        edge_rows = triu_idx[0]
+        edge_cols = triu_idx[1]
+        edge_vals = Q[triu_idx]
+
+    # Build adjacency: list of (neighbor, weight) per vertex
+    adj = [[] for _ in range(n)]
+    for idx in range(len(edge_rows)):
+        u, v = int(edge_rows[idx]), int(edge_cols[idx])
+        w = float(edge_vals[idx])
+        if is_laplacian:
+            w = -w  # Laplacian off-diag = -weight
+        if abs(w) < 1e-15:
+            continue
+        adj[u].append((v, w))
+        adj[v].append((u, w))
+
+    # Total incident weight per vertex
+    tot_w = np.array([sum(abs(w) for _, w in adj[v]) for v in range(n)])
+
+    # Assignment and weighted label sums
+    assign = np.full(n, -1, dtype=np.int32)
+    wsum = np.zeros((n, K), dtype=np.float64)  # wsum[v, a] = sum of weights from v to neighbors labeled a
+
+    unassigned = set(range(n))
+    cnt = 0
+    node_cnt = {}
+
+    def prio(v):
+        sat = sum(1 for a in range(K) if wsum[v, a] > 0)
+        return (sat, tot_w[v])
+
+    # Initialize priority queue
+    heap = []
+    for v in range(n):
+        p = prio(v)
+        heapq.heappush(heap, (-p[0], -p[1], cnt, v))
+        node_cnt[v] = cnt
+        cnt += 1
+
+    # Phase 1: Construction
+    while unassigned:
+        if max_time and (time.time() - t0) > max_time:
+            # Assign remaining randomly
+            for v in list(unassigned):
+                assign[v] = 0
+                unassigned.discard(v)
+            break
+
+        # Pop highest-priority unassigned vertex
+        while heap:
+            _, _, c, v = heapq.heappop(heap)
+            if v in unassigned and c == node_cnt[v]:
+                break
+        else:
+            break
+
+        # Choose label maximizing cut: tot - wsum[v, a] is the weight of
+        # edges from v to neighbors NOT in partition a (= cut contribution)
+        tot = wsum[v].sum()
+        best_a = 0
+        best_gain = tot - wsum[v, 0]
+        for a in range(1, K):
+            g = tot - wsum[v, a]
+            if g > best_gain or (g == best_gain and wsum[v, a] < wsum[v, best_a]):
+                best_gain = g
+                best_a = a
+
+        assign[v] = best_a
+        unassigned.discard(v)
+
+        # Update neighbors
+        for u, w in adj[v]:
+            wsum[u, best_a] += w
+            if u in unassigned:
+                p = prio(u)
+                heapq.heappush(heap, (-p[0], -p[1], cnt, u))
+                node_cnt[u] = cnt
+                cnt += 1
+
+    # Compute construction score: sum of weights of cut edges
+    construction_score = 0.0
+    for v in range(n):
+        for u, w in adj[v]:
+            if v < u and assign[v] != assign[u]:
+                construction_score += w
+
+    # For K=3 with Laplacian, the z†Lz score = 3 * weighted_cut
+    if is_laplacian and K == 3:
+        construction_score *= 3.0
+
+    # Phase 2: Local improvement (1-opt hill climbing)
+    if improve:
+        improved = True
+        while improved:
+            if max_time and (time.time() - t0) > max_time:
+                break
+            improved = False
+            for v in range(n):
+                if not adj[v]:
+                    continue
+                cur = assign[v]
+                tw = sum(w for _, w in adj[v])
+                best_val = tw - wsum[v, cur]
+                best_a = cur
+                for a in range(K):
+                    if a != cur and tw - wsum[v, a] > best_val:
+                        best_val = tw - wsum[v, a]
+                        best_a = a
+                if best_a != cur:
+                    for u, w in adj[v]:
+                        wsum[u, cur] -= w
+                        wsum[u, best_a] += w
+                    assign[v] = best_a
+                    improved = True
+
+    # Final score
+    final_score = 0.0
+    for v in range(n):
+        for u, w in adj[v]:
+            if v < u and assign[v] != assign[u]:
+                final_score += w
+    if is_laplacian and K == 3:
+        final_score *= 3.0
+
+    elapsed = time.time() - t0
+    return float(final_score), assign.copy(), elapsed, float(construction_score)
+
+
 if __name__ == "__main__":
     import argparse
     import json

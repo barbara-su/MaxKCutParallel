@@ -9,6 +9,7 @@
     <a href="https://akyrillidis.github.io/explore-quantum/LowRankMaxCut_GPU.html"><img src="https://img.shields.io/badge/Blog-15_Obsolete_GPUs-purple.svg" alt="Blog 2"></a>
     <a href="https://akyrillidis.github.io/explore-quantum/LowRankMaxCut_Rank1.html"><img src="https://img.shields.io/badge/Blog-Rank--1_at_Scale-green.svg" alt="Blog 3"></a>
     <a href="https://akyrillidis.github.io/explore-quantum/LowRankMaxCut_RandR2.html"><img src="https://img.shields.io/badge/Blog-Randomized_Rank--2-orange.svg" alt="Blog 4"></a>
+    <a href="https://akyrillidis.github.io/explore-quantum/LowRankMaxCut_DSatur.html"><img src="https://img.shields.io/badge/Blog-Spectral_vs_Combinatorial-red.svg" alt="Blog 5"></a>
     <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.8+-3776AB.svg?logo=python&logoColor=white" alt="Python"></a>
     <a href="https://pytorch.org/"><img src="https://img.shields.io/badge/PyTorch-1.12+-EE4C2C.svg?logo=pytorch&logoColor=white" alt="PyTorch"></a>
     <a href="https://developer.nvidia.com/cuda-toolkit"><img src="https://img.shields.io/badge/CUDA-P100_and_newer-76B900.svg?logo=nvidia&logoColor=white" alt="CUDA"></a>
@@ -264,6 +265,7 @@ Hybrid beats greedy on **100%** of instances (45/45). On structured graphs (toru
 - 🖥️ [What Can 15 Obsolete GPUs Do for Combinatorial Optimization?](https://akyrillidis.github.io/explore-quantum/LowRankMaxCut_GPU.html) — GPU implementation, scaling experiments, and interactive visualizations
 - 🧱 [Rank-1 as a Building Block for Million-Node Max-3-Cut](https://akyrillidis.github.io/explore-quantum/LowRankMaxCut_Rank1.html) — Incremental scoring, hybrid warm-starts, extreme-scale experiments
 - 🎲 [Randomized Rank-2: When Two Eigenvectors Beat One](https://akyrillidis.github.io/explore-quantum/LowRankMaxCut_RandR2.html) — 3-phase pipeline beats SA on 6/12 graph families; constant sample complexity
+- 🔀 [Spectral vs. Combinatorial: Two Views of Graph Structure](https://akyrillidis.github.io/explore-quantum/LowRankMaxCut_DSatur.html) — DSatur + spectral ensemble beats SA on 11/13 families
 
 ## 👥 Authors
 
