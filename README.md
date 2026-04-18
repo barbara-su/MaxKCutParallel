@@ -8,6 +8,8 @@
     <a href="https://akyrillidis.github.io/explore-quantum/MaxKCut.html"><img src="https://img.shields.io/badge/Blog-Max--K--Cut-blue.svg" alt="Blog 1"></a>
     <a href="https://akyrillidis.github.io/explore-quantum/LowRankMaxCut_GPU.html"><img src="https://img.shields.io/badge/Blog-15_Obsolete_GPUs-purple.svg" alt="Blog 2"></a>
     <a href="https://akyrillidis.github.io/explore-quantum/LowRankMaxCut_Rank1.html"><img src="https://img.shields.io/badge/Blog-Rank--1_at_Scale-green.svg" alt="Blog 3"></a>
+    <a href="https://akyrillidis.github.io/explore-quantum/LowRankMaxCut_RandR2.html"><img src="https://img.shields.io/badge/Blog-Randomized_Rank--2-orange.svg" alt="Blog 4"></a>
+    <a href="https://akyrillidis.github.io/explore-quantum/LowRankMaxCut_DSatur.html"><img src="https://img.shields.io/badge/Blog-Spectral_vs_Combinatorial-red.svg" alt="Blog 5"></a>
     <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.8+-3776AB.svg?logo=python&logoColor=white" alt="Python"></a>
     <a href="https://pytorch.org/"><img src="https://img.shields.io/badge/PyTorch-1.12+-EE4C2C.svg?logo=pytorch&logoColor=white" alt="PyTorch"></a>
     <a href="https://developer.nvidia.com/cuda-toolkit"><img src="https://img.shields.io/badge/CUDA-P100_and_newer-76B900.svg?logo=nvidia&logoColor=white" alt="CUDA"></a>
@@ -37,6 +39,8 @@ by approximating **Q** with its top-*r* eigenvectors and enumerating a polynomia
 - **Multiple GPU paths** — Ray-based single-node solver and Ray-free `worker.py` for cross-machine distribution
 - **Rank-1 at extreme scale** — incremental scoring solves million-node graphs on a single CPU; 2-eigenvector complex rounding for K=3
 - **Hybrid solver** — rank-1 warm-start + greedy local search beats greedy on 100% of 45 tested instances (n=10K to 1M)
+- **Randomized rank-2 (R2G)** — 3-phase pipeline (eigensolve → rank-2 sampling → greedy) beats SA on 6/12 graph families; constant sample complexity in n
+- **CPU sparse solver** — scales rank-2 to n=1.4M on commodity CPUs via Laplacian fast-path scoring
 - **Baseline suite** — incremental greedy, simulated annealing, tabu search, SDP (cvxpy) for fair comparison
 
 ## 🚀 Quick Start
@@ -129,6 +133,9 @@ python src/baselines.py --q_path data/Q.npy --K 3 --methods random,greedy,sdp
 │   ├── worker.py                            # Ray-free multi-GPU worker
 │   ├── coordinator.py                       # SSH-based cross-machine orchestrator
 │   ├── baselines.py                         # Greedy, SA, Tabu, SDP, Random (all incremental)
+│   ├── randomized_rank_r_gpu.py             # GPU randomized rank-r (~820K cand/s per P100)
+│   ├── randomized_rank_r_cpu_sparse.py      # CPU sparse solver for n≥50K (Laplacian fast-path)
+│   ├── randomized_rank_r.py                 # CPU reference randomized solver
 │   ├── utils.py                             # Core math: V_tilde, intersections, scoring
 │   ├── graph_generators/                    # Graph instance generators
 │   │   ├── gen_from_mtx.py                  # Load SuiteSparse/SNAP real-world graphs
@@ -159,6 +166,51 @@ python src/baselines.py --q_path data/Q.npy --K 3 --methods random,greedy,sdp
 | 8 × H200 (80 GB) | n ≈ 3,600 | Single-node, 18.3 hours |
 
 No tensor cores, BF16, or Triton support required. The algorithm uses standard FP32 GEMM and `torch.linalg.solve`.
+
+### Randomized Rank-2 + Greedy (R2G)
+
+```bash
+# GPU randomized rank-2 (for n ≤ 10K, requires GPU)
+python src/randomized_rank_r_gpu.py \
+    --q_path data/Q.npy --v_path data/V.npy \
+    --rank 2 --K 3 --max_samples 1000000 --num_gpus 4 --seed 0 \
+    --out result.json
+
+# CPU sparse randomized rank-2 (for n ≥ 50K, no GPU needed)
+python src/randomized_rank_r_cpu_sparse.py \
+    --q_path data/L.npz --v_path data/V.npy \
+    --rank 2 --K 3 --max_samples 1000000 --num_workers 16 --seed 0 \
+    --out result.json
+
+# Then warm-start greedy from the rank-2 partition:
+python -c "
+import json, numpy as np
+from scipy import sparse
+from baselines import greedy_cut_incremental
+L = sparse.load_npz('data/L.npz')
+r2 = json.load(open('result.json'))
+score, z, t, iters = greedy_cut_incremental(L, K=3, init_k=r2['best_k'])
+print(f'R2G score: {score}')
+"
+```
+
+The CPU sparse solver auto-detects Laplacian structure and uses the fast-path formula `z†Lz = 3·|cut edges|` for K=3. Memory-aware batch sizing caps the projection buffer at ~1 GB per worker.
+
+### R2G Results — Beats SA on 6/12 Graph Families
+
+| Graph Family | R2G vs SA | R2G vs Hybrid | Graph Type |
+|-------------|----------|--------------|------------|
+| **soc-Epinions1** | **+1.96%** | +1.25% | Social trust |
+| **web-Google** | **+1.90%** | +0.08% | Web graph |
+| **Torus** | **+1.58%** | tied | Structured |
+| **email-Enron** | **+0.19%** | +0.00% | Social |
+| **amazon0601** | **+0.12%** | +0.16% | Product |
+| **loc-Brightkite** | **+0.06%** | +0.26% | Location-social |
+| com-DBLP | −0.10% | +0.45% | Collaboration |
+| Road networks | −0.64% | +0.10% | Spatial |
+| Delaunay meshes | −2.05% | +0.37% | Geometric |
+| Erdős–Rényi | −2.16% | +0.14% | Random |
+| Regular (5-reg) | −4.15% | −3.21% | Synthetic |
 
 ## 📊 Results Highlights
 
@@ -212,6 +264,8 @@ Hybrid beats greedy on **100%** of instances (45/45). On structured graphs (toru
 - 📘 [Exploiting Low-Rank Structure in Max-K-Cut Problems](https://akyrillidis.github.io/explore-quantum/MaxKCut.html) — Algorithm overview, theory, and benchmark results
 - 🖥️ [What Can 15 Obsolete GPUs Do for Combinatorial Optimization?](https://akyrillidis.github.io/explore-quantum/LowRankMaxCut_GPU.html) — GPU implementation, scaling experiments, and interactive visualizations
 - 🧱 [Rank-1 as a Building Block for Million-Node Max-3-Cut](https://akyrillidis.github.io/explore-quantum/LowRankMaxCut_Rank1.html) — Incremental scoring, hybrid warm-starts, extreme-scale experiments
+- 🎲 [Randomized Rank-2: When Two Eigenvectors Beat One](https://akyrillidis.github.io/explore-quantum/LowRankMaxCut_RandR2.html) — 3-phase pipeline beats SA on 6/12 graph families; constant sample complexity
+- 🔀 [Spectral vs. Combinatorial: Two Views of Graph Structure](https://akyrillidis.github.io/explore-quantum/LowRankMaxCut_DSatur.html) — DSatur + spectral ensemble beats SA on 11/13 families
 
 ## 👥 Authors
 
